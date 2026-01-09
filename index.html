@@ -1529,7 +1529,58 @@
             
             // Adicionar evento para atualizar status do pagamento quando entrada for alterada
             document.getElementById('down-payment').addEventListener('input', updatePaymentStatus);
+            
+            // Adicionar eventos de teclado para navegação com Enter
+            setupEnterNavigation();
         });
+        
+        // Função para configurar navegação com Enter
+        function setupEnterNavigation() {
+            // Configurar navegação com Enter nos campos de adicionar item
+            document.getElementById('new-item-desc').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('new-item-qty').focus();
+                }
+            });
+            
+            document.getElementById('new-item-qty').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('new-item-price').focus();
+                }
+            });
+            
+            document.getElementById('new-item-price').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('new-item-discount').focus();
+                }
+            });
+            
+            document.getElementById('new-item-discount').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addOrderItemFromForm();
+                }
+            });
+            
+            // Configurar Enter para o campo de busca de cliente
+            document.getElementById('search-client-order').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchClientForOrder();
+                }
+            });
+            
+            // Configurar Enter para salvar cliente
+            document.getElementById('client-form').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && e.target.type !== 'textarea' && !e.target.type.includes('select')) {
+                    e.preventDefault();
+                    saveClient();
+                }
+            });
+        }
         
         // Função para salvar no Firebase (Antiga saveToLocalStorage)
         function saveToLocalStorage() {
@@ -2510,6 +2561,7 @@
             document.getElementById('order-items').style.display = 'block';
         }
         
+        // CORREÇÃO PRINCIPAL: Função para adicionar item com desconto aplicado corretamente
         function addOrderItemFromForm() {
             const description = document.getElementById('new-item-desc').value.trim();
             const quantity = parseInt(document.getElementById('new-item-qty').value) || 1;
@@ -2527,27 +2579,33 @@
                 return;
             }
             
-            // Calcular desconto
+            // Calcular desconto CORRETAMENTE
             let discountValue = 0;
             let discountText = '';
+            let itemPrice = price; // Preço original
             
             if (discount > 0) {
                 if (discountType === 'percentual') {
+                    // Desconto percentual: calcula o valor do desconto
                     discountValue = (price * discount) / 100;
                     discountText = `Desconto: ${discount}% (R$ ${discountValue.toFixed(2)})`;
                 } else {
+                    // Desconto em valor fixo
                     discountValue = discount;
                     discountText = `Desconto: R$ ${discountValue.toFixed(2)}`;
                 }
                 
+                // Verificar se o desconto não é maior que o preço
                 if (discountValue > price) {
                     alert('O desconto não pode ser maior que o preço do item!');
                     return;
                 }
+                
+                // Aplicar o desconto ao preço
+                itemPrice = price - discountValue;
             }
             
             const itemId = Date.now();
-            const itemPrice = price - discountValue;
             const total = quantity * itemPrice;
             
             const itemsList = document.getElementById('order-items-list');
@@ -2570,7 +2628,7 @@
                     </div>
                     <input type="hidden" id="desc-${itemId}" value="${description}">
                     <input type="hidden" id="qty-${itemId}" value="${quantity}">
-                    <input type="hidden" id="price-${itemId}" value="${price}">
+                    <input type="hidden" id="price-${itemId}" value="${itemPrice}"> <!-- AQUI: usar itemPrice (com desconto) -->
                     <input type="hidden" id="discount-${itemId}" value="${discountValue}">
                     <input type="hidden" id="discount-type-${itemId}" value="${discountType}">
                     <input type="hidden" id="original-price-${itemId}" value="${price}">
@@ -2579,11 +2637,14 @@
             
             itemsList.innerHTML += itemHtml;
             
+            // Limpar campos e focar no próximo
             document.getElementById('new-item-desc').value = '';
             document.getElementById('new-item-qty').value = '1';
             document.getElementById('new-item-price').value = '';
             document.getElementById('new-item-discount').value = '0';
             document.getElementById('new-item-desc').focus();
+            
+            // Atualizar total
             updateOrderTotal();
         }
         
@@ -2598,8 +2659,9 @@
                 const quantity = parseFloat(document.getElementById('qty-' + id).value) || 0;
                 const price = parseFloat(document.getElementById('price-' + id).value) || 0;
                 const discount = parseFloat(document.getElementById('discount-' + id).value) || 0;
+                const originalPrice = parseFloat(document.getElementById('original-price-' + id).value) || 0;
                 
-                originalTotal += quantity * (parseFloat(document.getElementById('original-price-' + id).value) || 0);
+                originalTotal += quantity * originalPrice;
                 totalDiscount += discount * quantity;
                 total += quantity * price;
             });
@@ -2607,7 +2669,7 @@
             orderTotal = total;
             document.getElementById('order-total').textContent = total.toFixed(2);
             
-            // CORREÇÃO AQUI: Limpar e atualizar o conteúdo do total-discount em vez de adicionar
+            // Atualizar display do desconto total
             const totalDiscountElement = document.getElementById('total-discount');
             if (totalDiscount > 0) {
                 totalDiscountElement.innerHTML = `
@@ -2661,6 +2723,7 @@
             
             let total = 0;
             let totalDiscount = 0;
+            let originalTotal = 0;
             itemDivs.forEach(div => {
                 const id = div.id.replace('item-', '');
                 const quantity = parseFloat(document.getElementById('qty-' + id).value) || 1;
@@ -2683,6 +2746,7 @@
                     });
                     total += itemTotal;
                     totalDiscount += discount * quantity;
+                    originalTotal += quantity * originalPrice;
                 }
             });
             
@@ -2723,6 +2787,7 @@
                 items: items,
                 total: total,
                 totalDiscount: totalDiscount,
+                originalTotal: originalTotal, // Adicionar total original para referência
                 payment: payment,
                 downPayment: downPayment,
                 available: available,
@@ -3046,18 +3111,6 @@
             editingOrder.total = total;
             editingOrder.totalDiscount = totalDiscount;
             document.getElementById('edit-order-total').textContent = total.toFixed(2);
-            
-            // Atualizar display do desconto total
-            const totalDiscountDisplay = document.querySelector('.order-total .item-discount');
-            if (totalDiscount > 0) {
-                if (!totalDiscountDisplay) {
-                    document.querySelector('.order-total').innerHTML += `
-                        <div style="font-size: 0.9rem; color: #27ae60; margin-top: 5px;">
-                            Desconto total: R$ ${totalDiscount.toFixed(2)}
-                        </div>
-                    `;
-                }
-            }
         }
         
         function saveEditedOrder() {
@@ -3894,18 +3947,6 @@
         // Event listeners
         document.getElementById('search-clients').addEventListener('input', renderClientsList);
         document.getElementById('search-orders').addEventListener('input', renderOrdersList);
-        
-        document.getElementById('new-item-desc').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') addOrderItemFromForm();
-        });
-        
-        document.getElementById('new-item-price').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') addOrderItemFromForm();
-        });
-        
-        document.getElementById('new-item-discount').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') addOrderItemFromForm();
-        });
     </script>
 </body>
 </html>
