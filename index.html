@@ -181,7 +181,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .chart-title {
@@ -218,40 +218,8 @@
         }
 
         .chart-wrapper {
-            height: 300px;
+            height: 300px; /* Área reduzida conforme solicitado */
             position: relative;
-        }
-
-        /* Period Selector */
-        .period-selector {
-            margin-top: 10px;
-            margin-bottom: 15px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .period-btn {
-            padding: 6px 12px;
-            font-size: 13px;
-            border-radius: 6px;
-            border: none;
-            background-color: #f0f2f5;
-            color: #555;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .period-btn.active {
-            background-color: var(--souza-red);
-            color: white;
-        }
-
-        .period-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
         }
 
         /* Refresh Button */
@@ -809,11 +777,6 @@
                 width: 100%;
                 flex-wrap: wrap;
             }
-            
-            .period-selector {
-                flex-direction: column;
-                align-items: flex-start;
-            }
         }
         
         /* Stats */
@@ -876,30 +839,6 @@
             margin-bottom: 14px;
             flex-wrap: wrap;
         }
-        
-        /* Discount styles - ATUALIZADO */
-        .discount-controls {
-            display: flex;
-            gap: 5px;
-            margin-top: 5px;
-        }
-        
-        .discount-input {
-            flex: 3;
-            min-width: 120px;
-        }
-        
-        .discount-type {
-            flex: 1;
-            min-width: 60px;
-            max-width: 80px;
-        }
-        
-        .item-discount {
-            font-size: 0.8rem;
-            color: #27ae60;
-            margin-top: 3px;
-        }
     </style>
 </head>
 <body>
@@ -928,22 +867,22 @@
                 <div class="stat-card">
                     <h4>Clientes Ativos</h4>
                     <div class="stat-value" id="active-clients">0</div>
-                    <div class="stat-details" id="active-clients-details">Clientes com encomendas nos últimos 30 dias</div>
+                    <div class="stat-details">Clientes com encomendas nos últimos 30 dias</div>
                 </div>
                 <div class="stat-card">
                     <h4>Encomendas Hoje</h4>
                     <div class="stat-value" id="orders-today">0</div>
-                    <div class="stat-details" id="orders-today-details">Encomendas realizadas hoje</div>
+                    <div class="stat-details">Encomendas realizadas hoje</div>
                 </div>
                 <div class="stat-card">
                     <h4>Receita Total</h4>
                     <div class="stat-value" id="total-revenue">R$ 0,00</div>
-                    <div class="stat-details" id="total-revenue-details">Receita acumulada (30 dias)</div>
+                    <div class="stat-details">Receita acumulada (30 dias)</div>
                 </div>
                 <div class="stat-card">
                     <h4>Ticket Médio</h4>
                     <div class="stat-value" id="avg-ticket">R$ 0,00</div>
-                    <div class="stat-details" id="avg-ticket-details">Média por encomenda</div>
+                    <div class="stat-details">Média por encomenda</div>
                 </div>
             </div>
 
@@ -956,20 +895,6 @@
                         <button class="chart-btn" data-chart="revenue">Receita</button>
                     </div>
                 </div>
-                
-                <!-- Seletor de Período -->
-                <div class="period-selector">
-                    <div style="display: flex; gap: 5px;">
-                        <button class="period-btn" data-period="7">7 dias</button>
-                        <button class="period-btn active" data-period="30">30 dias</button>
-                        <button class="period-btn" data-period="90">90 dias</button>
-                        <button class="period-btn" data-period="365">1 ano</button>
-                    </div>
-                    <div style="font-size: 0.8rem; color: #666; margin-left: auto;">
-                        Período selecionado: <span id="period-display">30 dias</span>
-                    </div>
-                </div>
-                
                 <div class="chart-wrapper">
                     <canvas id="salesChart"></canvas>
                 </div>
@@ -1176,19 +1101,26 @@
                         </div>
                     </div>
                     
-                    <!-- Campo de Desconto AJUSTADO -->
+                    <!-- NOVOS CAMPOS DE DESCONTO -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Desconto</label>
-                            <div class="discount-controls">
-                                <input type="number" id="new-item-discount" step="0.01" placeholder="0.00" class="discount-input" value="0">
-                                <select id="new-item-discount-type" class="discount-type">
-                                    <option value="valor">R$</option>
-                                    <option value="percentual">%</option>
-                                </select>
-                            </div>
+                            <label>Tipo de Desconto</label>
+                            <select id="new-item-discount-type">
+                                <option value="none">Sem desconto</option>
+                                <option value="percent">%</option>
+                                <option value="fixed">R$</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor do Desconto</label>
+                            <input type="number" id="new-item-discount-value" step="0.01" placeholder="0.00" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor Final</label>
+                            <input type="number" id="new-item-final-price" step="0.01" placeholder="0.00" readonly style="background-color: #f8f9fa;">
                         </div>
                     </div>
+                    <!-- FIM DOS NOVOS CAMPOS -->
                     
                     <button class="btn btn-success btn-sm" onclick="addOrderItemFromForm()">
                         <i class="fas fa-plus"></i> Adicionar Item
@@ -1197,7 +1129,6 @@
                 
                 <div class="order-total" id="order-total-display">
                     Total: R$ <span id="order-total">0.00</span>
-                    <div id="total-discount" style="font-size: 0.9rem; color: #27ae60; margin-top: 5px;"></div>
                 </div>
                 
                 <div style="margin-top: 16px;">
@@ -1215,6 +1146,7 @@
                     </div>
                 </div>
                 
+                <!-- NOVOS CAMPOS ADICIONADOS -->
                 <div style="margin-top: 16px;">
                     <label>Valor de Entrada (opcional)</label>
                     <input type="number" id="down-payment" step="0.01" placeholder="0.00" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;" oninput="updatePaymentStatus()">
@@ -1231,6 +1163,7 @@
                         </label>
                     </div>
                 </div>
+                <!-- FIM DOS NOVOS CAMPOS -->
                 
                 <div class="button-group" style="margin-top: 22px;">
                     <button class="btn btn-success btn-sm" onclick="saveOrder()">
@@ -1446,7 +1379,7 @@
         const db = firebase.database();
 
         // Initialize system
-        let clients = [];
+        let clients = []; // Agora inicializa vazio e carrega do Firebase
         let selectedClientForOrder = null;
         let currentOrder = null;
         let orderTotal = 0;
@@ -1462,8 +1395,7 @@
         
         // Dashboard charts
         let salesChart = null;
-        let currentChartType = 'sales';
-        let currentPeriod = 30; // Padrão 30 dias
+        let currentChartType = 'sales'; // 'sales', 'clients', 'revenue'
         
         let pharmacyLogo = localStorage.getItem('souza-farma-logo');
         let pharmacyName = localStorage.getItem('souza-farma-name') || 'Souza Farma - Farmácia do Trabalhador';
@@ -1530,13 +1462,16 @@
             // Adicionar evento para atualizar status do pagamento quando entrada for alterada
             document.getElementById('down-payment').addEventListener('input', updatePaymentStatus);
             
-            // Adicionar eventos de teclado para navegação com Enter
+            // Configurar navegação com Enter nos campos do formulário de item
             setupEnterNavigation();
+            
+            // Configurar cálculo de desconto
+            setupDiscountCalculation();
         });
         
-        // Função para configurar navegação com Enter
+        // Configurar navegação com tecla Enter
         function setupEnterNavigation() {
-            // Configurar navegação com Enter nos campos de adicionar item
+            // Navegação no formulário de novo item
             document.getElementById('new-item-desc').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -1554,32 +1489,66 @@
             document.getElementById('new-item-price').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    document.getElementById('new-item-discount').focus();
+                    document.getElementById('new-item-discount-type').focus();
                 }
             });
             
-            document.getElementById('new-item-discount').addEventListener('keypress', function(e) {
+            document.getElementById('new-item-discount-type').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('new-item-discount-value').focus();
+                }
+            });
+            
+            document.getElementById('new-item-discount-value').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     addOrderItemFromForm();
                 }
             });
+        }
+        
+        // Configurar cálculo automático de desconto
+        function setupDiscountCalculation() {
+            const discountType = document.getElementById('new-item-discount-type');
+            const discountValue = document.getElementById('new-item-discount-value');
+            const priceInput = document.getElementById('new-item-price');
+            const finalPriceInput = document.getElementById('new-item-final-price');
             
-            // Configurar Enter para o campo de busca de cliente
-            document.getElementById('search-client-order').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    searchClientForOrder();
+            // Habilitar/desabilitar campo de valor do desconto
+            discountType.addEventListener('change', function() {
+                if (this.value === 'none') {
+                    discountValue.disabled = true;
+                    discountValue.value = '';
+                    finalPriceInput.value = priceInput.value || '';
+                } else {
+                    discountValue.disabled = false;
+                    discountValue.focus();
                 }
+                calculateFinalPrice();
             });
             
-            // Configurar Enter para salvar cliente
-            document.getElementById('client-form').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && e.target.type !== 'textarea' && !e.target.type.includes('select')) {
-                    e.preventDefault();
-                    saveClient();
+            // Calcular valor final quando qualquer campo relevante mudar
+            priceInput.addEventListener('input', calculateFinalPrice);
+            discountValue.addEventListener('input', calculateFinalPrice);
+            
+            // Calcular valor final baseado nos inputs
+            function calculateFinalPrice() {
+                const price = parseFloat(priceInput.value) || 0;
+                const discountTypeValue = discountType.value;
+                const discountVal = parseFloat(discountValue.value) || 0;
+                let finalPrice = price;
+                
+                if (discountTypeValue === 'percent' && discountVal > 0) {
+                    finalPrice = price - (price * discountVal / 100);
+                } else if (discountTypeValue === 'fixed' && discountVal > 0) {
+                    finalPrice = price - discountVal;
+                    // Garantir que o preço final não seja negativo
+                    if (finalPrice < 0) finalPrice = 0;
                 }
-            });
+                
+                finalPriceInput.value = finalPrice.toFixed(2);
+            }
         }
         
         // Função para salvar no Firebase (Antiga saveToLocalStorage)
@@ -1702,10 +1671,10 @@
                     const chartTitle = document.getElementById('chartTitle');
                     switch(currentChartType) {
                         case 'sales':
-                            chartTitle.textContent = 'Vendas por Dia (Últimos ' + currentPeriod + ' dias)';
+                            chartTitle.textContent = 'Vendas por Dia (Últimos 30 dias)';
                             break;
                         case 'clients':
-                            chartTitle.textContent = 'Novos Clientes por Dia (Últimos ' + currentPeriod + ' dias)';
+                            chartTitle.textContent = 'Novos Clientes por Dia (Últimos 30 dias)';
                             break;
                         case 'revenue':
                             chartTitle.textContent = 'Distribuição de Receita por Tipo de Cliente';
@@ -1714,23 +1683,6 @@
                     
                     // Atualizar gráfico
                     updateChart();
-                });
-            });
-            
-            // Configurar botões do seletor de período
-            const periodBtns = document.querySelectorAll('.period-btn');
-            periodBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    // Remover classe active de todos os botões
-                    periodBtns.forEach(b => b.classList.remove('active'));
-                    // Adicionar classe active ao botão clicado
-                    this.classList.add('active');
-                    
-                    // Atualizar período
-                    currentPeriod = parseInt(this.dataset.period);
-                    
-                    // Atualizar todas as estatísticas com o novo período
-                    updatePeriodStats();
                 });
             });
             
@@ -1756,10 +1708,10 @@
             updateDashboard();
         }
         
-        // FUNÇÕES PARA CRIAR CADA TIPO DE GRÁFICO
+        // FUNÇÕES SEPARADAS PARA CRIAR CADA TIPO DE GRÁFICO
         function createSalesChart(ctx) {
-            // Gerar últimos N dias baseado no período selecionado
-            const days = currentPeriod;
+            // Gerar últimos 30 dias
+            const days = 30;
             const labels = [];
             const salesData = [];
             
@@ -1839,8 +1791,8 @@
         }
         
         function createClientsChart(ctx) {
-            // Gerar últimos N dias baseado no período selecionado
-            const days = currentPeriod;
+            // Gerar últimos 30 dias
+            const days = 30;
             const labels = [];
             const clientsData = [];
             
@@ -2019,7 +1971,9 @@
             }
         }
         
+        // REMOVER A FUNÇÃO initializeChart antiga e substituir por esta simplificada
         function initializeChart() {
+            // Esta função agora apenas inicializa o gráfico como vendas por padrão
             const ctx = document.getElementById('salesChart');
             if (!ctx) {
                 console.error('Canvas do gráfico não encontrado!');
@@ -2036,42 +1990,30 @@
             createSalesChart(context);
         }
         
-        // Update dashboard statistics - CORRIGIDA PARA CONSIDERAR O PERÍODO
+        // Update dashboard statistics
         function updateDashboardStats() {
-            // Calcular métricas para o período selecionado
+            // Calcular métricas
             let totalRevenue = 0;
             let totalOrders = 0;
-            let activeClients = new Set();
+            let activeClients = 0;
             let ordersToday = 0;
             const today = new Date();
-            const startDate = new Date();
-            startDate.setDate(today.getDate() - currentPeriod);
             
-            // Coletar todas as encomendas do período
+            // Coletar todas as encomendas
             clients.forEach(client => {
                 if (client.orders && client.orders.length > 0) {
-                    let clientHasRecentOrders = false;
-                    
+                    activeClients++;
                     client.orders.forEach(order => {
-                        const orderDate = new Date(order.createdAt);
+                        totalRevenue += order.total;
+                        totalOrders++;
                         
-                        // Verificar se a ordem está dentro do período
-                        if (orderDate >= startDate) {
-                            totalRevenue += order.total;
-                            totalOrders++;
-                            clientHasRecentOrders = true;
-                            
-                            if (orderDate.getDate() === today.getDate() &&
-                                orderDate.getMonth() === today.getMonth() &&
-                                orderDate.getFullYear() === today.getFullYear()) {
-                                ordersToday++;
-                            }
+                        const orderDate = new Date(order.createdAt);
+                        if (orderDate.getDate() === today.getDate() &&
+                            orderDate.getMonth() === today.getMonth() &&
+                            orderDate.getFullYear() === today.getFullYear()) {
+                            ordersToday++;
                         }
                     });
-                    
-                    if (clientHasRecentOrders) {
-                        activeClients.add(client.id);
-                    }
                 }
             });
             
@@ -2079,72 +2021,10 @@
             const avgTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
             
             // Atualizar estatísticas do dashboard
-            document.getElementById('active-clients').textContent = activeClients.size;
+            document.getElementById('active-clients').textContent = activeClients;
             document.getElementById('orders-today').textContent = ordersToday;
             document.getElementById('total-revenue').textContent = `R$ ${totalRevenue.toFixed(2).replace('.', ',')}`;
             document.getElementById('avg-ticket').textContent = `R$ ${avgTicket.toFixed(2).replace('.', ',')}`;
-            
-            // Atualizar detalhes com o período correto
-            updatePeriodDetails();
-        }
-        
-        // Função para atualizar as estatísticas quando o período muda
-        function updatePeriodStats() {
-            // Atualizar dashboard stats
-            updateDashboardStats();
-            
-            // Atualizar display do período
-            let periodText = '';
-            switch(currentPeriod) {
-                case 7:
-                    periodText = '7 dias';
-                    break;
-                case 30:
-                    periodText = '30 dias';
-                    break;
-                case 90:
-                    periodText = '90 dias';
-                    break;
-                case 365:
-                    periodText = '1 ano';
-                    break;
-            }
-            document.getElementById('period-display').textContent = periodText;
-            
-            // Atualizar título do gráfico se for sales ou clients
-            const chartTitle = document.getElementById('chartTitle');
-            if (currentChartType === 'sales') {
-                chartTitle.textContent = 'Vendas por Dia (Últimos ' + currentPeriod + ' dias)';
-            } else if (currentChartType === 'clients') {
-                chartTitle.textContent = 'Novos Clientes por Dia (Últimos ' + currentPeriod + ' dias)';
-            }
-            
-            // Atualizar gráfico
-            updateChart();
-        }
-        
-        // Função para atualizar os detalhes do período
-        function updatePeriodDetails() {
-            let periodText = '';
-            switch(currentPeriod) {
-                case 7:
-                    periodText = '7 dias';
-                    break;
-                case 30:
-                    periodText = '30 dias';
-                    break;
-                case 90:
-                    periodText = '90 dias';
-                    break;
-                case 365:
-                    periodText = '1 ano';
-                    break;
-            }
-            
-            document.getElementById('active-clients-details').textContent = `Clientes com encomendas nos últimos ${currentPeriod} dias`;
-            document.getElementById('orders-today-details').textContent = `Encomendas realizadas hoje`;
-            document.getElementById('total-revenue-details').textContent = `Receita acumulada (${periodText})`;
-            document.getElementById('avg-ticket-details').textContent = `Média por encomenda (${periodText})`;
         }
         
         // Update dashboard
@@ -2551,7 +2431,6 @@
             document.getElementById('order-items-list').innerHTML = '';
             orderTotal = 0;
             document.getElementById('order-total').textContent = '0.00';
-            document.getElementById('total-discount').innerHTML = '';
         }
         
         function showSelectedClientInfo() {
@@ -2561,13 +2440,28 @@
             document.getElementById('order-items').style.display = 'block';
         }
         
-        // CORREÇÃO PRINCIPAL: Função para adicionar item com desconto aplicado corretamente
+        // NOVA FUNÇÃO: Calcular valor com desconto
+        function calculateDiscountedPrice(price, discountType, discountValue) {
+            let finalPrice = price;
+            
+            if (discountType === 'percent' && discountValue > 0) {
+                finalPrice = price - (price * discountValue / 100);
+            } else if (discountType === 'fixed' && discountValue > 0) {
+                finalPrice = price - discountValue;
+                // Garantir que o preço final não seja negativo
+                if (finalPrice < 0) finalPrice = 0;
+            }
+            
+            return finalPrice;
+        }
+        
         function addOrderItemFromForm() {
             const description = document.getElementById('new-item-desc').value.trim();
             const quantity = parseInt(document.getElementById('new-item-qty').value) || 1;
             const price = parseFloat(document.getElementById('new-item-price').value) || 0;
-            const discount = parseFloat(document.getElementById('new-item-discount').value) || 0;
             const discountType = document.getElementById('new-item-discount-type').value;
+            const discountValue = parseFloat(document.getElementById('new-item-discount-value').value) || 0;
+            const finalPrice = parseFloat(document.getElementById('new-item-final-price').value) || price;
             
             if (!description) {
                 alert('Por favor, informe a descrição do item!');
@@ -2579,48 +2473,30 @@
                 return;
             }
             
-            // Calcular desconto CORRETAMENTE
-            let discountValue = 0;
-            let discountText = '';
-            let itemPrice = price; // Preço original
-            
-            if (discount > 0) {
-                if (discountType === 'percentual') {
-                    // Desconto percentual: calcula o valor do desconto
-                    discountValue = (price * discount) / 100;
-                    discountText = `Desconto: ${discount}% (R$ ${discountValue.toFixed(2)})`;
-                } else {
-                    // Desconto em valor fixo
-                    discountValue = discount;
-                    discountText = `Desconto: R$ ${discountValue.toFixed(2)}`;
-                }
-                
-                // Verificar se o desconto não é maior que o preço
-                if (discountValue > price) {
-                    alert('O desconto não pode ser maior que o preço do item!');
-                    return;
-                }
-                
-                // Aplicar o desconto ao preço
-                itemPrice = price - discountValue;
-            }
-            
             const itemId = Date.now();
-            const total = quantity * itemPrice;
+            const total = quantity * finalPrice;
             
             const itemsList = document.getElementById('order-items-list');
+            
+            // Determinar texto do desconto para exibição
+            let discountText = '';
+            if (discountType === 'percent' && discountValue > 0) {
+                discountText = ` (${discountValue}% de desconto)`;
+            } else if (discountType === 'fixed' && discountValue > 0) {
+                discountText = ` (R$ ${discountValue.toFixed(2)} de desconto)`;
+            }
             
             const itemHtml = `
                 <div id="item-${itemId}" class="order-item">
                     <div class="order-item-header">
-                        <div style="font-weight: bold; font-size: 0.95rem;">${description}</div>
+                        <div style="font-weight: bold; font-size: 0.95rem;">${description}${discountText}</div>
                         <div class="order-item-total">R$ ${total.toFixed(2)}</div>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div style="font-size: 0.85rem;">
                             <span style="color: #666;">Quantidade: ${quantity}</span>
                             <span style="margin-left: 11px; color: #666;">Valor unitário: R$ ${price.toFixed(2)}</span>
-                            ${discountValue > 0 ? `<div class="item-discount">${discountText}</div>` : ''}
+                            <span style="margin-left: 11px; color: #666;">Valor final: R$ ${finalPrice.toFixed(2)}</span>
                         </div>
                         <button onclick="removeOrderItem(${itemId})" class="btn btn-danger btn-sm">
                             <i class="fas fa-trash"></i> Remover
@@ -2628,57 +2504,42 @@
                     </div>
                     <input type="hidden" id="desc-${itemId}" value="${description}">
                     <input type="hidden" id="qty-${itemId}" value="${quantity}">
-                    <input type="hidden" id="price-${itemId}" value="${itemPrice}"> <!-- AQUI: usar itemPrice (com desconto) -->
-                    <input type="hidden" id="discount-${itemId}" value="${discountValue}">
+                    <input type="hidden" id="price-${itemId}" value="${price}">
                     <input type="hidden" id="discount-type-${itemId}" value="${discountType}">
-                    <input type="hidden" id="original-price-${itemId}" value="${price}">
+                    <input type="hidden" id="discount-value-${itemId}" value="${discountValue}">
+                    <input type="hidden" id="final-price-${itemId}" value="${finalPrice}">
                 </div>
             `;
             
             itemsList.innerHTML += itemHtml;
             
-            // Limpar campos e focar no próximo
+            // Limpar formulário
             document.getElementById('new-item-desc').value = '';
             document.getElementById('new-item-qty').value = '1';
             document.getElementById('new-item-price').value = '';
-            document.getElementById('new-item-discount').value = '0';
-            document.getElementById('new-item-desc').focus();
+            document.getElementById('new-item-discount-type').value = 'none';
+            document.getElementById('new-item-discount-value').value = '';
+            document.getElementById('new-item-discount-value').disabled = true;
+            document.getElementById('new-item-final-price').value = '';
             
-            // Atualizar total
+            // Focar no primeiro campo
+            document.getElementById('new-item-desc').focus();
             updateOrderTotal();
         }
         
         function updateOrderTotal() {
             let total = 0;
-            let totalDiscount = 0;
-            let originalTotal = 0;
             const itemDivs = document.querySelectorAll('[id^="item-"]');
             
             itemDivs.forEach(div => {
                 const id = div.id.replace('item-', '');
                 const quantity = parseFloat(document.getElementById('qty-' + id).value) || 0;
-                const price = parseFloat(document.getElementById('price-' + id).value) || 0;
-                const discount = parseFloat(document.getElementById('discount-' + id).value) || 0;
-                const originalPrice = parseFloat(document.getElementById('original-price-' + id).value) || 0;
-                
-                originalTotal += quantity * originalPrice;
-                totalDiscount += discount * quantity;
-                total += quantity * price;
+                const finalPrice = parseFloat(document.getElementById('final-price-' + id).value) || 0;
+                total += quantity * finalPrice;
             });
             
             orderTotal = total;
             document.getElementById('order-total').textContent = total.toFixed(2);
-            
-            // Atualizar display do desconto total
-            const totalDiscountElement = document.getElementById('total-discount');
-            if (totalDiscount > 0) {
-                totalDiscountElement.innerHTML = `
-                    Desconto total: R$ ${totalDiscount.toFixed(2)}<br>
-                    Valor original: R$ ${originalTotal.toFixed(2)}
-                `;
-            } else {
-                totalDiscountElement.innerHTML = '';
-            }
         }
         
         function removeOrderItem(id) {
@@ -2689,6 +2550,7 @@
             }
         }
         
+        // NOVA FUNÇÃO: Atualizar status do pagamento baseado na entrada
         function updatePaymentStatus() {
             const downPayment = parseFloat(document.getElementById('down-payment').value) || 0;
             const total = orderTotal;
@@ -2722,31 +2584,27 @@
             }
             
             let total = 0;
-            let totalDiscount = 0;
-            let originalTotal = 0;
             itemDivs.forEach(div => {
                 const id = div.id.replace('item-', '');
                 const quantity = parseFloat(document.getElementById('qty-' + id).value) || 1;
                 const description = document.getElementById('desc-' + id).value.trim();
                 const price = parseFloat(document.getElementById('price-' + id).value) || 0;
-                const discount = parseFloat(document.getElementById('discount-' + id).value) || 0;
                 const discountType = document.getElementById('discount-type-' + id).value;
-                const originalPrice = parseFloat(document.getElementById('original-price-' + id).value) || 0;
+                const discountValue = parseFloat(document.getElementById('discount-value-' + id).value) || 0;
+                const finalPrice = parseFloat(document.getElementById('final-price-' + id).value) || price;
                 
                 if (description) {
-                    const itemTotal = quantity * price;
+                    const itemTotal = quantity * finalPrice;
                     items.push({
                         quantity: quantity,
                         description: description,
                         price: price,
-                        total: itemTotal,
-                        discount: discount,
                         discountType: discountType,
-                        originalPrice: originalPrice
+                        discountValue: discountValue,
+                        finalPrice: finalPrice,
+                        total: itemTotal
                     });
                     total += itemTotal;
-                    totalDiscount += discount * quantity;
-                    originalTotal += quantity * originalPrice;
                 }
             });
             
@@ -2786,8 +2644,6 @@
                 clientPhone: selectedClientForOrder.phone,
                 items: items,
                 total: total,
-                totalDiscount: totalDiscount,
-                originalTotal: originalTotal, // Adicionar total original para referência
                 payment: payment,
                 downPayment: downPayment,
                 available: available,
@@ -2866,10 +2722,6 @@
             `;
             
             editingOrder.items.forEach((item, index) => {
-                const discount = item.discount || 0;
-                const discountType = item.discountType || 'valor';
-                const originalPrice = item.originalPrice || item.price + discount;
-                
                 html += `
                     <div class="order-item" id="edit-item-${index}">
                         <div class="order-item-header">
@@ -2878,24 +2730,14 @@
                             </div>
                             <div class="order-item-total" id="edit-total-${index}">R$ ${item.total.toFixed(2)}</div>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 9px; margin-top: 9px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; margin-top: 9px;">
                             <div>
                                 <label style="font-size: 0.85rem;">Quantidade</label>
                                 <input type="number" id="edit-qty-${index}" value="${item.quantity}" min="1" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                             </div>
                             <div>
-                                <label style="font-size: 0.85rem;">Valor Original</label>
-                                <input type="number" id="edit-original-price-${index}" value="${originalPrice.toFixed(2)}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
-                            </div>
-                            <div>
-                                <label style="font-size: 0.85rem;">Desconto</label>
-                                <div style="display: flex; gap: 5px;">
-                                    <input type="number" id="edit-discount-${index}" value="${discount.toFixed(2)}" step="0.01" style="width: 70%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
-                                    <select id="edit-discount-type-${index}" style="width: 30%; padding: 7px; font-size: 0.9rem;" onchange="updateEditItemTotal(${index})">
-                                        <option value="valor" ${discountType === 'valor' ? 'selected' : ''}>R$</option>
-                                        <option value="percentual" ${discountType === 'percentual' ? 'selected' : ''}>%</option>
-                                    </select>
-                                </div>
+                                <label style="font-size: 0.85rem;">Valor Unitário</label>
+                                <input type="number" id="edit-price-${index}" value="${item.price.toFixed(2)}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                             </div>
                             <div style="display: flex; align-items: flex-end;">
                                 <button onclick="removeEditItem(${index})" class="btn btn-danger btn-sm" style="width: 100%;">
@@ -2903,11 +2745,21 @@
                                 </button>
                             </div>
                         </div>
-                        ${discount > 0 ? `
-                            <div class="item-discount" id="edit-discount-display-${index}">
-                                ${discountType === 'percentual' ? `Desconto: ${discount}% (R$ ${(originalPrice * discount / 100).toFixed(2)})` : `Desconto: R$ ${discount.toFixed(2)}`}
+                        <!-- Campos de desconto na edição -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 9px;">
+                            <div>
+                                <label style="font-size: 0.85rem;">Tipo Desconto</label>
+                                <select id="edit-discount-type-${index}" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
+                                    <option value="none" ${!item.discountType || item.discountType === 'none' ? 'selected' : ''}>Sem desconto</option>
+                                    <option value="percent" ${item.discountType === 'percent' ? 'selected' : ''}>%</option>
+                                    <option value="fixed" ${item.discountType === 'fixed' ? 'selected' : ''}>R$</option>
+                                </select>
                             </div>
-                        ` : ''}
+                            <div>
+                                <label style="font-size: 0.85rem;">Valor Desconto</label>
+                                <input type="number" id="edit-discount-value-${index}" value="${item.discountValue || 0}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
+                            </div>
+                        </div>
                     </div>
                 `;
             });
@@ -2921,11 +2773,6 @@
                 
                 <div class="order-total" style="margin-top: 16px;">
                     Total: R$ <span id="edit-order-total">${editingOrder.total.toFixed(2)}</span>
-                    ${editingOrder.totalDiscount > 0 ? `
-                        <div style="font-size: 0.9rem; color: #27ae60; margin-top: 5px;">
-                            Desconto total: R$ ${editingOrder.totalDiscount.toFixed(2)}
-                        </div>
-                    ` : ''}
                 </div>
                 
                 <div style="margin-top: 16px;">
@@ -2955,6 +2802,7 @@
                     </div>
                 </div>
                 
+                <!-- NOVOS CAMPOS ADICIONADOS NA EDIÇÃO -->
                 <div style="margin-top: 16px;">
                     <label style="font-size: 0.9rem;">Valor de Entrada</label>
                     <input type="number" id="edit-down-payment" value="${editingOrder.downPayment || 0}" step="0.01" 
@@ -2972,6 +2820,7 @@
                         </label>
                     </div>
                 </div>
+                <!-- FIM DOS NOVOS CAMPOS -->
                 
                 <div class="button-group" style="margin-top: 22px;">
                     <button class="btn btn-success btn-sm" onclick="saveEditedOrder()">
@@ -2996,10 +2845,10 @@
             const newItem = {
                 quantity: 1,
                 description: "Novo Item",
-                originalPrice: 0,
-                discount: 0,
-                discountType: 'valor',
                 price: 0,
+                discountType: 'none',
+                discountValue: 0,
+                finalPrice: 0,
                 total: 0
             };
             
@@ -3013,24 +2862,14 @@
                         </div>
                         <div class="order-item-total" id="edit-total-${index}">R$ ${newItem.total.toFixed(2)}</div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 9px; margin-top: 9px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; margin-top: 9px;">
                         <div>
                             <label style="font-size: 0.85rem;">Quantidade</label>
                             <input type="number" id="edit-qty-${index}" value="${newItem.quantity}" min="1" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                         </div>
                         <div>
-                            <label style="font-size: 0.85rem;">Valor Original</label>
-                            <input type="number" id="edit-original-price-${index}" value="${newItem.originalPrice.toFixed(2)}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
-                        </div>
-                        <div>
-                            <label style="font-size: 0.85rem;">Desconto</label>
-                            <div style="display: flex; gap: 5px;">
-                                <input type="number" id="edit-discount-${index}" value="${newItem.discount.toFixed(2)}" step="0.01" style="width: 70%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
-                                <select id="edit-discount-type-${index}" style="width: 30%; padding: 7px; font-size: 0.9rem;" onchange="updateEditItemTotal(${index})">
-                                    <option value="valor" selected>R$</option>
-                                    <option value="percentual">%</option>
-                                </select>
-                            </div>
+                            <label style="font-size: 0.85rem;">Valor Unitário</label>
+                            <input type="number" id="edit-price-${index}" value="${newItem.price.toFixed(2)}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                         </div>
                         <div style="display: flex; align-items: flex-end;">
                             <button onclick="removeEditItem(${index})" class="btn btn-danger btn-sm" style="width: 100%;">
@@ -3038,7 +2877,21 @@
                             </button>
                         </div>
                     </div>
-                    <div class="item-discount" id="edit-discount-display-${index}" style="display: none;"></div>
+                    <!-- Campos de desconto na edição -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 9px;">
+                        <div>
+                            <label style="font-size: 0.85rem;">Tipo Desconto</label>
+                            <select id="edit-discount-type-${index}" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
+                                <option value="none" selected>Sem desconto</option>
+                                <option value="percent">%</option>
+                                <option value="fixed">R$</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.85rem;">Valor Desconto</label>
+                            <input type="number" id="edit-discount-value-${index}" value="0" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
+                        </div>
+                    </div>
                 </div>
             `;
             
@@ -3052,42 +2905,27 @@
         
         function updateEditItemTotal(index) {
             const quantity = parseFloat(document.getElementById('edit-qty-' + index).value) || 0;
-            const originalPrice = parseFloat(document.getElementById('edit-original-price-' + index).value) || 0;
-            const discount = parseFloat(document.getElementById('edit-discount-' + index).value) || 0;
+            const price = parseFloat(document.getElementById('edit-price-' + index).value) || 0;
             const discountType = document.getElementById('edit-discount-type-' + index).value;
+            const discountValue = parseFloat(document.getElementById('edit-discount-value-' + index).value) || 0;
             
-            let discountValue = 0;
-            if (discount > 0) {
-                if (discountType === 'percentual') {
-                    discountValue = (originalPrice * discount) / 100;
-                } else {
-                    discountValue = discount;
-                }
+            // Calcular preço final com desconto
+            let finalPrice = price;
+            if (discountType === 'percent' && discountValue > 0) {
+                finalPrice = price - (price * discountValue / 100);
+            } else if (discountType === 'fixed' && discountValue > 0) {
+                finalPrice = price - discountValue;
+                if (finalPrice < 0) finalPrice = 0;
             }
             
-            const price = originalPrice - discountValue;
-            const total = quantity * price;
+            const total = quantity * finalPrice;
             
             document.getElementById('edit-total-' + index).textContent = `R$ ${total.toFixed(2)}`;
-            
-            // Atualizar display do desconto
-            const discountDisplay = document.getElementById('edit-discount-display-' + index);
-            if (discountDisplay) {
-                if (discount > 0) {
-                    discountDisplay.style.display = 'block';
-                    discountDisplay.textContent = discountType === 'percentual' ? 
-                        `Desconto: ${discount}% (R$ ${discountValue.toFixed(2)})` : 
-                        `Desconto: R$ ${discountValue.toFixed(2)}`;
-                } else {
-                    discountDisplay.style.display = 'none';
-                }
-            }
-            
             editingOrder.items[index].quantity = quantity;
-            editingOrder.items[index].originalPrice = originalPrice;
-            editingOrder.items[index].discount = discount;
-            editingOrder.items[index].discountType = discountType;
             editingOrder.items[index].price = price;
+            editingOrder.items[index].discountType = discountType;
+            editingOrder.items[index].discountValue = discountValue;
+            editingOrder.items[index].finalPrice = finalPrice;
             editingOrder.items[index].total = total;
             editingOrder.items[index].description = document.getElementById('edit-desc-' + index).value;
             
@@ -3096,20 +2934,11 @@
         
         function updateEditOrderTotal() {
             let total = 0;
-            let totalDiscount = 0;
             editingOrder.items.forEach(item => {
                 total += item.total;
-                if (item.discount) {
-                    if (item.discountType === 'percentual') {
-                        totalDiscount += (item.originalPrice * item.discount / 100) * item.quantity;
-                    } else {
-                        totalDiscount += item.discount * item.quantity;
-                    }
-                }
             });
             
             editingOrder.total = total;
-            editingOrder.totalDiscount = totalDiscount;
             document.getElementById('edit-order-total').textContent = total.toFixed(2);
         }
         
@@ -3128,35 +2957,16 @@
             editingOrder.items.forEach((item, index) => {
                 item.description = document.getElementById('edit-desc-' + index).value;
                 item.quantity = parseFloat(document.getElementById('edit-qty-' + index).value) || 0;
-                item.originalPrice = parseFloat(document.getElementById('edit-original-price-' + index).value) || 0;
-                item.discount = parseFloat(document.getElementById('edit-discount-' + index).value) || 0;
+                item.price = parseFloat(document.getElementById('edit-price-' + index).value) || 0;
                 item.discountType = document.getElementById('edit-discount-type-' + index).value;
+                item.discountValue = parseFloat(document.getElementById('edit-discount-value-' + index).value) || 0;
                 
-                // Calcular preço com desconto
-                let discountValue = 0;
-                if (item.discount > 0) {
-                    if (item.discountType === 'percentual') {
-                        discountValue = (item.originalPrice * item.discount) / 100;
-                    } else {
-                        discountValue = item.discount;
-                    }
-                }
-                
-                item.price = item.originalPrice - discountValue;
-                item.total = item.quantity * item.price;
+                // Recalcular preço final e total
+                item.finalPrice = calculateDiscountedPrice(item.price, item.discountType, item.discountValue);
+                item.total = item.quantity * item.finalPrice;
             });
             
             editingOrder.total = editingOrder.items.reduce((sum, item) => sum + item.total, 0);
-            editingOrder.totalDiscount = editingOrder.items.reduce((sum, item) => {
-                if (item.discount) {
-                    if (item.discountType === 'percentual') {
-                        return sum + (item.originalPrice * item.discount / 100) * item.quantity;
-                    } else {
-                        return sum + item.discount * item.quantity;
-                    }
-                }
-                return sum;
-            }, 0);
             
             // Verificar se a entrada não é maior que o total
             if (editingOrder.downPayment > editingOrder.total) {
@@ -3264,10 +3074,6 @@
                     <p>Saldo restante: R$ ${(currentOrder.total - currentOrder.downPayment).toFixed(2)}</p>
                 ` : ''}
                 
-                ${currentOrder.totalDiscount > 0 ? `
-                    <p style="color: #27ae60; font-weight: bold;">Desconto total aplicado: R$ ${currentOrder.totalDiscount.toFixed(2)}</p>
-                ` : ''}
-                
                 <h4 style="margin-top: 16px;">Itens:</h4>
                 <table style="width: 100%; border-collapse: collapse; margin-top: 9px; font-size: 0.95rem;">
                     <thead>
@@ -3276,6 +3082,7 @@
                             <th style="padding: 7px; text-align: left;">Qtd</th>
                             <th style="padding: 7px; text-align: left;">Valor Original</th>
                             <th style="padding: 7px; text-align: left;">Desconto</th>
+                            <th style="padding: 7px; text-align: left;">Valor Final</th>
                             <th style="padding: 7px; text-align: left;">Total</th>
                         </tr>
                     </thead>
@@ -3283,18 +3090,23 @@
             `;
             
             currentOrder.items.forEach(item => {
-                const discountText = item.discount > 0 ? 
-                    (item.discountType === 'percentual' ? 
-                        `${item.discount}% (R$ ${(item.originalPrice * item.discount / 100).toFixed(2)})` : 
-                        `R$ ${item.discount.toFixed(2)}`) : 
-                    '-';
+                // Calcular texto do desconto
+                let discountText = '';
+                if (item.discountType === 'percent' && item.discountValue > 0) {
+                    discountText = `${item.discountValue}%`;
+                } else if (item.discountType === 'fixed' && item.discountValue > 0) {
+                    discountText = `R$ ${item.discountValue.toFixed(2)}`;
+                } else {
+                    discountText = '-';
+                }
                 
                 html += `
                     <tr>
                         <td style="padding: 7px;">${item.description}</td>
                         <td style="padding: 7px;">${item.quantity}</td>
-                        <td style="padding: 7px;">R$ ${item.originalPrice.toFixed(2)}</td>
-                        <td style="padding: 7px; color: #27ae60;">${discountText}</td>
+                        <td style="padding: 7px;">R$ ${item.price.toFixed(2)}</td>
+                        <td style="padding: 7px;">${discountText}</td>
+                        <td style="padding: 7px;">R$ ${item.finalPrice.toFixed(2)}</td>
                         <td style="padding: 7px;">R$ ${item.total.toFixed(2)}</td>
                     </tr>
                 `;
@@ -3306,11 +3118,6 @@
                 <h4 style="margin-top: 16px; text-align: right;">
                     Total: R$ ${currentOrder.total.toFixed(2)}
                 </h4>
-                ${currentOrder.totalDiscount > 0 ? `
-                    <h5 style="margin-top: 5px; text-align: right; color: #27ae60;">
-                        Desconto total: R$ ${currentOrder.totalDiscount.toFixed(2)}
-                    </h5>
-                ` : ''}
             `;
             
             document.getElementById('order-details').innerHTML = html;
@@ -3361,45 +3168,57 @@
                     break;
             }
             
-            let message = `*${pharmacyName.toUpperCase()} - ENCOMENDA*%0A%0A` +
+            const message = `*${pharmacyName.toUpperCase()} - ENCOMENDA*%0A%0A` +
                            `*Cliente:* ${currentOrder.clientName}%0A` +
                            `*Data:* ${formatDate(currentOrder.createdAt)}%0A` +
                            `*Status:* ${currentOrder.status === 'pendente' ? 'Pendente de retirada' : 'Entregue'}%0A` +
                            `*Pagamento:* ${paymentStatusText}%0A` +
-                           `*Disponível para retirada:* ${currentOrder.available === 'sim' ? 'Sim' : 'Não'}%0A`;
+                           `*Disponível para retirada:* ${currentOrder.available === 'sim' ? 'Sim' : 'Não'}%0A%0A`;
             
             // Adicionar informações de entrada se houver
             if (currentOrder.downPayment > 0) {
-                message += `*Entrada paga:* R$ ${currentOrder.downPayment.toFixed(2)}%0A`;
+                const messageWithDownPayment = message + 
+                                              `*Entrada paga:* R$ ${currentOrder.downPayment.toFixed(2)}%0A`;
                 
                 // Calcular saldo se houver entrada
                 const balance = currentOrder.total - currentOrder.downPayment;
                 if (balance > 0) {
-                    message += `*Saldo restante:* R$ ${balance.toFixed(2)}%0A`;
+                    const finalMessage = messageWithDownPayment + 
+                                       `*Saldo restante:* R$ ${balance.toFixed(2)}%0A%0A`;
+                    
+                    let itemsText = `*Itens:*%0A`;
+                    currentOrder.items.forEach((item, index) => {
+                        let discountInfo = '';
+                        if (item.discountType === 'percent' && item.discountValue > 0) {
+                            discountInfo = ` (${item.discountValue}% desc.)`;
+                        } else if (item.discountType === 'fixed' && item.discountValue > 0) {
+                            discountInfo = ` (R$ ${item.discountValue.toFixed(2)} desc.)`;
+                        }
+                        
+                        itemsText += `${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}${discountInfo}%0A`;
+                    });
+                    
+                    const totalText = `%0A*Total: R$ ${currentOrder.total.toFixed(2)}*%0A%0A` +
+                                    `_Aguardamos sua retirada na ${pharmacyName}!_%0A` +
+                                    `Av José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A` +
+                                    `Telefone: 98-98628-7296`;
+                    
+                    const whatsappUrl = `https://wa.me/55${phone}?text=${finalMessage}${itemsText}${totalText}`;
+                    window.open(whatsappUrl, '_blank');
+                    return;
                 }
             }
-            
-            // Adicionar informações de desconto se houver
-            if (currentOrder.totalDiscount > 0) {
-                message += `*Desconto total:* R$ ${currentOrder.totalDiscount.toFixed(2)}%0A`;
-            }
-            
-            message += `%0A`;
             
             let itemsText = `*Itens:*%0A`;
             currentOrder.items.forEach((item, index) => {
-                let itemLine = `${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.originalPrice.toFixed(2)}`;
-                
-                if (item.discount > 0) {
-                    const discountValue = item.discountType === 'percentual' ? 
-                        (item.originalPrice * item.discount / 100).toFixed(2) : 
-                        item.discount.toFixed(2);
-                    const discountTypeSymbol = item.discountType === 'percentual' ? '%' : 'R$';
-                    itemLine += ` (Desc: ${item.discount}${discountTypeSymbol} = R$ ${discountValue})`;
+                let discountInfo = '';
+                if (item.discountType === 'percent' && item.discountValue > 0) {
+                    discountInfo = ` (${item.discountValue}% desc.)`;
+                } else if (item.discountType === 'fixed' && item.discountValue > 0) {
+                    discountInfo = ` (R$ ${item.discountValue.toFixed(2)} desc.)`;
                 }
                 
-                itemLine += `%0A`;
-                itemsText += itemLine;
+                itemsText += `${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}${discountInfo}%0A`;
             });
             
             const totalText = `%0A*Total: R$ ${currentOrder.total.toFixed(2)}*%0A%0A` +
@@ -3442,7 +3261,6 @@
                             .footer-print { margin-top: 30px; text-align: center; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
                             .payment-info { margin-top: 10px; font-size: 13px; }
                             .available-info { margin-top: 5px; font-size: 13px; }
-                            .discount-info { color: #27ae60; font-weight: bold; margin-top: 5px; }
                         </style>
                     </head>
                     <body>
@@ -3457,13 +3275,6 @@
                             <p><strong>Status:</strong> ${currentOrder.status === 'pendente' ? 'Pendente' : 'Entregue'} | <strong>Pagamento:</strong> ${paymentStatus}</p>
                             <p class="available-info"><strong>Disponível para retirada:</strong> ${currentOrder.available === 'sim' ? 'Sim' : 'Não'}</p>
                         </div>
-                        
-                        ${currentOrder.totalDiscount > 0 ? `
-                            <div class="discount-info">
-                                DESCONTO TOTAL APLICADO: R$ ${currentOrder.totalDiscount.toFixed(2)}
-                            </div>
-                        ` : ''}
-                        
                         <table>
                             <thead>
                                 <tr>
@@ -3471,45 +3282,39 @@
                                     <th>Qtd</th>
                                     <th>Valor Original</th>
                                     <th>Desconto</th>
+                                    <th>Valor Final</th>
                                     <th>Total</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${currentOrder.items.map(item => {
-                                    const discountText = item.discount > 0 ? 
-                                        (item.discountType === 'percentual' ? 
-                                            `${item.discount}% (R$ ${(item.originalPrice * item.discount / 100).toFixed(2)})` : 
-                                            `R$ ${item.discount.toFixed(2)}`) : 
-                                        '-';
+                                    let discountText = '';
+                                    if (item.discountType === 'percent' && item.discountValue > 0) {
+                                        discountText = `${item.discountValue}%`;
+                                    } else if (item.discountType === 'fixed' && item.discountValue > 0) {
+                                        discountText = `R$ ${item.discountValue.toFixed(2)}`;
+                                    } else {
+                                        discountText = '-';
+                                    }
                                     
-                                    return `
-                                        <tr>
-                                            <td>${item.description}</td>
-                                            <td>${item.quantity}</td>
-                                            <td>R$ ${item.originalPrice.toFixed(2)}</td>
-                                            <td style="color: #27ae60;">${discountText}</td>
-                                            <td>R$ ${item.total.toFixed(2)}</td>
-                                        </tr>
-                                    `;
+                                    return `<tr>
+                                        <td>${item.description}</td>
+                                        <td>${item.quantity}</td>
+                                        <td>R$ ${item.price.toFixed(2)}</td>
+                                        <td>${discountText}</td>
+                                        <td>R$ ${item.finalPrice.toFixed(2)}</td>
+                                        <td>R$ ${item.total.toFixed(2)}</td>
+                                    </tr>`;
                                 }).join('')}
                             </tbody>
                         </table>
-                        
                         ${currentOrder.downPayment > 0 ? `
                             <div class="payment-info">
                                 <p><strong>Entrada:</strong> R$ ${currentOrder.downPayment.toFixed(2)}</p>
                                 <p><strong>Saldo restante:</strong> R$ ${(currentOrder.total - currentOrder.downPayment).toFixed(2)}</p>
                             </div>
                         ` : ''}
-                        
                         <div class="total-box">TOTAL A PAGAR: R$ ${currentOrder.total.toFixed(2)}</div>
-                        
-                        ${currentOrder.totalDiscount > 0 ? `
-                            <div class="discount-info" style="text-align: right; margin-top: 5px;">
-                                Valor original: R$ ${(currentOrder.total + currentOrder.totalDiscount).toFixed(2)}
-                            </div>
-                        ` : ''}
-                        
                         <div class="footer-print"><p>Cuidando da sua saúde, economia e preço baixo 💊💉</p></div>
                         <script>window.onload = function() { window.print(); };<\/script>
                     </body>
@@ -3603,7 +3408,6 @@
                             .right { text-align: right; }
                             .bold { font-weight: bold !important; }
                             .info-line { margin: 2px 0; font-size: 10px !important; font-weight: bold !important; }
-                            .discount-line { color: #27ae60; font-size: 9px !important; }
                         </style>
                     </head>
                     <body>
@@ -3633,10 +3437,6 @@
                             <div class="info-line"><span class="bold">Saldo:</span> R$ ${(currentOrder.total - currentOrder.downPayment).toFixed(2)}</div>
                         ` : ''}
                         
-                        ${currentOrder.totalDiscount > 0 ? `
-                            <div class="info-line discount-line"><span class="bold">Desc Total:</span> R$ ${currentOrder.totalDiscount.toFixed(2)}</div>
-                        ` : ''}
-                        
                         <div class="separator"></div>
                         
                         <table>
@@ -3644,40 +3444,33 @@
                                 <tr>
                                     <th>DESCRIÇÃO</th>
                                     <th>QTD</th>
-                                    <th class="right">ORIG</th>
-                                    <th class="right">TOTAL</th>
+                                    <th class="right">VALOR</th>
+                                    <th class="right">DESC.</th>
+                                    <th class="right">FINAL</th>
                                 </tr>
                             </thead>
                             <tbody>
             `);
             
             currentOrder.items.forEach(item => {
-                const hasDiscount = item.discount > 0;
-                const discountSymbol = hasDiscount ? ' *' : '';
+                let discountText = '';
+                if (item.discountType === 'percent' && item.discountValue > 0) {
+                    discountText = `${item.discountValue}%`;
+                } else if (item.discountType === 'fixed' && item.discountValue > 0) {
+                    discountText = `${item.discountValue.toFixed(2)}`;
+                } else {
+                    discountText = '-';
+                }
                 
                 printWindow.document.write(`
                     <tr>
-                        <td>${item.description.substring(0, 15)}${discountSymbol}</td>
+                        <td>${item.description.substring(0, 12)}</td>
                         <td>${item.quantity}</td>
-                        <td class="right">${item.originalPrice.toFixed(2)}</td>
-                        <td class="right">${item.total.toFixed(2)}</td>
+                        <td class="right">${item.price.toFixed(2)}</td>
+                        <td class="right">${discountText}</td>
+                        <td class="right">${item.finalPrice.toFixed(2)}</td>
                     </tr>
                 `);
-                
-                if (hasDiscount) {
-                    const discountValue = item.discountType === 'percentual' ? 
-                        (item.originalPrice * item.discount / 100).toFixed(2) : 
-                        item.discount.toFixed(2);
-                    const discountTypeSymbol = item.discountType === 'percentual' ? '%' : 'R$';
-                    
-                    printWindow.document.write(`
-                        <tr>
-                            <td colspan="4" class="discount-line">
-                                Desc: ${item.discount}${discountTypeSymbol} = R$ ${discountValue}
-                            </td>
-                        </tr>
-                    `);
-                }
             });
             
             printWindow.document.write(`
@@ -3689,12 +3482,6 @@
                         <div class="total">
                             TOTAL: R$ ${currentOrder.total.toFixed(2)}
                         </div>
-                        
-                        ${currentOrder.totalDiscount > 0 ? `
-                            <div class="discount-line" style="text-align: right; margin-top: 3px;">
-                                Valor original: R$ ${(currentOrder.total + currentOrder.totalDiscount).toFixed(2)}
-                            </div>
-                        ` : ''}
                         
                         <div class="footer">
                             <div>Obrigado pela preferência!</div>
@@ -3717,13 +3504,15 @@
             document.getElementById('new-item-desc').value = '';
             document.getElementById('new-item-qty').value = '1';
             document.getElementById('new-item-price').value = '';
-            document.getElementById('new-item-discount').value = '0';
+            document.getElementById('new-item-discount-type').value = 'none';
+            document.getElementById('new-item-discount-value').value = '';
+            document.getElementById('new-item-discount-value').disabled = true;
+            document.getElementById('new-item-final-price').value = '';
             document.getElementById('down-payment').value = '';
             document.querySelector('input[name="available"][value="sim"]').checked = true;
             selectedClientForOrder = null;
             orderTotal = 0;
             document.getElementById('order-total').textContent = '0.00';
-            document.getElementById('total-discount').innerHTML = '';
         }
         
         // Render functions
@@ -3853,7 +3642,6 @@
                                   'Pendente';
                 const downPaymentInfo = order.downPayment > 0 ? ` | Entrada: R$ ${order.downPayment.toFixed(2)}` : '';
                 const availableInfo = order.available ? ` | Disponível: ${order.available === 'sim' ? 'Sim' : 'Não'}` : '';
-                const discountInfo = order.totalDiscount > 0 ? ` | Desc: R$ ${order.totalDiscount.toFixed(2)}` : '';
                 
                 html += `
                     <div class="item-card ${isPending ? 'pending' : 'delivered'}">
@@ -3872,7 +3660,7 @@
                             <i class="fas fa-phone"></i> ${order.clientPhone}
                         </div>
                         <div class="compact-info">
-                            ${formatDate(order.createdAt)} | ${order.items.length} itens | ${paymentInfo}${downPaymentInfo}${availableInfo}${discountInfo}
+                            ${formatDate(order.createdAt)} | ${order.items.length} itens | ${paymentInfo}${downPaymentInfo}${availableInfo}
                             ${itemsSummary.length > 50 ? `<br>${itemsSummary.substring(0, 50)}...` : `<br>${itemsSummary}`}
                         </div>
                         <div class="item-actions">
