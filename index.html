@@ -222,6 +222,52 @@
             position: relative;
         }
 
+        /* Date Filter para Dashboard */
+        .dashboard-date-filter {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-date-filter h4 {
+            margin-bottom: 12px;
+            color: #2c3e50;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .dashboard-filter-group {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .dashboard-filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.85rem;
+        }
+
+        .dashboard-filter-group input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.85rem;
+        }
+
+        .dashboard-filter-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
         /* Refresh Button */
         .refresh-btn {
             background-color: var(--souza-red);
@@ -777,6 +823,14 @@
                 width: 100%;
                 flex-wrap: wrap;
             }
+
+            .dashboard-date-filter {
+                flex-direction: column;
+            }
+            
+            .dashboard-filter-group {
+                min-width: 100%;
+            }
         }
         
         /* Stats */
@@ -863,32 +917,56 @@
     
     <div class="container">
         <div class="dashboard-container active" id="dashboard-container">
+            <!-- Adicionar Filtro de Data para o Dashboard -->
+            <div class="dashboard-date-filter">
+                <h4><i class="fas fa-calendar-alt"></i> Período do Dashboard</h4>
+                <div class="dashboard-filter-group">
+                    <label>Data Inicial</label>
+                    <input type="date" id="dashboard-date-start" value="">
+                </div>
+                <div class="dashboard-filter-group">
+                    <label>Data Final</label>
+                    <input type="date" id="dashboard-date-end" value="">
+                </div>
+                <div class="dashboard-filter-buttons">
+                    <button class="btn btn-sm" onclick="applyDashboardDateFilter()">
+                        <i class="fas fa-filter"></i> Aplicar
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="resetDashboardDateFilter()">
+                        <i class="fas fa-undo"></i> Resetar
+                    </button>
+                    <button class="btn btn-success btn-sm" onclick="updateDashboardWithCurrentFilter()">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                </div>
+            </div>
+            
             <div class="stats-grid" id="stats-grid">
                 <div class="stat-card">
                     <h4>Clientes Ativos</h4>
                     <div class="stat-value" id="active-clients">0</div>
-                    <div class="stat-details">Clientes com encomendas nos últimos 30 dias</div>
+                    <div class="stat-details">Clientes com encomendas no período</div>
                 </div>
                 <div class="stat-card">
-                    <h4>Encomendas Hoje</h4>
+                    <h4>Encomendas</h4>
                     <div class="stat-value" id="orders-today">0</div>
-                    <div class="stat-details">Encomendas realizadas hoje</div>
+                    <div class="stat-details">Encomendas no período</div>
                 </div>
                 <div class="stat-card">
                     <h4>Receita Total</h4>
                     <div class="stat-value" id="total-revenue">R$ 0,00</div>
-                    <div class="stat-details">Receita acumulada (30 dias)</div>
+                    <div class="stat-details">Receita acumulada no período</div>
                 </div>
                 <div class="stat-card">
                     <h4>Ticket Médio</h4>
                     <div class="stat-value" id="avg-ticket">R$ 0,00</div>
-                    <div class="stat-details">Média por encomenda</div>
+                    <div class="stat-details">Média por encomenda no período</div>
                 </div>
             </div>
 
             <div class="chart-container">
                 <div class="chart-header">
-                    <div class="chart-title" id="chartTitle">Vendas por Dia (Últimos 30 dias)</div>
+                    <div class="chart-title" id="chartTitle">Vendas por Dia (Período selecionado)</div>
                     <div class="chart-selector">
                         <button class="chart-btn active" data-chart="sales">Vendas</button>
                         <button class="chart-btn" data-chart="clients">Clientes</button>
@@ -1393,9 +1471,16 @@
             payment: 'todos'
         };
         
-        // Dashboard charts
+        // Dashboard charts e filtro
         let salesChart = null;
         let currentChartType = 'sales'; // 'sales', 'clients', 'revenue'
+        
+        // Variável para controlar o filtro de data do dashboard
+        let dashboardDateFilter = {
+            startDate: null,
+            endDate: null,
+            applied: false
+        };
         
         let pharmacyLogo = localStorage.getItem('souza-farma-logo');
         let pharmacyName = localStorage.getItem('souza-farma-name') || 'Souza Farma - Farmácia do Trabalhador';
@@ -1441,6 +1526,20 @@
             
             dateFilterApplied = true;
             applyDateFilter();
+            
+            // Configurar filtro de data do dashboard (padrão: últimos 30 dias)
+            const dashboardEndDate = new Date();
+            const dashboardStartDate = new Date();
+            dashboardStartDate.setDate(dashboardEndDate.getDate() - 30);
+            
+            document.getElementById('dashboard-date-start').value = dashboardStartDate.toISOString().split('T')[0];
+            document.getElementById('dashboard-date-end').value = dashboardEndDate.toISOString().split('T')[0];
+            
+            dashboardDateFilter = {
+                startDate: dashboardStartDate,
+                endDate: dashboardEndDate,
+                applied: true
+            };
             
             // Carregar logo
             loadPharmacyLogo();
@@ -1625,7 +1724,7 @@
             document.getElementById('simple-stats').style.display = 'grid';
             hideAllSections();
             
-            // Atualizar dashboard
+            // Atualizar dashboard com o filtro atual
             updateDashboard();
         }
         
@@ -1671,13 +1770,13 @@
                     const chartTitle = document.getElementById('chartTitle');
                     switch(currentChartType) {
                         case 'sales':
-                            chartTitle.textContent = 'Vendas por Dia (Últimos 30 dias)';
+                            chartTitle.textContent = 'Vendas por Dia (Período selecionado)';
                             break;
                         case 'clients':
-                            chartTitle.textContent = 'Novos Clientes por Dia (Últimos 30 dias)';
+                            chartTitle.textContent = 'Novos Clientes por Dia (Período selecionado)';
                             break;
                         case 'revenue':
-                            chartTitle.textContent = 'Distribuição de Receita por Tipo de Cliente';
+                            chartTitle.textContent = 'Distribuição de Receita por Tipo de Cliente (Período selecionado)';
                             break;
                     }
                     
@@ -1708,19 +1807,98 @@
             updateDashboard();
         }
         
-        // FUNÇÕES SEPARADAS PARA CRIAR CADA TIPO DE GRÁFICO
+        // FUNÇÕES PARA O FILTRO DE DATA DO DASHBOARD
+        function applyDashboardDateFilter() {
+            const startDateInput = document.getElementById('dashboard-date-start').value;
+            const endDateInput = document.getElementById('dashboard-date-end').value;
+            
+            if (startDateInput && endDateInput) {
+                const startDate = new Date(startDateInput);
+                const endDate = new Date(endDateInput);
+                
+                if (startDate > endDate) {
+                    alert('A data inicial não pode ser maior que a data final!');
+                    return;
+                }
+                
+                dashboardDateFilter = {
+                    startDate: startDate,
+                    endDate: endDate,
+                    applied: true
+                };
+                
+                updateDashboard();
+                alert('Filtro do dashboard aplicado com sucesso!');
+            } else {
+                alert('Por favor, selecione ambas as datas!');
+            }
+        }
+        
+        function resetDashboardDateFilter() {
+            const today = new Date();
+            const lastMonth = new Date();
+            lastMonth.setDate(today.getDate() - 30);
+            
+            document.getElementById('dashboard-date-start').value = lastMonth.toISOString().split('T')[0];
+            document.getElementById('dashboard-date-end').value = today.toISOString().split('T')[0];
+            
+            dashboardDateFilter = {
+                startDate: lastMonth,
+                endDate: today,
+                applied: true
+            };
+            
+            updateDashboard();
+            alert('Filtro do dashboard resetado para os últimos 30 dias!');
+        }
+        
+        function updateDashboardWithCurrentFilter() {
+            updateDashboard();
+        }
+        
+        // Função para filtrar dados pelo período do dashboard
+        function filterDataByDashboardDate(data, dateField = 'createdAt') {
+            if (!dashboardDateFilter.applied) {
+                return data;
+            }
+            
+            const startDate = new Date(dashboardDateFilter.startDate);
+            startDate.setHours(0, 0, 0, 0);
+            
+            const endDate = new Date(dashboardDateFilter.endDate);
+            endDate.setHours(23, 59, 59, 999);
+            
+            return data.filter(item => {
+                const itemDate = new Date(item[dateField]);
+                return itemDate >= startDate && itemDate <= endDate;
+            });
+        }
+        
+        // FUNÇÕES SEPARADAS PARA CRIAR CADA TIPO DE GRÁFICO COM FILTRO DE DATA
         function createSalesChart(ctx) {
-            // Gerar últimos 30 dias
-            const days = 30;
+            if (!dashboardDateFilter.applied || !dashboardDateFilter.startDate || !dashboardDateFilter.endDate) {
+                console.error('Filtro de data do dashboard não configurado!');
+                return;
+            }
+            
+            // Calcular número de dias no período
+            const startDate = new Date(dashboardDateFilter.startDate);
+            const endDate = new Date(dashboardDateFilter.endDate);
+            const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+            
+            // Limitar a um máximo de 60 dias para performance
+            const maxDays = Math.min(daysDiff, 60);
             const labels = [];
             const salesData = [];
             
-            const today = new Date();
-            
-            for (let i = days - 1; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            for (let i = 0; i <= maxDays; i++) {
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + i);
+                
+                // Se a data atual for maior que a data final, parar
+                if (currentDate > endDate) break;
+                
+                const dateStr = currentDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                 labels.push(dateStr);
                 
                 // Calcular vendas para este dia
@@ -1731,9 +1909,15 @@
                         client.orders.forEach(order => {
                             const orderDate = new Date(order.createdAt);
                             
-                            if (orderDate.getDate() === date.getDate() &&
-                                orderDate.getMonth() === date.getMonth() &&
-                                orderDate.getFullYear() === date.getFullYear()) {
+                            // Verificar se a ordem está dentro do período do dashboard
+                            const orderInDashboardPeriod = 
+                                orderDate >= new Date(dashboardDateFilter.startDate) && 
+                                orderDate <= new Date(dashboardDateFilter.endDate);
+                            
+                            if (orderInDashboardPeriod && 
+                                orderDate.getDate() === currentDate.getDate() &&
+                                orderDate.getMonth() === currentDate.getMonth() &&
+                                orderDate.getFullYear() === currentDate.getFullYear()) {
                                 daySales += order.total;
                             }
                         });
@@ -1791,17 +1975,29 @@
         }
         
         function createClientsChart(ctx) {
-            // Gerar últimos 30 dias
-            const days = 30;
+            if (!dashboardDateFilter.applied || !dashboardDateFilter.startDate || !dashboardDateFilter.endDate) {
+                console.error('Filtro de data do dashboard não configurado!');
+                return;
+            }
+            
+            // Calcular número de dias no período
+            const startDate = new Date(dashboardDateFilter.startDate);
+            const endDate = new Date(dashboardDateFilter.endDate);
+            const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+            
+            // Limitar a um máximo de 60 dias para performance
+            const maxDays = Math.min(daysDiff, 60);
             const labels = [];
             const clientsData = [];
             
-            const today = new Date();
-            
-            for (let i = days - 1; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            for (let i = 0; i <= maxDays; i++) {
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + i);
+                
+                // Se a data atual for maior que a data final, parar
+                if (currentDate > endDate) break;
+                
+                const dateStr = currentDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                 labels.push(dateStr);
                 
                 // Contar novos clientes para este dia
@@ -1810,9 +2006,15 @@
                 clients.forEach(client => {
                     const clientDate = new Date(client.createdAt);
                     
-                    if (clientDate.getDate() === date.getDate() &&
-                        clientDate.getMonth() === date.getMonth() &&
-                        clientDate.getFullYear() === date.getFullYear()) {
+                    // Verificar se o cliente foi criado dentro do período do dashboard
+                    const clientInDashboardPeriod = 
+                        clientDate >= new Date(dashboardDateFilter.startDate) && 
+                        clientDate <= new Date(dashboardDateFilter.endDate);
+                    
+                    if (clientInDashboardPeriod &&
+                        clientDate.getDate() === currentDate.getDate() &&
+                        clientDate.getMonth() === currentDate.getMonth() &&
+                        clientDate.getFullYear() === currentDate.getFullYear()) {
                         dayClients++;
                     }
                 });
@@ -1860,7 +2062,7 @@
         }
         
         function createRevenueChart(ctx) {
-            // Calcular receita por tipo de cliente
+            // Calcular receita por tipo de cliente para o período selecionado
             const revenueByType = {
                 'regular': 0,
                 'premium': 0,
@@ -1870,7 +2072,17 @@
             clients.forEach(client => {
                 if (client.orders) {
                     client.orders.forEach(order => {
-                        revenueByType[client.type] += order.total;
+                        const orderDate = new Date(order.createdAt);
+                        
+                        // Verificar se a ordem está dentro do período do dashboard
+                        const orderInDashboardPeriod = 
+                            (!dashboardDateFilter.applied) || 
+                            (orderDate >= new Date(dashboardDateFilter.startDate) && 
+                             orderDate <= new Date(dashboardDateFilter.endDate));
+                        
+                        if (orderInDashboardPeriod) {
+                            revenueByType[client.type] += order.total;
+                        }
                     });
                 }
             });
@@ -1990,41 +2202,64 @@
             createSalesChart(context);
         }
         
-        // Update dashboard statistics
+        // Update dashboard statistics com filtro de data
         function updateDashboardStats() {
-            // Calcular métricas
+            // Calcular métricas considerando o filtro de data do dashboard
             let totalRevenue = 0;
             let totalOrders = 0;
-            let activeClients = 0;
-            let ordersToday = 0;
-            const today = new Date();
+            let activeClients = new Set(); // Usar Set para clientes únicos
+            let ordersInPeriod = 0;
             
-            // Coletar todas as encomendas
             clients.forEach(client => {
+                let clientHasOrdersInPeriod = false;
+                
                 if (client.orders && client.orders.length > 0) {
-                    activeClients++;
                     client.orders.forEach(order => {
-                        totalRevenue += order.total;
-                        totalOrders++;
-                        
                         const orderDate = new Date(order.createdAt);
-                        if (orderDate.getDate() === today.getDate() &&
-                            orderDate.getMonth() === today.getMonth() &&
-                            orderDate.getFullYear() === today.getFullYear()) {
-                            ordersToday++;
+                        
+                        // Verificar se a ordem está dentro do período do dashboard
+                        const orderInDashboardPeriod = 
+                            (!dashboardDateFilter.applied) || 
+                            (orderDate >= new Date(dashboardDateFilter.startDate) && 
+                             orderDate <= new Date(dashboardDateFilter.endDate));
+                        
+                        if (orderInDashboardPeriod) {
+                            totalRevenue += order.total;
+                            totalOrders++;
+                            ordersInPeriod++;
+                            clientHasOrdersInPeriod = true;
                         }
                     });
+                    
+                    if (clientHasOrdersInPeriod) {
+                        activeClients.add(client.id);
+                    }
                 }
             });
             
             // Calcular ticket médio
-            const avgTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+            const avgTicket = ordersInPeriod > 0 ? totalRevenue / ordersInPeriod : 0;
             
             // Atualizar estatísticas do dashboard
-            document.getElementById('active-clients').textContent = activeClients;
-            document.getElementById('orders-today').textContent = ordersToday;
+            document.getElementById('active-clients').textContent = activeClients.size;
+            document.getElementById('orders-today').textContent = ordersInPeriod;
             document.getElementById('total-revenue').textContent = `R$ ${totalRevenue.toFixed(2).replace('.', ',')}`;
             document.getElementById('avg-ticket').textContent = `R$ ${avgTicket.toFixed(2).replace('.', ',')}`;
+            
+            // Atualizar descrições com informações do período
+            const startDate = dashboardDateFilter.startDate ? 
+                formatDate(dashboardDateFilter.startDate) : 'início';
+            const endDate = dashboardDateFilter.endDate ? 
+                formatDate(dashboardDateFilter.endDate) : 'fim';
+            
+            if (dashboardDateFilter.applied) {
+                document.querySelectorAll('.stat-details').forEach((detail, index) => {
+                    if (index === 0) detail.textContent = `Clientes com encomendas de ${startDate} a ${endDate}`;
+                    if (index === 1) detail.textContent = `Encomendas de ${startDate} a ${endDate}`;
+                    if (index === 2) detail.textContent = `Receita acumulada de ${startDate} a ${endDate}`;
+                    if (index === 3) detail.textContent = `Média por encomenda de ${startDate} a ${endDate}`;
+                });
+            }
         }
         
         // Update dashboard
@@ -2118,7 +2353,7 @@
             alert('Cliente atualizado com sucesso!');
         }
         
-        // Date Filter Functions
+        // Date Filter Functions (para a seção de encomendas)
         function applyDateFilter() {
             const startDateInput = document.getElementById('date-start').value;
             const endDateInput = document.getElementById('date-end').value;
