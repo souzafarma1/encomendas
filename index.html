@@ -2604,14 +2604,15 @@
             orderTotal = total;
             document.getElementById('order-total').textContent = total.toFixed(2);
             
-            // Atualizar display do desconto total
+            // CORREÇÃO AQUI: Limpar e atualizar o conteúdo do total-discount em vez de adicionar
+            const totalDiscountElement = document.getElementById('total-discount');
             if (totalDiscount > 0) {
-                document.getElementById('total-discount').innerHTML = `
+                totalDiscountElement.innerHTML = `
                     Desconto total: R$ ${totalDiscount.toFixed(2)}<br>
                     Valor original: R$ ${originalTotal.toFixed(2)}
                 `;
             } else {
-                document.getElementById('total-discount').innerHTML = '';
+                totalDiscountElement.innerHTML = '';
             }
         }
         
