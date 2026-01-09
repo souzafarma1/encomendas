@@ -925,22 +925,22 @@
                 <div class="stat-card">
                     <h4>Clientes Ativos</h4>
                     <div class="stat-value" id="active-clients">0</div>
-                    <div class="stat-details">Clientes com encomendas nos últimos 30 dias</div>
+                    <div class="stat-details" id="active-clients-details">Clientes com encomendas nos últimos 30 dias</div>
                 </div>
                 <div class="stat-card">
                     <h4>Encomendas Hoje</h4>
                     <div class="stat-value" id="orders-today">0</div>
-                    <div class="stat-details">Encomendas realizadas hoje</div>
+                    <div class="stat-details" id="orders-today-details">Encomendas realizadas hoje</div>
                 </div>
                 <div class="stat-card">
                     <h4>Receita Total</h4>
                     <div class="stat-value" id="total-revenue">R$ 0,00</div>
-                    <div class="stat-details">Receita acumulada (30 dias)</div>
+                    <div class="stat-details" id="total-revenue-details">Receita acumulada (30 dias)</div>
                 </div>
                 <div class="stat-card">
                     <h4>Ticket Médio</h4>
                     <div class="stat-value" id="avg-ticket">R$ 0,00</div>
-                    <div class="stat-details">Média por encomenda</div>
+                    <div class="stat-details" id="avg-ticket-details">Média por encomenda</div>
                 </div>
             </div>
 
@@ -954,7 +954,7 @@
                     </div>
                 </div>
                 
-                <!-- NOVO: Seletor de Período -->
+                <!-- Seletor de Período -->
                 <div class="period-selector">
                     <div style="display: flex; gap: 5px;">
                         <button class="period-btn" data-period="7">7 dias</button>
@@ -1173,7 +1173,7 @@
                         </div>
                     </div>
                     
-                    <!-- NOVO: Campo de Desconto -->
+                    <!-- Campo de Desconto -->
                     <div class="form-row">
                         <div class="form-group">
                             <label>Desconto</label>
@@ -1675,19 +1675,8 @@
                     // Atualizar período
                     currentPeriod = parseInt(this.dataset.period);
                     
-                    // Atualizar display do período
-                    document.getElementById('period-display').textContent = this.textContent.toLowerCase();
-                    
-                    // Atualizar título do gráfico se for sales ou clients
-                    const chartTitle = document.getElementById('chartTitle');
-                    if (currentChartType === 'sales') {
-                        chartTitle.textContent = 'Vendas por Dia (Últimos ' + currentPeriod + ' dias)';
-                    } else if (currentChartType === 'clients') {
-                        chartTitle.textContent = 'Novos Clientes por Dia (Últimos ' + currentPeriod + ' dias)';
-                    }
-                    
-                    // Atualizar gráfico
-                    updateChart();
+                    // Atualizar todas as estatísticas com o novo período
+                    updatePeriodStats();
                 });
             });
             
@@ -1993,7 +1982,7 @@
             createSalesChart(context);
         }
         
-        // Update dashboard statistics
+        // Update dashboard statistics - CORRIGIDA PARA CONSIDERAR O PERÍODO
         function updateDashboardStats() {
             // Calcular métricas para o período selecionado
             let totalRevenue = 0;
@@ -2040,6 +2029,68 @@
             document.getElementById('orders-today').textContent = ordersToday;
             document.getElementById('total-revenue').textContent = `R$ ${totalRevenue.toFixed(2).replace('.', ',')}`;
             document.getElementById('avg-ticket').textContent = `R$ ${avgTicket.toFixed(2).replace('.', ',')}`;
+            
+            // Atualizar detalhes com o período correto
+            updatePeriodDetails();
+        }
+        
+        // Função para atualizar as estatísticas quando o período muda
+        function updatePeriodStats() {
+            // Atualizar dashboard stats
+            updateDashboardStats();
+            
+            // Atualizar display do período
+            let periodText = '';
+            switch(currentPeriod) {
+                case 7:
+                    periodText = '7 dias';
+                    break;
+                case 30:
+                    periodText = '30 dias';
+                    break;
+                case 90:
+                    periodText = '90 dias';
+                    break;
+                case 365:
+                    periodText = '1 ano';
+                    break;
+            }
+            document.getElementById('period-display').textContent = periodText;
+            
+            // Atualizar título do gráfico se for sales ou clients
+            const chartTitle = document.getElementById('chartTitle');
+            if (currentChartType === 'sales') {
+                chartTitle.textContent = 'Vendas por Dia (Últimos ' + currentPeriod + ' dias)';
+            } else if (currentChartType === 'clients') {
+                chartTitle.textContent = 'Novos Clientes por Dia (Últimos ' + currentPeriod + ' dias)';
+            }
+            
+            // Atualizar gráfico
+            updateChart();
+        }
+        
+        // Função para atualizar os detalhes do período
+        function updatePeriodDetails() {
+            let periodText = '';
+            switch(currentPeriod) {
+                case 7:
+                    periodText = '7 dias';
+                    break;
+                case 30:
+                    periodText = '30 dias';
+                    break;
+                case 90:
+                    periodText = '90 dias';
+                    break;
+                case 365:
+                    periodText = '1 ano';
+                    break;
+            }
+            
+            document.getElementById('active-clients-details').textContent = `Clientes com encomendas nos últimos ${currentPeriod} dias`;
+            document.getElementById('orders-today-details').textContent = `Encomendas realizadas hoje`;
+            document.getElementById('total-revenue-details').textContent = `Receita acumulada (${periodText})`;
+            document.getElementById('avg-ticket-details').textContent = `Média por encomenda (${periodText})`;
         }
         
         // Update dashboard
