@@ -1174,23 +1174,19 @@
                     </div>
                     
                     <!-- Campo de Desconto -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Desconto</label>
-                            <div class="discount-controls">
-                                <input type="number" id="new-item-discount" step="0.01" placeholder="0.00" class="discount-input" value="0">
-                                <select id="new-item-discount-type" class="discount-type">
-                                    <option value="valor">R$</option>
-                                    <option value="percentual">%</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button class="btn btn-success btn-sm" onclick="addOrderItemFromForm()">
-                        <i class="fas fa-plus"></i> Adicionar Item
-                    </button>
-                </div>
+                    <!-- Campo de Desconto -->
+<div class="form-row">
+    <div class="form-group">
+        <label>Desconto</label>
+        <div class="discount-controls">
+            <input type="number" id="new-item-discount" step="0.01" placeholder="0.00" class="discount-input" value="0" style="flex: 3; min-width: 120px;">
+            <select id="new-item-discount-type" class="discount-type" style="flex: 1; min-width: 60px; max-width: 80px;">
+                <option value="valor">R$</option>
+                <option value="percentual">%</option>
+            </select>
+        </div>
+    </div>
+</div>
                 
                 <div class="order-total" id="order-total-display">
                     Total: R$ <span id="order-total">0.00</span>
@@ -3906,3 +3902,4 @@
     </script>
 </body>
 </html>
+
