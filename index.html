@@ -3403,6 +3403,9 @@
                     break;
             }
             
+            // Saudação no início da mensagem
+            const saudacao = `Olá ${currentOrder.clientName}! Tudo bem?%0A%0A`;
+            
             const message = `*${pharmacyName.toUpperCase()} - ENCOMENDA*%0A%0A` +
                            `*Cliente:* ${currentOrder.clientName}%0A` +
                            `*Data:* ${formatDate(currentOrder.createdAt)}%0A` +
@@ -3433,12 +3436,21 @@
                         itemsText += `${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}${discountInfo}%0A`;
                     });
                     
-                    const totalText = `%0A*Total: R$ ${currentOrder.total.toFixed(2)}*%0A%0A` +
-                                    `_Aguardamos sua retirada na ${pharmacyName}!_%0A` +
-                                    `Av José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A` +
-                                    `Telefone: 98-98628-7296`;
+                    // Mensagem final baseada na disponibilidade
+                    let finalInstruction = '';
+                    if (currentOrder.available === 'sim') {
+                        finalInstruction = `%0A*Aguardamos sua retirada na ${pharmacyName}!*%0A` +
+                                         `Av José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A` +
+                                         `Telefone: 98-98628-7296`;
+                    } else {
+                        finalInstruction = `%0A*Aguarde a chegada do produto! Assim que disponível, informaremos por aqui.*%0A` +
+                                         `Av José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A` +
+                                         `Telefone: 98-98628-7296`;
+                    }
                     
-                    const whatsappUrl = `https://wa.me/55${phone}?text=${finalMessage}${itemsText}${totalText}`;
+                    const totalText = `%0A*Total: R$ ${currentOrder.total.toFixed(2)}*${finalInstruction}`;
+                    
+                    const whatsappUrl = `https://wa.me/55${phone}?text=${saudacao}${finalMessage}${itemsText}${totalText}`;
                     window.open(whatsappUrl, '_blank');
                     return;
                 }
@@ -3456,12 +3468,21 @@
                 itemsText += `${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}${discountInfo}%0A`;
             });
             
-            const totalText = `%0A*Total: R$ ${currentOrder.total.toFixed(2)}*%0A%0A` +
-                            `_Aguardamos sua retirada na ${pharmacyName}!_%0A` +
-                            `Av José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A` +
-                            `Telefone: 98-98628-7296`;
+            // Mensagem final baseada na disponibilidade
+            let finalInstruction = '';
+            if (currentOrder.available === 'sim') {
+                finalInstruction = `%0A*Aguardamos sua retirada na ${pharmacyName}!*%0A` +
+                                 `Av José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A` +
+                                 `Telefone: 98-98628-7296`;
+            } else {
+                finalInstruction = `%0A*Aguarde a chegada do produto! Assim que disponível, informaremos por aqui.*%0A` +
+                                 `Av José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A` +
+                                 `Telefone: 98-98628-7296`;
+            }
             
-            const whatsappUrl = `https://wa.me/55${phone}?text=${message}${itemsText}${totalText}`;
+            const totalText = `%0A*Total: R$ ${currentOrder.total.toFixed(2)}*${finalInstruction}`;
+            
+            const whatsappUrl = `https://wa.me/55${phone}?text=${saudacao}${message}${itemsText}${totalText}`;
             window.open(whatsappUrl, '_blank');
         }
         
