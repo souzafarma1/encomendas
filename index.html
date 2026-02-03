@@ -33,6 +33,8 @@
             --dark: #343a40;
             --gray: #6c757d;
             --dashboard-bg: #f8fafc;
+            --profit: #27ae60;
+            --cost: #e67e22;
         }
         
         body {
@@ -112,9 +114,15 @@
         /* Stats Cards */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 15px;
             margin-bottom: 20px;
+        }
+
+        @media (max-width: 1400px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
         @media (max-width: 1200px) {
@@ -164,6 +172,23 @@
         .stat-details {
             font-size: 0.8rem;
             color: #95a5a6;
+        }
+
+        /* Estilos específicos para lucro e custo */
+        .stat-card.profit {
+            border-left-color: var(--profit);
+        }
+        
+        .stat-card.cost {
+            border-left-color: var(--cost);
+        }
+        
+        .profit-text {
+            color: var(--profit);
+        }
+        
+        .cost-text {
+            color: var(--cost);
         }
 
         /* Chart Container */
@@ -222,24 +247,24 @@
             position: relative;
         }
 
-        /* Date Filter para Dashboard */
-        .dashboard-date-filter {
+        /* Filtro de datas no dashboard */
+        .dashboard-filter {
             background: #f8f9fa;
             border-radius: 6px;
             padding: 15px;
             margin-bottom: 20px;
             border: 1px solid #e9ecef;
             display: flex;
+            flex-wrap: wrap;
             gap: 15px;
             align-items: flex-end;
-            flex-wrap: wrap;
         }
 
-        .dashboard-date-filter h4 {
+        .dashboard-filter h4 {
+            width: 100%;
             margin-bottom: 12px;
             color: #2c3e50;
             font-size: 1rem;
-            width: 100%;
         }
 
         .dashboard-filter-group {
@@ -263,11 +288,6 @@
             font-size: 0.85rem;
         }
 
-        .dashboard-filter-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
         /* Refresh Button */
         .refresh-btn {
             background-color: var(--souza-red);
@@ -281,6 +301,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            height: 38px;
         }
 
         .refresh-btn:hover {
@@ -678,6 +699,14 @@
             background-color: #f39c12;
         }
         
+        .badge-profit {
+            background-color: var(--profit);
+        }
+        
+        .badge-cost {
+            background-color: var(--cost);
+        }
+        
         /* Modal */
         .modal {
             display: none;
@@ -772,7 +801,7 @@
         
         /* Responsive */
         @media (max-width: 768px) {
-            .form-row, .filter-row {
+            .form-row, .filter-row, .dashboard-filter {
                 flex-direction: column;
                 gap: 0;
             }
@@ -809,7 +838,7 @@
                 font-size: 1.5rem;
             }
             
-            .filter-group {
+            .filter-group, .dashboard-filter-group {
                 min-width: 100%;
             }
 
@@ -823,13 +852,9 @@
                 width: 100%;
                 flex-wrap: wrap;
             }
-
-            .dashboard-date-filter {
-                flex-direction: column;
-            }
             
-            .dashboard-filter-group {
-                min-width: 100%;
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
         }
         
@@ -893,6 +918,37 @@
             margin-bottom: 14px;
             flex-wrap: wrap;
         }
+        
+        /* Lucro info styles */
+        .profit-info {
+            background: #e8f6f3;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .profit-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+        
+        .profit-label {
+            color: #666;
+        }
+        
+        .profit-value {
+            font-weight: bold;
+        }
+        
+        .profit-positive {
+            color: var(--profit);
+        }
+        
+        .cost-value {
+            color: var(--cost);
+        }
     </style>
 </head>
 <body>
@@ -917,9 +973,9 @@
     
     <div class="container">
         <div class="dashboard-container active" id="dashboard-container">
-            <!-- Adicionar Filtro de Data para o Dashboard -->
-            <div class="dashboard-date-filter">
-                <h4><i class="fas fa-calendar-alt"></i> Período do Dashboard</h4>
+            <!-- Filtro de datas para o dashboard -->
+            <div class="dashboard-filter">
+                <h4><i class="fas fa-calendar-alt"></i> Filtro de Período para Dashboard</h4>
                 <div class="dashboard-filter-group">
                     <label>Data Inicial</label>
                     <input type="date" id="dashboard-date-start" value="">
@@ -928,15 +984,12 @@
                     <label>Data Final</label>
                     <input type="date" id="dashboard-date-end" value="">
                 </div>
-                <div class="dashboard-filter-buttons">
-                    <button class="btn btn-sm" onclick="applyDashboardDateFilter()">
-                        <i class="fas fa-filter"></i> Aplicar
+                <div>
+                    <button class="btn btn-sm" onclick="applyDashboardFilter()">
+                        <i class="fas fa-filter"></i> Aplicar Filtro
                     </button>
-                    <button class="btn btn-secondary btn-sm" onclick="resetDashboardDateFilter()">
-                        <i class="fas fa-undo"></i> Resetar
-                    </button>
-                    <button class="btn btn-success btn-sm" onclick="updateDashboardWithCurrentFilter()">
-                        <i class="fas fa-sync-alt"></i> Atualizar
+                    <button class="btn btn-secondary btn-sm" onclick="resetDashboardFilter()">
+                        <i class="fas fa-times"></i> Limpar
                     </button>
                 </div>
             </div>
@@ -955,29 +1008,40 @@
                 <div class="stat-card">
                     <h4>Receita Total</h4>
                     <div class="stat-value" id="total-revenue">R$ 0,00</div>
-                    <div class="stat-details">Receita acumulada no período</div>
+                    <div class="stat-details">Receita acumulada</div>
                 </div>
-                <div class="stat-card">
-                    <h4>Ticket Médio</h4>
-                    <div class="stat-value" id="avg-ticket">R$ 0,00</div>
-                    <div class="stat-details">Média por encomenda no período</div>
+                <div class="stat-card cost">
+                    <h4>Custo Total</h4>
+                    <div class="stat-value cost-text" id="total-cost">R$ 0,00</div>
+                    <div class="stat-details">Custo acumulado</div>
+                </div>
+                <div class="stat-card profit">
+                    <h4>Lucro Total</h4>
+                    <div class="stat-value profit-text" id="total-profit">R$ 0,00</div>
+                    <div class="stat-details">Lucro acumulado</div>
+                </div>
+                <div class="stat-card profit">
+                    <h4>Margem de Lucro</h4>
+                    <div class="stat-value profit-text" id="avg-margin">0%</div>
+                    <div class="stat-details">Margem média</div>
                 </div>
             </div>
 
             <div class="chart-container">
                 <div class="chart-header">
-                    <div class="chart-title" id="chartTitle">Vendas por Dia (Período selecionado)</div>
+                    <div class="chart-title" id="chartTitle">Vendas por Dia</div>
                     <div class="chart-selector">
                         <button class="chart-btn active" data-chart="sales">Vendas</button>
                         <button class="chart-btn" data-chart="clients">Clientes</button>
                         <button class="chart-btn" data-chart="revenue">Receita</button>
+                        <button class="chart-btn" data-chart="profit">Lucro</button>
                     </div>
                 </div>
                 <div class="chart-wrapper">
                     <canvas id="salesChart"></canvas>
                 </div>
                 <button class="refresh-btn" id="refreshChart" style="margin-top: 15px; margin-left: auto; display: block;">
-                    <i class="fas fa-sync-alt"></i> Forçar Atualização do Gráfico
+                    <i class="fas fa-sync-alt"></i> Atualizar Gráfico
                 </button>
             </div>
         </div>
@@ -1179,7 +1243,23 @@
                         </div>
                     </div>
                     
-                    <!-- NOVOS CAMPOS DE DESCONTO -->
+                    <!-- NOVOS CAMPOS: Custo e Lucro -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Valor de Custo</label>
+                            <input type="number" id="new-item-cost" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label>Lucro (R$)</label>
+                            <input type="number" id="new-item-profit-value" step="0.01" placeholder="0.00" readonly style="background-color: #e8f6f3;">
+                        </div>
+                        <div class="form-group">
+                            <label>Lucro (%)</label>
+                            <input type="number" id="new-item-profit-percent" step="0.01" placeholder="0.00" readonly style="background-color: #e8f6f3;">
+                        </div>
+                    </div>
+                    
+                    <!-- CAMPOS DE DESCONTO -->
                     <div class="form-row">
                         <div class="form-group">
                             <label>Tipo de Desconto</label>
@@ -1198,7 +1278,6 @@
                             <input type="number" id="new-item-final-price" step="0.01" placeholder="0.00" readonly style="background-color: #f8f9fa;">
                         </div>
                     </div>
-                    <!-- FIM DOS NOVOS CAMPOS -->
                     
                     <button class="btn btn-success btn-sm" onclick="addOrderItemFromForm()">
                         <i class="fas fa-plus"></i> Adicionar Item
@@ -1207,6 +1286,22 @@
                 
                 <div class="order-total" id="order-total-display">
                     Total: R$ <span id="order-total">0.00</span>
+                </div>
+                
+                <!-- RESUMO DE LUCRO DA ENCOMENDA -->
+                <div class="profit-info" id="order-profit-summary" style="display: none;">
+                    <div class="profit-info-row">
+                        <span class="profit-label">Custo Total:</span>
+                        <span class="profit-value cost-value" id="order-total-cost">R$ 0.00</span>
+                    </div>
+                    <div class="profit-info-row">
+                        <span class="profit-label">Lucro Total:</span>
+                        <span class="profit-value profit-positive" id="order-total-profit">R$ 0.00</span>
+                    </div>
+                    <div class="profit-info-row">
+                        <span class="profit-label">Margem de Lucro:</span>
+                        <span class="profit-value profit-positive" id="order-profit-margin">0%</span>
+                    </div>
                 </div>
                 
                 <div style="margin-top: 16px;">
@@ -1224,7 +1319,6 @@
                     </div>
                 </div>
                 
-                <!-- NOVOS CAMPOS ADICIONADOS -->
                 <div style="margin-top: 16px;">
                     <label>Valor de Entrada (opcional)</label>
                     <input type="number" id="down-payment" step="0.01" placeholder="0.00" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;" oninput="updatePaymentStatus()">
@@ -1241,7 +1335,6 @@
                         </label>
                     </div>
                 </div>
-                <!-- FIM DOS NOVOS CAMPOS -->
                 
                 <div class="button-group" style="margin-top: 22px;">
                     <button class="btn btn-success btn-sm" onclick="saveOrder()">
@@ -1321,8 +1414,12 @@
                         <div class="filter-stat-label">Valor Total</div>
                     </div>
                     <div class="filter-stat">
-                        <div class="filter-stat-value" id="filter-avg-value">R$ 0,00</div>
-                        <div class="filter-stat-label">Média por Encomenda</div>
+                        <div class="filter-stat-value" id="filter-total-cost">R$ 0,00</div>
+                        <div class="filter-stat-label">Custo Total</div>
+                    </div>
+                    <div class="filter-stat">
+                        <div class="filter-stat-value profit-text" id="filter-total-profit">R$ 0,00</div>
+                        <div class="filter-stat-label">Lucro Total</div>
                     </div>
                 </div>
             </div>
@@ -1471,22 +1568,21 @@
             payment: 'todos'
         };
         
-        // Dashboard charts e filtro
+        // Dashboard charts
         let salesChart = null;
-        let currentChartType = 'sales'; // 'sales', 'clients', 'revenue'
-        
-        // Variável para controlar o filtro de data do dashboard
-        let dashboardDateFilter = {
-            startDate: null,
-            endDate: null,
-            applied: false
-        };
+        let currentChartType = 'sales'; // 'sales', 'clients', 'revenue', 'profit'
         
         let pharmacyLogo = localStorage.getItem('souza-farma-logo');
         let pharmacyName = localStorage.getItem('souza-farma-name') || 'Souza Farma - Farmácia do Trabalhador';
         
         // Variável para editar cliente
         let editingClient = null;
+        
+        // Variáveis para filtro do dashboard
+        let dashboardFilter = {
+            startDate: null,
+            endDate: null
+        };
         
         // Inicializar o sistema quando a página carregar
         document.addEventListener('DOMContentLoaded', function() {
@@ -1527,18 +1623,13 @@
             dateFilterApplied = true;
             applyDateFilter();
             
-            // Configurar filtro de data do dashboard (padrão: últimos 30 dias)
-            const dashboardEndDate = new Date();
-            const dashboardStartDate = new Date();
-            dashboardStartDate.setDate(dashboardEndDate.getDate() - 30);
+            // Configurar filtro do dashboard
+            document.getElementById('dashboard-date-start').value = lastMonth.toISOString().split('T')[0];
+            document.getElementById('dashboard-date-end').value = today.toISOString().split('T')[0];
             
-            document.getElementById('dashboard-date-start').value = dashboardStartDate.toISOString().split('T')[0];
-            document.getElementById('dashboard-date-end').value = dashboardEndDate.toISOString().split('T')[0];
-            
-            dashboardDateFilter = {
-                startDate: dashboardStartDate,
-                endDate: dashboardEndDate,
-                applied: true
+            dashboardFilter = {
+                startDate: new Date(lastMonth),
+                endDate: new Date(today)
             };
             
             // Carregar logo
@@ -1564,8 +1655,8 @@
             // Configurar navegação com Enter nos campos do formulário de item
             setupEnterNavigation();
             
-            // Configurar cálculo de desconto
-            setupDiscountCalculation();
+            // Configurar cálculo de desconto e lucro
+            setupDiscountAndProfitCalculation();
         });
         
         // Configurar navegação com tecla Enter
@@ -1588,6 +1679,13 @@
             document.getElementById('new-item-price').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
+                    document.getElementById('new-item-cost').focus();
+                }
+            });
+            
+            document.getElementById('new-item-cost').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
                     document.getElementById('new-item-discount-type').focus();
                 }
             });
@@ -1607,11 +1705,14 @@
             });
         }
         
-        // Configurar cálculo automático de desconto
-        function setupDiscountCalculation() {
+        // Configurar cálculo automático de desconto e lucro
+        function setupDiscountAndProfitCalculation() {
             const discountType = document.getElementById('new-item-discount-type');
             const discountValue = document.getElementById('new-item-discount-value');
             const priceInput = document.getElementById('new-item-price');
+            const costInput = document.getElementById('new-item-cost');
+            const profitValueInput = document.getElementById('new-item-profit-value');
+            const profitPercentInput = document.getElementById('new-item-profit-percent');
             const finalPriceInput = document.getElementById('new-item-final-price');
             
             // Habilitar/desabilitar campo de valor do desconto
@@ -1624,20 +1725,23 @@
                     discountValue.disabled = false;
                     discountValue.focus();
                 }
-                calculateFinalPrice();
+                calculateProfit();
             });
             
-            // Calcular valor final quando qualquer campo relevante mudar
-            priceInput.addEventListener('input', calculateFinalPrice);
-            discountValue.addEventListener('input', calculateFinalPrice);
+            // Calcular lucro quando qualquer campo relevante mudar
+            priceInput.addEventListener('input', calculateProfit);
+            costInput.addEventListener('input', calculateProfit);
+            discountValue.addEventListener('input', calculateProfit);
             
-            // Calcular valor final baseado nos inputs
-            function calculateFinalPrice() {
+            // Calcular lucro baseado nos inputs
+            function calculateProfit() {
                 const price = parseFloat(priceInput.value) || 0;
+                const cost = parseFloat(costInput.value) || 0;
                 const discountTypeValue = discountType.value;
                 const discountVal = parseFloat(discountValue.value) || 0;
                 let finalPrice = price;
                 
+                // Calcular preço final com desconto
                 if (discountTypeValue === 'percent' && discountVal > 0) {
                     finalPrice = price - (price * discountVal / 100);
                 } else if (discountTypeValue === 'fixed' && discountVal > 0) {
@@ -1647,6 +1751,13 @@
                 }
                 
                 finalPriceInput.value = finalPrice.toFixed(2);
+                
+                // Calcular lucro
+                const profitValue = finalPrice - cost;
+                const profitPercent = cost > 0 ? (profitValue / cost) * 100 : 0;
+                
+                profitValueInput.value = profitValue.toFixed(2);
+                profitPercentInput.value = profitPercent.toFixed(2);
             }
         }
         
@@ -1724,7 +1835,7 @@
             document.getElementById('simple-stats').style.display = 'grid';
             hideAllSections();
             
-            // Atualizar dashboard com o filtro atual
+            // Atualizar dashboard
             updateDashboard();
         }
         
@@ -1770,13 +1881,16 @@
                     const chartTitle = document.getElementById('chartTitle');
                     switch(currentChartType) {
                         case 'sales':
-                            chartTitle.textContent = 'Vendas por Dia (Período selecionado)';
+                            chartTitle.textContent = 'Vendas por Dia';
                             break;
                         case 'clients':
-                            chartTitle.textContent = 'Novos Clientes por Dia (Período selecionado)';
+                            chartTitle.textContent = 'Novos Clientes por Dia';
                             break;
                         case 'revenue':
-                            chartTitle.textContent = 'Distribuição de Receita por Tipo de Cliente (Período selecionado)';
+                            chartTitle.textContent = 'Distribuição de Receita por Tipo de Cliente';
+                            break;
+                        case 'profit':
+                            chartTitle.textContent = 'Lucro por Dia';
                             break;
                     }
                     
@@ -1795,7 +1909,7 @@
                 this.style.backgroundColor = '#27ae60';
                 
                 setTimeout(() => {
-                    this.innerHTML = '<i class="fas fa-sync-alt"></i> Forçar Atualização do Gráfico';
+                    this.innerHTML = '<i class="fas fa-sync-alt"></i> Atualizar Gráfico';
                     this.style.backgroundColor = '#e74c3c';
                 }, 1500);
             });
@@ -1807,98 +1921,32 @@
             updateDashboard();
         }
         
-        // FUNÇÕES PARA O FILTRO DE DATA DO DASHBOARD
-        function applyDashboardDateFilter() {
-            const startDateInput = document.getElementById('dashboard-date-start').value;
-            const endDateInput = document.getElementById('dashboard-date-end').value;
-            
-            if (startDateInput && endDateInput) {
-                const startDate = new Date(startDateInput);
-                const endDate = new Date(endDateInput);
-                
-                if (startDate > endDate) {
-                    alert('A data inicial não pode ser maior que a data final!');
-                    return;
-                }
-                
-                dashboardDateFilter = {
-                    startDate: startDate,
-                    endDate: endDate,
-                    applied: true
-                };
-                
-                updateDashboard();
-                alert('Filtro do dashboard aplicado com sucesso!');
-            } else {
-                alert('Por favor, selecione ambas as datas!');
-            }
-        }
-        
-        function resetDashboardDateFilter() {
-            const today = new Date();
-            const lastMonth = new Date();
-            lastMonth.setDate(today.getDate() - 30);
-            
-            document.getElementById('dashboard-date-start').value = lastMonth.toISOString().split('T')[0];
-            document.getElementById('dashboard-date-end').value = today.toISOString().split('T')[0];
-            
-            dashboardDateFilter = {
-                startDate: lastMonth,
-                endDate: today,
-                applied: true
-            };
-            
-            updateDashboard();
-            alert('Filtro do dashboard resetado para os últimos 30 dias!');
-        }
-        
-        function updateDashboardWithCurrentFilter() {
-            updateDashboard();
-        }
-        
-        // Função para filtrar dados pelo período do dashboard
-        function filterDataByDashboardDate(data, dateField = 'createdAt') {
-            if (!dashboardDateFilter.applied) {
-                return data;
-            }
-            
-            const startDate = new Date(dashboardDateFilter.startDate);
-            startDate.setHours(0, 0, 0, 0);
-            
-            const endDate = new Date(dashboardDateFilter.endDate);
-            endDate.setHours(23, 59, 59, 999);
-            
-            return data.filter(item => {
-                const itemDate = new Date(item[dateField]);
-                return itemDate >= startDate && itemDate <= endDate;
-            });
-        }
-        
-        // FUNÇÕES SEPARADAS PARA CRIAR CADA TIPO DE GRÁFICO COM FILTRO DE DATA
+        // FUNÇÕES SEPARADAS PARA CRIAR CADA TIPO DE GRÁFICO
         function createSalesChart(ctx) {
-            if (!dashboardDateFilter.applied || !dashboardDateFilter.startDate || !dashboardDateFilter.endDate) {
-                console.error('Filtro de data do dashboard não configurado!');
-                return;
+            // Calcular número de dias baseado no filtro
+            let days = 30; // padrão
+            let labels = [];
+            let salesData = [];
+            
+            if (dashboardFilter.startDate && dashboardFilter.endDate) {
+                const startDate = new Date(dashboardFilter.startDate);
+                const endDate = new Date(dashboardFilter.endDate);
+                const diffTime = Math.abs(endDate - startDate);
+                days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                
+                if (days > 365) days = 365; // limite máximo
             }
             
-            // Calcular número de dias no período
-            const startDate = new Date(dashboardDateFilter.startDate);
-            const endDate = new Date(dashboardDateFilter.endDate);
-            const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+            const today = dashboardFilter.endDate ? new Date(dashboardFilter.endDate) : new Date();
+            const startDate = dashboardFilter.startDate ? new Date(dashboardFilter.startDate) : new Date(today);
+            if (!dashboardFilter.startDate) {
+                startDate.setDate(today.getDate() - (days - 1));
+            }
             
-            // Limitar a um máximo de 60 dias para performance
-            const maxDays = Math.min(daysDiff, 60);
-            const labels = [];
-            const salesData = [];
-            
-            for (let i = 0; i <= maxDays; i++) {
-                const currentDate = new Date(startDate);
-                currentDate.setDate(startDate.getDate() + i);
-                
-                // Se a data atual for maior que a data final, parar
-                if (currentDate > endDate) break;
-                
-                const dateStr = currentDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            for (let i = 0; i < days; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                 labels.push(dateStr);
                 
                 // Calcular vendas para este dia
@@ -1909,15 +1957,9 @@
                         client.orders.forEach(order => {
                             const orderDate = new Date(order.createdAt);
                             
-                            // Verificar se a ordem está dentro do período do dashboard
-                            const orderInDashboardPeriod = 
-                                orderDate >= new Date(dashboardDateFilter.startDate) && 
-                                orderDate <= new Date(dashboardDateFilter.endDate);
-                            
-                            if (orderInDashboardPeriod && 
-                                orderDate.getDate() === currentDate.getDate() &&
-                                orderDate.getMonth() === currentDate.getMonth() &&
-                                orderDate.getFullYear() === currentDate.getFullYear()) {
+                            if (orderDate.getDate() === date.getDate() &&
+                                orderDate.getMonth() === date.getMonth() &&
+                                orderDate.getFullYear() === date.getFullYear()) {
                                 daySales += order.total;
                             }
                         });
@@ -1975,29 +2017,30 @@
         }
         
         function createClientsChart(ctx) {
-            if (!dashboardDateFilter.applied || !dashboardDateFilter.startDate || !dashboardDateFilter.endDate) {
-                console.error('Filtro de data do dashboard não configurado!');
-                return;
+            // Calcular número de dias baseado no filtro
+            let days = 30; // padrão
+            let labels = [];
+            let clientsData = [];
+            
+            if (dashboardFilter.startDate && dashboardFilter.endDate) {
+                const startDate = new Date(dashboardFilter.startDate);
+                const endDate = new Date(dashboardFilter.endDate);
+                const diffTime = Math.abs(endDate - startDate);
+                days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                
+                if (days > 365) days = 365; // limite máximo
             }
             
-            // Calcular número de dias no período
-            const startDate = new Date(dashboardDateFilter.startDate);
-            const endDate = new Date(dashboardDateFilter.endDate);
-            const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+            const today = dashboardFilter.endDate ? new Date(dashboardFilter.endDate) : new Date();
+            const startDate = dashboardFilter.startDate ? new Date(dashboardFilter.startDate) : new Date(today);
+            if (!dashboardFilter.startDate) {
+                startDate.setDate(today.getDate() - (days - 1));
+            }
             
-            // Limitar a um máximo de 60 dias para performance
-            const maxDays = Math.min(daysDiff, 60);
-            const labels = [];
-            const clientsData = [];
-            
-            for (let i = 0; i <= maxDays; i++) {
-                const currentDate = new Date(startDate);
-                currentDate.setDate(startDate.getDate() + i);
-                
-                // Se a data atual for maior que a data final, parar
-                if (currentDate > endDate) break;
-                
-                const dateStr = currentDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            for (let i = 0; i < days; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                 labels.push(dateStr);
                 
                 // Contar novos clientes para este dia
@@ -2006,15 +2049,9 @@
                 clients.forEach(client => {
                     const clientDate = new Date(client.createdAt);
                     
-                    // Verificar se o cliente foi criado dentro do período do dashboard
-                    const clientInDashboardPeriod = 
-                        clientDate >= new Date(dashboardDateFilter.startDate) && 
-                        clientDate <= new Date(dashboardDateFilter.endDate);
-                    
-                    if (clientInDashboardPeriod &&
-                        clientDate.getDate() === currentDate.getDate() &&
-                        clientDate.getMonth() === currentDate.getMonth() &&
-                        clientDate.getFullYear() === currentDate.getFullYear()) {
+                    if (clientDate.getDate() === date.getDate() &&
+                        clientDate.getMonth() === date.getMonth() &&
+                        clientDate.getFullYear() === date.getFullYear()) {
                         dayClients++;
                     }
                 });
@@ -2062,7 +2099,7 @@
         }
         
         function createRevenueChart(ctx) {
-            // Calcular receita por tipo de cliente para o período selecionado
+            // Calcular receita por tipo de cliente considerando o filtro
             const revenueByType = {
                 'regular': 0,
                 'premium': 0,
@@ -2073,14 +2110,26 @@
                 if (client.orders) {
                     client.orders.forEach(order => {
                         const orderDate = new Date(order.createdAt);
+                        let includeOrder = true;
                         
-                        // Verificar se a ordem está dentro do período do dashboard
-                        const orderInDashboardPeriod = 
-                            (!dashboardDateFilter.applied) || 
-                            (orderDate >= new Date(dashboardDateFilter.startDate) && 
-                             orderDate <= new Date(dashboardDateFilter.endDate));
+                        // Verificar se a encomenda está dentro do período do filtro
+                        if (dashboardFilter.startDate) {
+                            const startDate = new Date(dashboardFilter.startDate);
+                            startDate.setHours(0, 0, 0, 0);
+                            if (orderDate < startDate) {
+                                includeOrder = false;
+                            }
+                        }
                         
-                        if (orderInDashboardPeriod) {
+                        if (dashboardFilter.endDate) {
+                            const endDate = new Date(dashboardFilter.endDate);
+                            endDate.setHours(23, 59, 59, 999);
+                            if (orderDate > endDate) {
+                                includeOrder = false;
+                            }
+                        }
+                        
+                        if (includeOrder) {
                             revenueByType[client.type] += order.total;
                         }
                     });
@@ -2153,6 +2202,138 @@
             });
         }
         
+        function createProfitChart(ctx) {
+            // Calcular número de dias baseado no filtro
+            let days = 30; // padrão
+            let labels = [];
+            let profitData = [];
+            let costData = [];
+            let revenueData = [];
+            
+            if (dashboardFilter.startDate && dashboardFilter.endDate) {
+                const startDate = new Date(dashboardFilter.startDate);
+                const endDate = new Date(dashboardFilter.endDate);
+                const diffTime = Math.abs(endDate - startDate);
+                days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                
+                if (days > 365) days = 365; // limite máximo
+            }
+            
+            const today = dashboardFilter.endDate ? new Date(dashboardFilter.endDate) : new Date();
+            const startDate = dashboardFilter.startDate ? new Date(dashboardFilter.startDate) : new Date(today);
+            if (!dashboardFilter.startDate) {
+                startDate.setDate(today.getDate() - (days - 1));
+            }
+            
+            for (let i = 0; i < days; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                labels.push(dateStr);
+                
+                // Calcular lucro, custo e receita para este dia
+                let dayProfit = 0;
+                let dayCost = 0;
+                let dayRevenue = 0;
+                
+                clients.forEach(client => {
+                    if (client.orders) {
+                        client.orders.forEach(order => {
+                            const orderDate = new Date(order.createdAt);
+                            
+                            if (orderDate.getDate() === date.getDate() &&
+                                orderDate.getMonth() === date.getMonth() &&
+                                orderDate.getFullYear() === date.getFullYear()) {
+                                
+                                let orderCost = 0;
+                                let orderProfit = 0;
+                                let orderRevenue = 0;
+                                
+                                order.items.forEach(item => {
+                                    const itemCost = (item.cost || 0) * item.quantity;
+                                    const itemRevenue = item.finalPrice * item.quantity;
+                                    const itemProfit = itemRevenue - itemCost;
+                                    
+                                    orderCost += itemCost;
+                                    orderRevenue += itemRevenue;
+                                    orderProfit += itemProfit;
+                                });
+                                
+                                dayCost += orderCost;
+                                dayProfit += orderProfit;
+                                dayRevenue += orderRevenue;
+                            }
+                        });
+                    }
+                });
+                
+                profitData.push(dayProfit);
+                costData.push(dayCost);
+                revenueData.push(dayRevenue);
+            }
+            
+            // Criar gráfico de barras para lucro
+            if (salesChart) {
+                salesChart.destroy();
+            }
+            
+            salesChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Lucro (R$)',
+                            data: profitData,
+                            backgroundColor: 'rgba(39, 174, 96, 0.8)',
+                            borderColor: 'rgb(39, 174, 96)',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            order: 3
+                        },
+                        {
+                            label: 'Custo (R$)',
+                            data: costData,
+                            backgroundColor: 'rgba(230, 126, 34, 0.8)',
+                            borderColor: 'rgb(230, 126, 34)',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            order: 2
+                        },
+                        {
+                            label: 'Receita (R$)',
+                            data: revenueData,
+                            backgroundColor: 'rgba(52, 152, 219, 0.8)',
+                            borderColor: 'rgb(52, 152, 219)',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
         // Update chart based on current type
         function updateChart() {
             const ctx = document.getElementById('salesChart');
@@ -2178,6 +2359,9 @@
                 case 'revenue':
                     createRevenueChart(context);
                     break;
+                case 'profit':
+                    createProfitChart(context);
+                    break;
                 default:
                     createSalesChart(context);
             }
@@ -2202,70 +2386,153 @@
             createSalesChart(context);
         }
         
-        // Update dashboard statistics com filtro de data
+        // Update dashboard statistics
         function updateDashboardStats() {
-            // Calcular métricas considerando o filtro de data do dashboard
+            // Calcular métricas baseadas no filtro
             let totalRevenue = 0;
+            let totalCost = 0;
+            let totalProfit = 0;
             let totalOrders = 0;
-            let activeClients = new Set(); // Usar Set para clientes únicos
-            let ordersInPeriod = 0;
+            let activeClients = new Set();
+            let ordersToday = 0;
+            const today = new Date();
             
+            // Coletar todas as encomendas
             clients.forEach(client => {
-                let clientHasOrdersInPeriod = false;
-                
                 if (client.orders && client.orders.length > 0) {
                     client.orders.forEach(order => {
                         const orderDate = new Date(order.createdAt);
+                        let includeOrder = true;
                         
-                        // Verificar se a ordem está dentro do período do dashboard
-                        const orderInDashboardPeriod = 
-                            (!dashboardDateFilter.applied) || 
-                            (orderDate >= new Date(dashboardDateFilter.startDate) && 
-                             orderDate <= new Date(dashboardDateFilter.endDate));
+                        // Verificar se a encomenda está dentro do período do filtro
+                        if (dashboardFilter.startDate) {
+                            const startDate = new Date(dashboardFilter.startDate);
+                            startDate.setHours(0, 0, 0, 0);
+                            if (orderDate < startDate) {
+                                includeOrder = false;
+                            }
+                        }
                         
-                        if (orderInDashboardPeriod) {
+                        if (dashboardFilter.endDate) {
+                            const endDate = new Date(dashboardFilter.endDate);
+                            endDate.setHours(23, 59, 59, 999);
+                            if (orderDate > endDate) {
+                                includeOrder = false;
+                            }
+                        }
+                        
+                        if (includeOrder) {
                             totalRevenue += order.total;
                             totalOrders++;
-                            ordersInPeriod++;
-                            clientHasOrdersInPeriod = true;
+                            activeClients.add(client.id);
+                            
+                            // Calcular custo e lucro da encomenda
+                            let orderCost = 0;
+                            let orderProfit = 0;
+                            
+                            if (order.items && order.items.length > 0) {
+                                order.items.forEach(item => {
+                                    const itemCost = (item.cost || 0) * item.quantity;
+                                    const itemRevenue = item.finalPrice * item.quantity;
+                                    const itemProfit = itemRevenue - itemCost;
+                                    
+                                    orderCost += itemCost;
+                                    orderProfit += itemProfit;
+                                });
+                            }
+                            
+                            totalCost += orderCost;
+                            totalProfit += orderProfit;
+                            
+                            // Verificar se é hoje (para estatística "hoje")
+                            if (orderDate.getDate() === today.getDate() &&
+                                orderDate.getMonth() === today.getMonth() &&
+                                orderDate.getFullYear() === today.getFullYear()) {
+                                ordersToday++;
+                            }
                         }
                     });
-                    
-                    if (clientHasOrdersInPeriod) {
-                        activeClients.add(client.id);
-                    }
                 }
             });
             
-            // Calcular ticket médio
-            const avgTicket = ordersInPeriod > 0 ? totalRevenue / ordersInPeriod : 0;
+            // Calcular margem média
+            const avgMargin = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
             
             // Atualizar estatísticas do dashboard
             document.getElementById('active-clients').textContent = activeClients.size;
-            document.getElementById('orders-today').textContent = ordersInPeriod;
+            document.getElementById('orders-today').textContent = totalOrders; // Alterado para mostrar total no período
             document.getElementById('total-revenue').textContent = `R$ ${totalRevenue.toFixed(2).replace('.', ',')}`;
-            document.getElementById('avg-ticket').textContent = `R$ ${avgTicket.toFixed(2).replace('.', ',')}`;
-            
-            // Atualizar descrições com informações do período
-            const startDate = dashboardDateFilter.startDate ? 
-                formatDate(dashboardDateFilter.startDate) : 'início';
-            const endDate = dashboardDateFilter.endDate ? 
-                formatDate(dashboardDateFilter.endDate) : 'fim';
-            
-            if (dashboardDateFilter.applied) {
-                document.querySelectorAll('.stat-details').forEach((detail, index) => {
-                    if (index === 0) detail.textContent = `Clientes com encomendas de ${startDate} a ${endDate}`;
-                    if (index === 1) detail.textContent = `Encomendas de ${startDate} a ${endDate}`;
-                    if (index === 2) detail.textContent = `Receita acumulada de ${startDate} a ${endDate}`;
-                    if (index === 3) detail.textContent = `Média por encomenda de ${startDate} a ${endDate}`;
-                });
-            }
+            document.getElementById('total-cost').textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
+            document.getElementById('total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
+            document.getElementById('avg-margin').textContent = `${avgMargin.toFixed(1)}%`;
         }
         
         // Update dashboard
         function updateDashboard() {
             updateDashboardStats();
             updateChart();
+        }
+        
+        // Funções para filtro do dashboard
+        function applyDashboardFilter() {
+            const startDateInput = document.getElementById('dashboard-date-start').value;
+            const endDateInput = document.getElementById('dashboard-date-end').value;
+            
+            if (startDateInput && endDateInput) {
+                const startDate = new Date(startDateInput);
+                const endDate = new Date(endDateInput);
+                
+                if (startDate > endDate) {
+                    alert('A data inicial não pode ser maior que a data final!');
+                    return;
+                }
+                
+                dashboardFilter = {
+                    startDate: startDate,
+                    endDate: endDate
+                };
+            } else if (startDateInput || endDateInput) {
+                alert('Por favor, preencha ambas as datas ou deixe ambas em branco para usar o período padrão.');
+                return;
+            } else {
+                // Sem filtro - usar período padrão de 30 dias
+                const today = new Date();
+                const lastMonth = new Date();
+                lastMonth.setDate(today.getDate() - 30);
+                
+                dashboardFilter = {
+                    startDate: lastMonth,
+                    endDate: today
+                };
+            }
+            
+            updateDashboard();
+            
+            // Feedback visual
+            const applyBtn = document.querySelector('.dashboard-filter .btn');
+            applyBtn.innerHTML = '<i class="fas fa-check"></i> Filtro Aplicado';
+            applyBtn.style.backgroundColor = '#27ae60';
+            
+            setTimeout(() => {
+                applyBtn.innerHTML = '<i class="fas fa-filter"></i> Aplicar Filtro';
+                applyBtn.style.backgroundColor = '';
+            }, 1500);
+        }
+        
+        function resetDashboardFilter() {
+            const today = new Date();
+            const lastMonth = new Date();
+            lastMonth.setDate(today.getDate() - 30);
+            
+            document.getElementById('dashboard-date-start').value = lastMonth.toISOString().split('T')[0];
+            document.getElementById('dashboard-date-end').value = today.toISOString().split('T')[0];
+            
+            dashboardFilter = {
+                startDate: lastMonth,
+                endDate: today
+            };
+            
+            updateDashboard();
         }
         
         // Função para abrir modal de edição de cliente
@@ -2353,7 +2620,7 @@
             alert('Cliente atualizado com sucesso!');
         }
         
-        // Date Filter Functions (para a seção de encomendas)
+        // Date Filter Functions
         function applyDateFilter() {
             const startDateInput = document.getElementById('date-start').value;
             const endDateInput = document.getElementById('date-end').value;
@@ -2438,11 +2705,21 @@
         function updateFilterStats(filteredOrders) {
             const totalOrders = filteredOrders.length;
             const totalValue = filteredOrders.reduce((sum, order) => sum + order.total, 0);
-            const avgValue = totalOrders > 0 ? totalValue / totalOrders : 0;
+            const totalCost = filteredOrders.reduce((sum, order) => {
+                let orderCost = 0;
+                if (order.items && order.items.length > 0) {
+                    order.items.forEach(item => {
+                        orderCost += (item.cost || 0) * item.quantity;
+                    });
+                }
+                return sum + orderCost;
+            }, 0);
+            const totalProfit = totalValue - totalCost;
             
             document.getElementById('filter-total-orders').textContent = totalOrders;
             document.getElementById('filter-total-value').textContent = `R$ ${totalValue.toFixed(2).replace('.', ',')}`;
-            document.getElementById('filter-avg-value').textContent = `R$ ${avgValue.toFixed(2).replace('.', ',')}`;
+            document.getElementById('filter-total-cost').textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
+            document.getElementById('filter-total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
         }
         
         // Export to Excel functions
@@ -2477,6 +2754,21 @@
             clients.forEach(client => {
                 if (client.orders && client.orders.length > 0) {
                     client.orders.forEach(order => {
+                        // Calcular custo e lucro da encomenda
+                        let orderCost = 0;
+                        let orderProfit = 0;
+                        
+                        if (order.items && order.items.length > 0) {
+                            order.items.forEach(item => {
+                                const itemCost = (item.cost || 0) * item.quantity;
+                                const itemRevenue = item.finalPrice * item.quantity;
+                                const itemProfit = itemRevenue - itemCost;
+                                
+                                orderCost += itemCost;
+                                orderProfit += itemProfit;
+                            });
+                        }
+                        
                         allOrders.push({
                             'ID Encomenda': order.id,
                             'Cliente': order.clientName,
@@ -2488,9 +2780,17 @@
                                         'Pendente',
                             'Entrada': order.downPayment || 0,
                             'Disponível': order.available === 'sim' ? 'Sim' : 'Não',
-                            'Total': order.total,
+                            'Total Venda': order.total,
+                            'Custo Total': orderCost,
+                            'Lucro Total': orderProfit,
+                            'Margem (%)': orderCost > 0 ? ((orderProfit / orderCost) * 100).toFixed(2) : '0.00',
                             'Quantidade de Itens': order.items.length,
-                            'Itens': order.items.map(item => `${item.quantity}x ${item.description}`).join('; ')
+                            'Itens': order.items.map(item => {
+                                const itemCost = item.cost || 0;
+                                const itemProfit = item.finalPrice - itemCost;
+                                const itemMargin = itemCost > 0 ? ((itemProfit / itemCost) * 100).toFixed(2) : '0.00';
+                                return `${item.quantity}x ${item.description} (Custo: R$ ${itemCost.toFixed(2)}, Lucro: R$ ${itemProfit.toFixed(2)}, Margem: ${itemMargin}%)`;
+                            }).join('; ')
                         });
                     });
                 }
@@ -2690,13 +2990,45 @@
             return finalPrice;
         }
         
+        // NOVA FUNÇÃO: Atualizar resumo de lucro da encomenda
+        function updateOrderProfitSummary() {
+            let totalCost = 0;
+            let totalProfit = 0;
+            const itemDivs = document.querySelectorAll('[id^="item-"]');
+            
+            if (itemDivs.length === 0) {
+                document.getElementById('order-profit-summary').style.display = 'none';
+                return;
+            }
+            
+            itemDivs.forEach(div => {
+                const id = div.id.replace('item-', '');
+                const quantity = parseFloat(document.getElementById('qty-' + id).value) || 0;
+                const cost = parseFloat(document.getElementById('cost-' + id).value) || 0;
+                const finalPrice = parseFloat(document.getElementById('final-price-' + id).value) || 0;
+                
+                totalCost += cost * quantity;
+                totalProfit += (finalPrice - cost) * quantity;
+            });
+            
+            const profitMargin = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
+            
+            document.getElementById('order-total-cost').textContent = `R$ ${totalCost.toFixed(2)}`;
+            document.getElementById('order-total-profit').textContent = `R$ ${totalProfit.toFixed(2)}`;
+            document.getElementById('order-profit-margin').textContent = `${profitMargin.toFixed(1)}%`;
+            document.getElementById('order-profit-summary').style.display = 'block';
+        }
+        
         function addOrderItemFromForm() {
             const description = document.getElementById('new-item-desc').value.trim();
             const quantity = parseInt(document.getElementById('new-item-qty').value) || 1;
             const price = parseFloat(document.getElementById('new-item-price').value) || 0;
+            const cost = parseFloat(document.getElementById('new-item-cost').value) || 0;
             const discountType = document.getElementById('new-item-discount-type').value;
             const discountValue = parseFloat(document.getElementById('new-item-discount-value').value) || 0;
             const finalPrice = parseFloat(document.getElementById('new-item-final-price').value) || price;
+            const profitValue = parseFloat(document.getElementById('new-item-profit-value').value) || 0;
+            const profitPercent = parseFloat(document.getElementById('new-item-profit-percent').value) || 0;
             
             if (!description) {
                 alert('Por favor, informe a descrição do item!');
@@ -2721,6 +3053,9 @@
                 discountText = ` (R$ ${discountValue.toFixed(2)} de desconto)`;
             }
             
+            // Determinar texto do lucro para exibição (apenas interna)
+            const profitText = cost > 0 ? `Lucro: R$ ${profitValue.toFixed(2)} (${profitPercent.toFixed(1)}%)` : '';
+            
             const itemHtml = `
                 <div id="item-${itemId}" class="order-item">
                     <div class="order-item-header">
@@ -2732,6 +3067,8 @@
                             <span style="color: #666;">Quantidade: ${quantity}</span>
                             <span style="margin-left: 11px; color: #666;">Valor unitário: R$ ${price.toFixed(2)}</span>
                             <span style="margin-left: 11px; color: #666;">Valor final: R$ ${finalPrice.toFixed(2)}</span>
+                            ${cost > 0 ? `<span style="margin-left: 11px; color: var(--cost);">Custo: R$ ${cost.toFixed(2)}</span>` : ''}
+                            ${profitText ? `<span style="margin-left: 11px; color: var(--profit); font-weight: bold;">${profitText}</span>` : ''}
                         </div>
                         <button onclick="removeOrderItem(${itemId})" class="btn btn-danger btn-sm">
                             <i class="fas fa-trash"></i> Remover
@@ -2740,9 +3077,12 @@
                     <input type="hidden" id="desc-${itemId}" value="${description}">
                     <input type="hidden" id="qty-${itemId}" value="${quantity}">
                     <input type="hidden" id="price-${itemId}" value="${price}">
+                    <input type="hidden" id="cost-${itemId}" value="${cost}">
                     <input type="hidden" id="discount-type-${itemId}" value="${discountType}">
                     <input type="hidden" id="discount-value-${itemId}" value="${discountValue}">
                     <input type="hidden" id="final-price-${itemId}" value="${finalPrice}">
+                    <input type="hidden" id="profit-value-${itemId}" value="${profitValue}">
+                    <input type="hidden" id="profit-percent-${itemId}" value="${profitPercent}">
                 </div>
             `;
             
@@ -2752,14 +3092,18 @@
             document.getElementById('new-item-desc').value = '';
             document.getElementById('new-item-qty').value = '1';
             document.getElementById('new-item-price').value = '';
+            document.getElementById('new-item-cost').value = '';
             document.getElementById('new-item-discount-type').value = 'none';
             document.getElementById('new-item-discount-value').value = '';
             document.getElementById('new-item-discount-value').disabled = true;
             document.getElementById('new-item-final-price').value = '';
+            document.getElementById('new-item-profit-value').value = '';
+            document.getElementById('new-item-profit-percent').value = '';
             
             // Focar no primeiro campo
             document.getElementById('new-item-desc').focus();
             updateOrderTotal();
+            updateOrderProfitSummary();
         }
         
         function updateOrderTotal() {
@@ -2782,6 +3126,7 @@
             if (itemDiv) {
                 itemDiv.remove();
                 updateOrderTotal();
+                updateOrderProfitSummary();
             }
         }
         
@@ -2819,27 +3164,42 @@
             }
             
             let total = 0;
+            let totalCost = 0;
+            let totalProfit = 0;
+            
             itemDivs.forEach(div => {
                 const id = div.id.replace('item-', '');
                 const quantity = parseFloat(document.getElementById('qty-' + id).value) || 1;
                 const description = document.getElementById('desc-' + id).value.trim();
                 const price = parseFloat(document.getElementById('price-' + id).value) || 0;
+                const cost = parseFloat(document.getElementById('cost-' + id).value) || 0;
                 const discountType = document.getElementById('discount-type-' + id).value;
                 const discountValue = parseFloat(document.getElementById('discount-value-' + id).value) || 0;
                 const finalPrice = parseFloat(document.getElementById('final-price-' + id).value) || price;
+                const profitValue = parseFloat(document.getElementById('profit-value-' + id).value) || 0;
+                const profitPercent = parseFloat(document.getElementById('profit-percent-' + id).value) || 0;
                 
                 if (description) {
                     const itemTotal = quantity * finalPrice;
+                    const itemCost = cost * quantity;
+                    const itemProfit = profitValue * quantity;
+                    
                     items.push({
                         quantity: quantity,
                         description: description,
                         price: price,
+                        cost: cost,
                         discountType: discountType,
                         discountValue: discountValue,
                         finalPrice: finalPrice,
+                        profitValue: profitValue,
+                        profitPercent: profitPercent,
                         total: itemTotal
                     });
+                    
                     total += itemTotal;
+                    totalCost += itemCost;
+                    totalProfit += itemProfit;
                 }
             });
             
@@ -2865,10 +3225,11 @@
             }
             
             // Validação: se há entrada mas o pagamento não é marcado como parcial ou pago
+            let finalPayment = payment;
             if (downPayment > 0 && payment === 'pendente') {
                 if (confirm('Foi informado um valor de entrada. Deseja alterar o status do pagamento para "Parcial"?')) {
                     document.querySelector('input[name="payment"][value="parcial"]').checked = true;
-                    payment = 'parcial';
+                    finalPayment = 'parcial';
                 }
             }
             
@@ -2879,7 +3240,10 @@
                 clientPhone: selectedClientForOrder.phone,
                 items: items,
                 total: total,
-                payment: payment,
+                totalCost: totalCost,
+                totalProfit: totalProfit,
+                profitMargin: totalCost > 0 ? (totalProfit / totalCost) * 100 : 0,
+                payment: finalPayment,
                 downPayment: downPayment,
                 available: available,
                 status: 'pendente',
@@ -2974,10 +3338,9 @@
                                 <label style="font-size: 0.85rem;">Valor Unitário</label>
                                 <input type="number" id="edit-price-${index}" value="${item.price.toFixed(2)}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                             </div>
-                            <div style="display: flex; align-items: flex-end;">
-                                <button onclick="removeEditItem(${index})" class="btn btn-danger btn-sm" style="width: 100%;">
-                                    <i class="fas fa-trash"></i> Remover
-                                </button>
+                            <div>
+                                <label style="font-size: 0.85rem;">Custo Unitário</label>
+                                <input type="number" id="edit-cost-${index}" value="${item.cost ? item.cost.toFixed(2) : '0.00'}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                             </div>
                         </div>
                         <!-- Campos de desconto na edição -->
@@ -2995,6 +3358,11 @@
                                 <input type="number" id="edit-discount-value-${index}" value="${item.discountValue || 0}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                             </div>
                         </div>
+                        <div style="margin-top: 9px; text-align: right;">
+                            <button onclick="removeEditItem(${index})" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i> Remover Item
+                            </button>
+                        </div>
                     </div>
                 `;
             });
@@ -3008,6 +3376,22 @@
                 
                 <div class="order-total" style="margin-top: 16px;">
                     Total: R$ <span id="edit-order-total">${editingOrder.total.toFixed(2)}</span>
+                </div>
+                
+                <!-- RESUMO DE LUCRO NA EDIÇÃO -->
+                <div class="profit-info" style="margin-top: 16px;">
+                    <div class="profit-info-row">
+                        <span class="profit-label">Custo Total:</span>
+                        <span class="profit-value cost-value" id="edit-order-total-cost">R$ ${editingOrder.totalCost ? editingOrder.totalCost.toFixed(2) : '0.00'}</span>
+                    </div>
+                    <div class="profit-info-row">
+                        <span class="profit-label">Lucro Total:</span>
+                        <span class="profit-value profit-positive" id="edit-order-total-profit">R$ ${editingOrder.totalProfit ? editingOrder.totalProfit.toFixed(2) : '0.00'}</span>
+                    </div>
+                    <div class="profit-info-row">
+                        <span class="profit-label">Margem de Lucro:</span>
+                        <span class="profit-value profit-positive" id="edit-order-profit-margin">${editingOrder.profitMargin ? editingOrder.profitMargin.toFixed(1) : '0'}%</span>
+                    </div>
                 </div>
                 
                 <div style="margin-top: 16px;">
@@ -3081,9 +3465,12 @@
                 quantity: 1,
                 description: "Novo Item",
                 price: 0,
+                cost: 0,
                 discountType: 'none',
                 discountValue: 0,
                 finalPrice: 0,
+                profitValue: 0,
+                profitPercent: 0,
                 total: 0
             };
             
@@ -3106,10 +3493,9 @@
                             <label style="font-size: 0.85rem;">Valor Unitário</label>
                             <input type="number" id="edit-price-${index}" value="${newItem.price.toFixed(2)}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                         </div>
-                        <div style="display: flex; align-items: flex-end;">
-                            <button onclick="removeEditItem(${index})" class="btn btn-danger btn-sm" style="width: 100%;">
-                                <i class="fas fa-trash"></i> Remover
-                            </button>
+                        <div>
+                            <label style="font-size: 0.85rem;">Custo Unitário</label>
+                            <input type="number" id="edit-cost-${index}" value="${newItem.cost.toFixed(2)}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                         </div>
                     </div>
                     <!-- Campos de desconto na edição -->
@@ -3127,6 +3513,11 @@
                             <input type="number" id="edit-discount-value-${index}" value="0" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                         </div>
                     </div>
+                    <div style="margin-top: 9px; text-align: right;">
+                        <button onclick="removeEditItem(${index})" class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash"></i> Remover Item
+                        </button>
+                    </div>
                 </div>
             `;
             
@@ -3141,6 +3532,7 @@
         function updateEditItemTotal(index) {
             const quantity = parseFloat(document.getElementById('edit-qty-' + index).value) || 0;
             const price = parseFloat(document.getElementById('edit-price-' + index).value) || 0;
+            const cost = parseFloat(document.getElementById('edit-cost-' + index).value) || 0;
             const discountType = document.getElementById('edit-discount-type-' + index).value;
             const discountValue = parseFloat(document.getElementById('edit-discount-value-' + index).value) || 0;
             
@@ -3153,14 +3545,20 @@
                 if (finalPrice < 0) finalPrice = 0;
             }
             
+            // Calcular lucro
+            const profitValue = finalPrice - cost;
+            const profitPercent = cost > 0 ? (profitValue / cost) * 100 : 0;
             const total = quantity * finalPrice;
             
             document.getElementById('edit-total-' + index).textContent = `R$ ${total.toFixed(2)}`;
             editingOrder.items[index].quantity = quantity;
             editingOrder.items[index].price = price;
+            editingOrder.items[index].cost = cost;
             editingOrder.items[index].discountType = discountType;
             editingOrder.items[index].discountValue = discountValue;
             editingOrder.items[index].finalPrice = finalPrice;
+            editingOrder.items[index].profitValue = profitValue;
+            editingOrder.items[index].profitPercent = profitPercent;
             editingOrder.items[index].total = total;
             editingOrder.items[index].description = document.getElementById('edit-desc-' + index).value;
             
@@ -3169,12 +3567,24 @@
         
         function updateEditOrderTotal() {
             let total = 0;
+            let totalCost = 0;
+            let totalProfit = 0;
+            
             editingOrder.items.forEach(item => {
                 total += item.total;
+                totalCost += item.cost * item.quantity;
+                totalProfit += item.profitValue * item.quantity;
             });
             
             editingOrder.total = total;
+            editingOrder.totalCost = totalCost;
+            editingOrder.totalProfit = totalProfit;
+            editingOrder.profitMargin = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
+            
             document.getElementById('edit-order-total').textContent = total.toFixed(2);
+            document.getElementById('edit-order-total-cost').textContent = `R$ ${totalCost.toFixed(2)}`;
+            document.getElementById('edit-order-total-profit').textContent = `R$ ${totalProfit.toFixed(2)}`;
+            document.getElementById('edit-order-profit-margin').textContent = `${editingOrder.profitMargin.toFixed(1)}%`;
         }
         
         function saveEditedOrder() {
@@ -3193,15 +3603,19 @@
                 item.description = document.getElementById('edit-desc-' + index).value;
                 item.quantity = parseFloat(document.getElementById('edit-qty-' + index).value) || 0;
                 item.price = parseFloat(document.getElementById('edit-price-' + index).value) || 0;
+                item.cost = parseFloat(document.getElementById('edit-cost-' + index).value) || 0;
                 item.discountType = document.getElementById('edit-discount-type-' + index).value;
                 item.discountValue = parseFloat(document.getElementById('edit-discount-value-' + index).value) || 0;
                 
-                // Recalcular preço final e total
+                // Recalcular preço final, lucro e total
                 item.finalPrice = calculateDiscountedPrice(item.price, item.discountType, item.discountValue);
+                item.profitValue = item.finalPrice - item.cost;
+                item.profitPercent = item.cost > 0 ? (item.profitValue / item.cost) * 100 : 0;
                 item.total = item.quantity * item.finalPrice;
             });
             
-            editingOrder.total = editingOrder.items.reduce((sum, item) => sum + item.total, 0);
+            // Recalcular totais
+            updateEditOrderTotal();
             
             // Verificar se a entrada não é maior que o total
             if (editingOrder.downPayment > editingOrder.total) {
@@ -3296,6 +3710,8 @@
                     break;
             }
             
+            // ATENÇÃO: NÃO MOSTRAR INFORMAÇÕES DE CUSTO/LUCRO PARA O CLIENTE
+            // Mantemos apenas as informações de venda
             let html = `
                 <h4>Cliente: ${currentOrder.clientName}</h4>
                 <p>Telefone: ${currentOrder.clientPhone}</p>
@@ -3315,9 +3731,7 @@
                         <tr style="background: #f8f9fa;">
                             <th style="padding: 7px; text-align: left;">Descrição</th>
                             <th style="padding: 7px; text-align: left;">Qtd</th>
-                            <th style="padding: 7px; text-align: left;">Valor Original</th>
-                            <th style="padding: 7px; text-align: left;">Desconto</th>
-                            <th style="padding: 7px; text-align: left;">Valor Final</th>
+                            <th style="padding: 7px; text-align: left;">Valor</th>
                             <th style="padding: 7px; text-align: left;">Total</th>
                         </tr>
                     </thead>
@@ -3325,22 +3739,10 @@
             `;
             
             currentOrder.items.forEach(item => {
-                // Calcular texto do desconto
-                let discountText = '';
-                if (item.discountType === 'percent' && item.discountValue > 0) {
-                    discountText = `${item.discountValue}%`;
-                } else if (item.discountType === 'fixed' && item.discountValue > 0) {
-                    discountText = `R$ ${item.discountValue.toFixed(2)}`;
-                } else {
-                    discountText = '-';
-                }
-                
                 html += `
                     <tr>
                         <td style="padding: 7px;">${item.description}</td>
                         <td style="padding: 7px;">${item.quantity}</td>
-                        <td style="padding: 7px;">R$ ${item.price.toFixed(2)}</td>
-                        <td style="padding: 7px;">${discountText}</td>
                         <td style="padding: 7px;">R$ ${item.finalPrice.toFixed(2)}</td>
                         <td style="padding: 7px;">R$ ${item.total.toFixed(2)}</td>
                     </tr>
@@ -3406,7 +3808,8 @@
             // Saudação no início da mensagem
             const saudacao = `Olá ${currentOrder.clientName}! Tudo bem?%0A%0A`;
             
-            const message = `*${pharmacyName.toUpperCase()} - ENCOMENDA*%0A%0A` +
+            // Mensagem principal
+            const message = `${saudacao}*SOUZA FARMA - FARMÁCIA DO TRABALHADOR - ENCOMENDA*%0A%0A` +
                            `*Cliente:* ${currentOrder.clientName}%0A` +
                            `*Data:* ${formatDate(currentOrder.createdAt)}%0A` +
                            `*Status:* ${currentOrder.status === 'pendente' ? 'Pendente de retirada' : 'Entregue'}%0A` +
@@ -3414,75 +3817,37 @@
                            `*Disponível para retirada:* ${currentOrder.available === 'sim' ? 'Sim' : 'Não'}%0A%0A`;
             
             // Adicionar informações de entrada se houver
+            let finalMessage = message;
             if (currentOrder.downPayment > 0) {
-                const messageWithDownPayment = message + 
-                                              `*Entrada paga:* R$ ${currentOrder.downPayment.toFixed(2)}%0A`;
+                finalMessage += `*Entrada paga:* R$ ${currentOrder.downPayment.toFixed(2)}%0A`;
                 
                 // Calcular saldo se houver entrada
                 const balance = currentOrder.total - currentOrder.downPayment;
                 if (balance > 0) {
-                    const finalMessage = messageWithDownPayment + 
-                                       `*Saldo restante:* R$ ${balance.toFixed(2)}%0A%0A`;
-                    
-                    let itemsText = `*Itens:*%0A`;
-                    currentOrder.items.forEach((item, index) => {
-                        let discountInfo = '';
-                        if (item.discountType === 'percent' && item.discountValue > 0) {
-                            discountInfo = ` (${item.discountValue}% desc.)`;
-                        } else if (item.discountType === 'fixed' && item.discountValue > 0) {
-                            discountInfo = ` (R$ ${item.discountValue.toFixed(2)} desc.)`;
-                        }
-                        
-                        itemsText += `${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}${discountInfo}%0A`;
-                    });
-                    
-                    // Mensagem final baseada na disponibilidade
-                    let finalInstruction = '';
-                    if (currentOrder.available === 'sim') {
-                        finalInstruction = `%0A*Aguardamos sua retirada na ${pharmacyName}!*%0A` +
-                                         `Av José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A` +
-                                         `Telefone: 98-98628-7296`;
-                    } else {
-                        finalInstruction = `%0A*Aguarde a chegada do produto! Assim que disponível, informaremos por aqui.*%0A` +
-                                         `Av José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A` +
-                                         `Telefone: 98-98628-7296`;
-                    }
-                    
-                    const totalText = `%0A*Total: R$ ${currentOrder.total.toFixed(2)}*${finalInstruction}`;
-                    
-                    const whatsappUrl = `https://wa.me/55${phone}?text=${saudacao}${finalMessage}${itemsText}${totalText}`;
-                    window.open(whatsappUrl, '_blank');
-                    return;
+                    finalMessage += `*Saldo restante:* R$ ${balance.toFixed(2)}%0A%0A`;
                 }
             }
             
             let itemsText = `*Itens:*%0A`;
             currentOrder.items.forEach((item, index) => {
-                let discountInfo = '';
-                if (item.discountType === 'percent' && item.discountValue > 0) {
-                    discountInfo = ` (${item.discountValue}% desc.)`;
-                } else if (item.discountType === 'fixed' && item.discountValue > 0) {
-                    discountInfo = ` (R$ ${item.discountValue.toFixed(2)} desc.)`;
-                }
-                
-                itemsText += `${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}${discountInfo}%0A`;
+                itemsText += `${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}%0A`;
             });
             
             // Mensagem final baseada na disponibilidade
-            let finalInstruction = '';
+            let finalMessageText = '';
             if (currentOrder.available === 'sim') {
-                finalInstruction = `%0A*Aguardamos sua retirada na ${pharmacyName}!*%0A` +
+                finalMessageText = `%0A*Total: R$ ${currentOrder.total.toFixed(2)}*%0A%0A` +
+                                 `Aguardamos sua retirada na Souza Farma - Farmácia do Trabalhador!%0A` +
                                  `Av José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A` +
                                  `Telefone: 98-98628-7296`;
             } else {
-                finalInstruction = `%0A*Aguarde a chegada do produto! Assim que disponível, informaremos por aqui.*%0A` +
+                finalMessageText = `%0A*Total: R$ ${currentOrder.total.toFixed(2)}*%0A%0A` +
+                                 `Aguarde a chegada do produto! Assim que disponível, informaremos por aqui.%0A` +
                                  `Av José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A` +
                                  `Telefone: 98-98628-7296`;
             }
             
-            const totalText = `%0A*Total: R$ ${currentOrder.total.toFixed(2)}*${finalInstruction}`;
-            
-            const whatsappUrl = `https://wa.me/55${phone}?text=${saudacao}${message}${itemsText}${totalText}`;
+            const whatsappUrl = `https://wa.me/55${phone}?text=${finalMessage}${itemsText}${finalMessageText}`;
             window.open(whatsappUrl, '_blank');
         }
         
@@ -3536,32 +3901,19 @@
                                 <tr>
                                     <th>Descrição</th>
                                     <th>Qtd</th>
-                                    <th>Valor Original</th>
-                                    <th>Desconto</th>
-                                    <th>Valor Final</th>
+                                    <th>Valor</th>
                                     <th>Total</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${currentOrder.items.map(item => {
-                                    let discountText = '';
-                                    if (item.discountType === 'percent' && item.discountValue > 0) {
-                                        discountText = `${item.discountValue}%`;
-                                    } else if (item.discountType === 'fixed' && item.discountValue > 0) {
-                                        discountText = `R$ ${item.discountValue.toFixed(2)}`;
-                                    } else {
-                                        discountText = '-';
-                                    }
-                                    
-                                    return `<tr>
+                                ${currentOrder.items.map(item => `
+                                    <tr>
                                         <td>${item.description}</td>
                                         <td>${item.quantity}</td>
-                                        <td>R$ ${item.price.toFixed(2)}</td>
-                                        <td>${discountText}</td>
                                         <td>R$ ${item.finalPrice.toFixed(2)}</td>
                                         <td>R$ ${item.total.toFixed(2)}</td>
-                                    </tr>`;
-                                }).join('')}
+                                    </tr>
+                                `).join('')}
                             </tbody>
                         </table>
                         ${currentOrder.downPayment > 0 ? `
@@ -3701,30 +4053,19 @@
                                     <th>DESCRIÇÃO</th>
                                     <th>QTD</th>
                                     <th class="right">VALOR</th>
-                                    <th class="right">DESC.</th>
-                                    <th class="right">FINAL</th>
+                                    <th class="right">TOTAL</th>
                                 </tr>
                             </thead>
                             <tbody>
             `);
             
             currentOrder.items.forEach(item => {
-                let discountText = '';
-                if (item.discountType === 'percent' && item.discountValue > 0) {
-                    discountText = `${item.discountValue}%`;
-                } else if (item.discountType === 'fixed' && item.discountValue > 0) {
-                    discountText = `${item.discountValue.toFixed(2)}`;
-                } else {
-                    discountText = '-';
-                }
-                
                 printWindow.document.write(`
                     <tr>
                         <td>${item.description.substring(0, 12)}</td>
                         <td>${item.quantity}</td>
-                        <td class="right">${item.price.toFixed(2)}</td>
-                        <td class="right">${discountText}</td>
                         <td class="right">${item.finalPrice.toFixed(2)}</td>
+                        <td class="right">${item.total.toFixed(2)}</td>
                     </tr>
                 `);
             });
@@ -3760,10 +4101,14 @@
             document.getElementById('new-item-desc').value = '';
             document.getElementById('new-item-qty').value = '1';
             document.getElementById('new-item-price').value = '';
+            document.getElementById('new-item-cost').value = '';
             document.getElementById('new-item-discount-type').value = 'none';
             document.getElementById('new-item-discount-value').value = '';
             document.getElementById('new-item-discount-value').disabled = true;
             document.getElementById('new-item-final-price').value = '';
+            document.getElementById('new-item-profit-value').value = '';
+            document.getElementById('new-item-profit-percent').value = '';
+            document.getElementById('order-profit-summary').style.display = 'none';
             document.getElementById('down-payment').value = '';
             document.querySelector('input[name="available"][value="sim"]').checked = true;
             selectedClientForOrder = null;
@@ -3801,6 +4146,19 @@
                 const hasOrders = client.orders && client.orders.length > 0;
                 const pendingOrders = hasOrders ? client.orders.filter(o => o.status === 'pendente').length : 0;
                 
+                // Calcular lucro total do cliente
+                let clientProfit = 0;
+                let clientRevenue = 0;
+                let clientCost = 0;
+                
+                if (hasOrders) {
+                    client.orders.forEach(order => {
+                        clientRevenue += order.total;
+                        clientCost += order.totalCost || 0;
+                        clientProfit += order.totalProfit || 0;
+                    });
+                }
+                
                 html += `
                     <div class="item-card">
                         <div class="item-header">
@@ -3808,6 +4166,7 @@
                             <div>
                                 ${client.loyal === 'sim' ? '<span class="badge badge-success">Fidelizado</span>' : ''}
                                 ${hasOrders ? `<span class="badge">${client.orders.length}</span>` : ''}
+                                ${clientProfit > 0 ? `<span class="badge badge-profit">Lucro: R$ ${clientProfit.toFixed(2)}</span>` : ''}
                             </div>
                         </div>
                         <div class="item-contact">
@@ -3818,6 +4177,7 @@
                         <div class="compact-info">
                             Tipo: ${client.type} | Cadastrado: ${formatDate(client.createdAt)}
                             ${hasOrders ? ` | Pendentes: ${pendingOrders}` : ''}
+                            ${hasOrders ? `<br>Receita: R$ ${clientRevenue.toFixed(2)} | Custo: R$ ${clientCost.toFixed(2)} | Lucro: R$ ${clientProfit.toFixed(2)}` : ''}
                         </div>
                         <div class="item-actions">
                             <button class="btn btn-whatsapp btn-sm" onclick="sendClientWhatsApp('${client.phone}', '${client.name}')">
@@ -3898,6 +4258,8 @@
                                   'Pendente';
                 const downPaymentInfo = order.downPayment > 0 ? ` | Entrada: R$ ${order.downPayment.toFixed(2)}` : '';
                 const availableInfo = order.available ? ` | Disponível: ${order.available === 'sim' ? 'Sim' : 'Não'}` : '';
+                const profitInfo = order.totalProfit ? ` | Lucro: R$ ${order.totalProfit.toFixed(2)}` : '';
+                const marginInfo = order.profitMargin ? ` | Margem: ${order.profitMargin.toFixed(1)}%` : '';
                 
                 html += `
                     <div class="item-card ${isPending ? 'pending' : 'delivered'}">
@@ -3910,13 +4272,14 @@
                                 <span class="badge">
                                     R$ ${order.total.toFixed(2)}
                                 </span>
+                                ${order.totalProfit > 0 ? `<span class="badge badge-profit">Lucro: R$ ${order.totalProfit.toFixed(2)}</span>` : ''}
                             </div>
                         </div>
                         <div class="item-contact">
                             <i class="fas fa-phone"></i> ${order.clientPhone}
                         </div>
                         <div class="compact-info">
-                            ${formatDate(order.createdAt)} | ${order.items.length} itens | ${paymentInfo}${downPaymentInfo}${availableInfo}
+                            ${formatDate(order.createdAt)} | ${order.items.length} itens | ${paymentInfo}${downPaymentInfo}${availableInfo}${profitInfo}${marginInfo}
                             ${itemsSummary.length > 50 ? `<br>${itemsSummary.substring(0, 50)}...` : `<br>${itemsSummary}`}
                         </div>
                         <div class="item-actions">
