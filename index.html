@@ -13,7 +13,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
     <style>
-        /* Todos os estilos existentes permanecem aqui */
         * {
             margin: 0;
             padding: 0;
@@ -50,7 +49,6 @@
             padding: 12px;
         }
         
-        /* Header Atualizado - Estilo Profissional Clean */
         .header {
             background: white;
             color: var(--primary);
@@ -100,7 +98,6 @@
             line-height: 1.3;
         }
 
-        /* Dashboard Container */
         .dashboard-container {
             display: none;
             margin-bottom: 25px;
@@ -111,7 +108,6 @@
             animation: fadeIn 0.5s;
         }
 
-        /* Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -174,7 +170,6 @@
             color: #95a5a6;
         }
 
-        /* Estilos específicos para lucro e custo */
         .stat-card.profit {
             border-left-color: var(--profit);
         }
@@ -191,7 +186,6 @@
             color: var(--cost);
         }
 
-        /* Chart Container */
         .chart-container {
             background: white;
             border-radius: 10px;
@@ -243,11 +237,10 @@
         }
 
         .chart-wrapper {
-            height: 300px; /* Área reduzida conforme solicitado */
+            height: 300px;
             position: relative;
         }
 
-        /* Filtro de datas no dashboard */
         .dashboard-filter {
             background: #f8f9fa;
             border-radius: 6px;
@@ -288,7 +281,6 @@
             font-size: 0.85rem;
         }
 
-        /* Refresh Button */
         .refresh-btn {
             background-color: var(--souza-red);
             color: white;
@@ -308,7 +300,6 @@
             background-color: #c0392b;
         }
 
-        /* O resto dos estilos permanece igual */
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -349,7 +340,6 @@
             font-size: 0.85rem;
         }
         
-        /* Buttons */
         .btn {
             background-color: #3498db;
             color: white;
@@ -425,7 +415,6 @@
             background-color: #155d32;
         }
 
-        /* Botão de editar cliente */
         .btn-edit {
             background-color: #f39c12;
             color: white;
@@ -435,7 +424,6 @@
             background-color: #d68910;
         }
         
-        /* Sections */
         .section {
             background: white;
             border-radius: 8px;
@@ -477,7 +465,6 @@
             color: var(--souza-red);
         }
         
-        /* Date Filter */
         .date-filter {
             background: #f8f9fa;
             border-radius: 6px;
@@ -548,14 +535,12 @@
             color: #6c757d;
         }
         
-        /* Export Buttons */
         .export-buttons {
             display: flex;
             gap: 9px;
             margin-bottom: 16px;
         }
         
-        /* Forms */
         .form-group {
             margin-bottom: 14px;
         }
@@ -609,7 +594,6 @@
             flex-wrap: wrap;
         }
         
-        /* Search */
         .search-container {
             margin-bottom: 14px;
         }
@@ -622,7 +606,6 @@
             font-size: 0.9rem;
         }
         
-        /* Client/Order Lists */
         .list-container {
             max-height: 450px;
             overflow-y: auto;
@@ -707,7 +690,6 @@
             background-color: var(--cost);
         }
         
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -738,7 +720,6 @@
             margin-bottom: 14px;
         }
         
-        /* Order Item */
         .order-item {
             background: #f8f9fa;
             border-radius: 5px;
@@ -776,7 +757,6 @@
             font-size: 1.15rem;
         }
         
-        /* Order Items Form */
         .order-item-form {
             background: #f8f9fa;
             border-radius: 5px;
@@ -789,7 +769,6 @@
             margin-bottom: 9px;
         }
         
-        /* New client option */
         .new-client-option {
             background: #e8f6f3;
             border-radius: 5px;
@@ -799,7 +778,6 @@
             display: none;
         }
         
-        /* Responsive */
         @media (max-width: 768px) {
             .form-row, .filter-row, .dashboard-filter {
                 flex-direction: column;
@@ -858,7 +836,6 @@
             }
         }
         
-        /* Stats */
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -886,7 +863,6 @@
             font-size: 0.8rem;
         }
         
-        /* Empty state */
         .empty-state {
             text-align: center;
             padding: 35px 12px;
@@ -904,14 +880,12 @@
             margin-bottom: 6px;
         }
         
-        /* Compact info */
         .compact-info {
             font-size: 0.8rem;
             color: #666;
             margin-top: 5px;
         }
         
-        /* Quick actions */
         .quick-actions {
             display: flex;
             gap: 9px;
@@ -919,7 +893,6 @@
             flex-wrap: wrap;
         }
         
-        /* Lucro info styles */
         .profit-info {
             background: #e8f6f3;
             padding: 10px;
@@ -973,7 +946,6 @@
     
     <div class="container">
         <div class="dashboard-container active" id="dashboard-container">
-            <!-- Filtro de datas para o dashboard -->
             <div class="dashboard-filter">
                 <h4><i class="fas fa-calendar-alt"></i> Filtro de Período para Dashboard</h4>
                 <div class="dashboard-filter-group">
@@ -1243,7 +1215,6 @@
                         </div>
                     </div>
                     
-                    <!-- NOVOS CAMPOS: Custo e Lucro -->
                     <div class="form-row">
                         <div class="form-group">
                             <label>Valor de Custo</label>
@@ -1259,7 +1230,6 @@
                         </div>
                     </div>
                     
-                    <!-- CAMPOS DE DESCONTO -->
                     <div class="form-row">
                         <div class="form-group">
                             <label>Tipo de Desconto</label>
@@ -1288,7 +1258,6 @@
                     Total: R$ <span id="order-total">0.00</span>
                 </div>
                 
-                <!-- RESUMO DE LUCRO DA ENCOMENDA -->
                 <div class="profit-info" id="order-profit-summary" style="display: none;">
                     <div class="profit-info-row">
                         <span class="profit-label">Custo Total:</span>
@@ -1539,7 +1508,6 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO FIREBASE - SUBSTITUA PELOS SEUS DADOS ---
         const firebaseConfig = {
           apiKey: "SUA_API_KEY",
           authDomain: "souza-farma.firebaseapp.com",
@@ -1553,8 +1521,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Initialize system
-        let clients = []; // Agora inicializa vazio e carrega do Firebase
+        let clients = [];
         let selectedClientForOrder = null;
         let currentOrder = null;
         let orderTotal = 0;
@@ -1568,32 +1535,26 @@
             payment: 'todos'
         };
         
-        // Dashboard charts
         let salesChart = null;
-        let currentChartType = 'sales'; // 'sales', 'clients', 'revenue', 'profit'
+        let currentChartType = 'sales';
         
         let pharmacyLogo = localStorage.getItem('souza-farma-logo');
         let pharmacyName = localStorage.getItem('souza-farma-name') || 'Souza Farma - Farmácia do Trabalhador';
         
-        // Variável para editar cliente
         let editingClient = null;
         
-        // Variáveis para filtro do dashboard
         let dashboardFilter = {
             startDate: null,
             endDate: null
         };
         
-        // Inicializar o sistema quando a página carregar
         document.addEventListener('DOMContentLoaded', function() {
             console.log("Sistema Souza Farma conectando ao Firebase...");
             
-            // CARREGAR DADOS DO FIREBASE EM TEMPO REAL
             db.ref('clients').on('value', (snapshot) => {
                 const data = snapshot.val();
                 clients = data ? Object.values(data) : [];
                 
-                // Atualizar tudo com os novos dados
                 updateStats();
                 updateDashboard();
                 if (document.getElementById('clients-section').classList.contains('active')) renderClientsList();
@@ -1602,10 +1563,8 @@
                 console.log("Dados sincronizados com Firebase");
             });
             
-            // GERAR QR CODE COM VERIFICAÇÃO DE SEGURANÇA
-            setTimeout(generateQRCode, 100); 
+            setTimeout(generateQRCode, 100);
             
-            // Configurar filtros de data
             const today = new Date();
             const lastMonth = new Date();
             lastMonth.setDate(today.getDate() - 30);
@@ -1623,25 +1582,35 @@
             dateFilterApplied = true;
             applyDateFilter();
             
-            // Configurar filtro do dashboard
-            document.getElementById('dashboard-date-start').value = lastMonth.toISOString().split('T')[0];
-            document.getElementById('dashboard-date-end').value = today.toISOString().split('T')[0];
+                // ******** NOVO CÓDIGO CORRIGIDO ********
+    const currentDate = new Date();
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    
+    // CORREÇÃO: Usar formato ISO diretamente para evitar problemas
+    document.getElementById('dashboard-date-start').value = firstDayOfMonth.toISOString().split('T')[0];
+    document.getElementById('dashboard-date-end').value = lastDayOfMonth.toISOString().split('T')[0];
+    
+    // CORREÇÃO: Criar datas com horas definidas explicitamente
+    dashboardFilter = {
+        startDate: new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 0, 0, 0, 0),
+        endDate: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999)
+    };
+    
+    console.log("Dashboard inicializado com:", {
+        startDate: dashboardFilter.startDate.toLocaleString('pt-BR'),
+        endDate: dashboardFilter.endDate.toLocaleString('pt-BR'),
+        startDateISO: dashboardFilter.startDate.toISOString(),
+        endDateISO: dashboardFilter.endDate.toISOString()
+    });
+    // ******** FIM DO NOVO CÓDIGO CORRIGIDO ********
             
-            dashboardFilter = {
-                startDate: new Date(lastMonth),
-                endDate: new Date(today)
-            };
-            
-            // Carregar logo
             loadPharmacyLogo();
             
-            // Atualizar nome da farmácia
             document.getElementById('pharmacy-name').textContent = pharmacyName;
             
-            // Inicializar dashboard
             initializeDashboard();
             
-            // Adicionar evento para fechar modal ao clicar fora
             window.addEventListener('click', function(event) {
                 const modal = document.getElementById('edit-client-modal');
                 if (event.target === modal) {
@@ -1649,19 +1618,42 @@
                 }
             });
             
-            // Adicionar evento para atualizar status do pagamento quando entrada for alterada
             document.getElementById('down-payment').addEventListener('input', updatePaymentStatus);
             
-            // Configurar navegação com Enter nos campos do formulário de item
             setupEnterNavigation();
             
-            // Configurar cálculo de desconto e lucro
             setupDiscountAndProfitCalculation();
         });
         
-        // Configurar navegação com tecla Enter
+        function createDateWithCorrectTime(date, hours, minutes, seconds, milliseconds) {
+            const newDate = new Date(date);
+            newDate.setHours(hours, minutes, seconds, milliseconds);
+            return newDate;
+        }
+        
+        function formatDateForInput(date) {
+            if (!(date instanceof Date)) {
+                date = new Date(date);
+            }
+            
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        function isDateBetween(dateToCheck, startDate, endDate) {
+    if (!dateToCheck || !startDate || !endDate) return false;
+    
+    // Normalizar as datas para comparar apenas data (sem hora)
+    const checkDate = new Date(dateToCheck.getFullYear(), dateToCheck.getMonth(), dateToCheck.getDate());
+    const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+    
+    return checkDate >= startDateOnly && checkDate <= endDateOnly;
+}
+        
         function setupEnterNavigation() {
-            // Navegação no formulário de novo item
             document.getElementById('new-item-desc').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -1705,7 +1697,6 @@
             });
         }
         
-        // Configurar cálculo automático de desconto e lucro
         function setupDiscountAndProfitCalculation() {
             const discountType = document.getElementById('new-item-discount-type');
             const discountValue = document.getElementById('new-item-discount-value');
@@ -1715,7 +1706,6 @@
             const profitPercentInput = document.getElementById('new-item-profit-percent');
             const finalPriceInput = document.getElementById('new-item-final-price');
             
-            // Habilitar/desabilitar campo de valor do desconto
             discountType.addEventListener('change', function() {
                 if (this.value === 'none') {
                     discountValue.disabled = true;
@@ -1728,12 +1718,10 @@
                 calculateProfit();
             });
             
-            // Calcular lucro quando qualquer campo relevante mudar
             priceInput.addEventListener('input', calculateProfit);
             costInput.addEventListener('input', calculateProfit);
             discountValue.addEventListener('input', calculateProfit);
             
-            // Calcular lucro baseado nos inputs
             function calculateProfit() {
                 const price = parseFloat(priceInput.value) || 0;
                 const cost = parseFloat(costInput.value) || 0;
@@ -1741,18 +1729,15 @@
                 const discountVal = parseFloat(discountValue.value) || 0;
                 let finalPrice = price;
                 
-                // Calcular preço final com desconto
                 if (discountTypeValue === 'percent' && discountVal > 0) {
                     finalPrice = price - (price * discountVal / 100);
                 } else if (discountTypeValue === 'fixed' && discountVal > 0) {
                     finalPrice = price - discountVal;
-                    // Garantir que o preço final não seja negativo
                     if (finalPrice < 0) finalPrice = 0;
                 }
                 
                 finalPriceInput.value = finalPrice.toFixed(2);
                 
-                // Calcular lucro
                 const profitValue = finalPrice - cost;
                 const profitPercent = cost > 0 ? (profitValue / cost) * 100 : 0;
                 
@@ -1761,15 +1746,12 @@
             }
         }
         
-        // Função para salvar no Firebase (Antiga saveToLocalStorage)
         function saveToLocalStorage() {
-            // Transformamos o array em um objeto para o Firebase gerenciar melhor
             const clientsObj = {};
             clients.forEach(c => { clientsObj[c.id] = c; });
             db.ref('clients').set(clientsObj);
         }
 
-        // Load pharmacy logo from localStorage
         function loadPharmacyLogo() {
             if (pharmacyLogo) {
                 const headerLogo = document.getElementById('header-logo');
@@ -1785,9 +1767,7 @@
             }
         }
         
-        // Generate QR Code with WhatsApp number - CORRIGIDA COM VERIFICAÇÃO
         function generateQRCode() {
-            // Verificar se a biblioteca QRCode está disponível
             if (typeof QRCode === 'undefined') {
                 console.error('Biblioteca QRCode não carregada! Tentando novamente em 500ms...');
                 setTimeout(generateQRCode, 500);
@@ -1817,7 +1797,6 @@
                 }, function(error) {
                     if (error) {
                         console.error('Erro ao gerar QR Code:', error);
-                        // Tentar novamente se falhar
                         setTimeout(generateQRCode, 1000);
                     } else {
                         console.log('QR Code gerado com sucesso!');
@@ -1828,14 +1807,12 @@
             }
         }
         
-        // Navigation functions
         function showDashboard() {
             document.getElementById('dashboard-container').classList.add('active');
             document.getElementById('simple-dashboard').style.display = 'grid';
             document.getElementById('simple-stats').style.display = 'grid';
             hideAllSections();
             
-            // Atualizar dashboard
             updateDashboard();
         }
         
@@ -1863,21 +1840,15 @@
             });
         }
         
-        // Initialize dashboard
         function initializeDashboard() {
-            // Configurar botões do seletor de gráficos
             const chartBtns = document.querySelectorAll('.chart-btn');
             chartBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
-                    // Remover classe active de todos os botões
                     chartBtns.forEach(b => b.classList.remove('active'));
-                    // Adicionar classe active ao botão clicado
                     this.classList.add('active');
                     
-                    // Atualizar tipo de gráfico
                     currentChartType = this.dataset.chart;
                     
-                    // Atualizar título do gráfico
                     const chartTitle = document.getElementById('chartTitle');
                     switch(currentChartType) {
                         case 'sales':
@@ -1894,17 +1865,14 @@
                             break;
                     }
                     
-                    // Atualizar gráfico
                     updateChart();
                 });
             });
             
-            // Configurar botão de atualização
             document.getElementById('refreshChart').addEventListener('click', function() {
                 updateChart();
                 updateDashboardStats();
                 
-                // Feedback visual
                 this.innerHTML = '<i class="fas fa-check"></i> Gráfico Atualizado';
                 this.style.backgroundColor = '#27ae60';
                 
@@ -1914,111 +1882,117 @@
                 }, 1500);
             });
             
-            // Inicializar gráfico com dados
             initializeChart();
             
-            // Atualizar dashboard
             updateDashboard();
         }
         
-        // FUNÇÕES SEPARADAS PARA CRIAR CADA TIPO DE GRÁFICO
         function createSalesChart(ctx) {
-            // Calcular número de dias baseado no filtro
-            let days = 30; // padrão
-            let labels = [];
-            let salesData = [];
-            
-            if (dashboardFilter.startDate && dashboardFilter.endDate) {
-                const startDate = new Date(dashboardFilter.startDate);
-                const endDate = new Date(dashboardFilter.endDate);
-                const diffTime = Math.abs(endDate - startDate);
-                days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                
-                if (days > 365) days = 365; // limite máximo
-            }
-            
-            const today = dashboardFilter.endDate ? new Date(dashboardFilter.endDate) : new Date();
-            const startDate = dashboardFilter.startDate ? new Date(dashboardFilter.startDate) : new Date(today);
-            if (!dashboardFilter.startDate) {
-                startDate.setDate(today.getDate() - (days - 1));
-            }
-            
-            for (let i = 0; i < days; i++) {
-                const date = new Date(startDate);
-                date.setDate(date.getDate() + i);
-                const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-                labels.push(dateStr);
-                
-                // Calcular vendas para este dia
-                let daySales = 0;
-                
-                clients.forEach(client => {
-                    if (client.orders) {
-                        client.orders.forEach(order => {
-                            const orderDate = new Date(order.createdAt);
-                            
-                            if (orderDate.getDate() === date.getDate() &&
-                                orderDate.getMonth() === date.getMonth() &&
-                                orderDate.getFullYear() === date.getFullYear()) {
-                                daySales += order.total;
-                            }
-                        });
+    // Calcular número de dias baseado no filtro
+    let days = 30; // padrão
+    let labels = [];
+    let salesData = [];
+    
+    if (dashboardFilter.startDate && dashboardFilter.endDate) {
+        const startDate = new Date(dashboardFilter.startDate);
+        const endDate = new Date(dashboardFilter.endDate);
+        const diffTime = Math.abs(endDate - startDate);
+        days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        // Se for o mesmo dia, garantir que days seja pelo menos 1
+        if (days === 0) days = 1;
+        
+        if (days > 365) days = 365; // limite máximo
+    }
+    
+    const today = dashboardFilter.endDate ? new Date(dashboardFilter.endDate) : new Date();
+    const startDate = dashboardFilter.startDate ? new Date(dashboardFilter.startDate) : new Date(today);
+    if (!dashboardFilter.startDate) {
+        startDate.setDate(today.getDate() - (days - 1));
+    }
+    
+    // Ajustar para início do dia
+    startDate.setHours(0, 0, 0, 0);
+    
+    for (let i = 0; i < days; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        labels.push(dateStr);
+        
+        // Calcular vendas para este dia
+        let daySales = 0;
+        
+        clients.forEach(client => {
+            if (client.orders) {
+                client.orders.forEach(order => {
+                    const orderDate = new Date(order.createdAt);
+                    
+                    // Verificar se está dentro do período usando função utilitária
+                    if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate)) {
+                        // Verificar se é o mesmo dia
+                        if (orderDate.getDate() === date.getDate() &&
+                            orderDate.getMonth() === date.getMonth() &&
+                            orderDate.getFullYear() === date.getFullYear()) {
+                            daySales += order.total;
+                        }
                     }
                 });
-                
-                salesData.push(daySales);
             }
-            
-            // Criar gráfico de linha
-            if (salesChart) {
-                salesChart.destroy();
-            }
-            
-            salesChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Vendas (R$)',
-                        data: salesData,
-                        borderColor: '#e74c3c',
-                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#e74c3c',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return 'R$ ' + value;
-                                }
-                            }
+        });
+        
+        salesData.push(daySales);
+    }
+    
+    // Criar gráfico de linha
+    if (salesChart) {
+        salesChart.destroy();
+    }
+    
+    salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Vendas (R$)',
+                data: salesData,
+                borderColor: '#e74c3c',
+                backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#e74c3c',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'R$ ' + value;
                         }
                     }
                 }
-            });
+            }
         }
+    });
+}
         
         function createClientsChart(ctx) {
-            // Calcular número de dias baseado no filtro
-            let days = 30; // padrão
+            let days = 30;
             let labels = [];
             let clientsData = [];
             
@@ -2028,7 +2002,7 @@
                 const diffTime = Math.abs(endDate - startDate);
                 days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
                 
-                if (days > 365) days = 365; // limite máximo
+                if (days > 365) days = 365;
             }
             
             const today = dashboardFilter.endDate ? new Date(dashboardFilter.endDate) : new Date();
@@ -2037,29 +2011,31 @@
                 startDate.setDate(today.getDate() - (days - 1));
             }
             
+            startDate.setHours(0, 0, 0, 0);
+            
             for (let i = 0; i < days; i++) {
                 const date = new Date(startDate);
                 date.setDate(date.getDate() + i);
                 const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                 labels.push(dateStr);
                 
-                // Contar novos clientes para este dia
                 let dayClients = 0;
                 
                 clients.forEach(client => {
                     const clientDate = new Date(client.createdAt);
                     
-                    if (clientDate.getDate() === date.getDate() &&
-                        clientDate.getMonth() === date.getMonth() &&
-                        clientDate.getFullYear() === date.getFullYear()) {
-                        dayClients++;
+                    if (isDateBetween(clientDate, dashboardFilter.startDate, dashboardFilter.endDate)) {
+                        if (clientDate.getDate() === date.getDate() &&
+                            clientDate.getMonth() === date.getMonth() &&
+                            clientDate.getFullYear() === date.getFullYear()) {
+                            dayClients++;
+                        }
                     }
                 });
                 
                 clientsData.push(dayClients);
             }
             
-            // Criar gráfico de barras para clientes
             if (salesChart) {
                 salesChart.destroy();
             }
@@ -2099,7 +2075,6 @@
         }
         
         function createRevenueChart(ctx) {
-            // Calcular receita por tipo de cliente considerando o filtro
             const revenueByType = {
                 'regular': 0,
                 'premium': 0,
@@ -2110,26 +2085,8 @@
                 if (client.orders) {
                     client.orders.forEach(order => {
                         const orderDate = new Date(order.createdAt);
-                        let includeOrder = true;
                         
-                        // Verificar se a encomenda está dentro do período do filtro
-                        if (dashboardFilter.startDate) {
-                            const startDate = new Date(dashboardFilter.startDate);
-                            startDate.setHours(0, 0, 0, 0);
-                            if (orderDate < startDate) {
-                                includeOrder = false;
-                            }
-                        }
-                        
-                        if (dashboardFilter.endDate) {
-                            const endDate = new Date(dashboardFilter.endDate);
-                            endDate.setHours(23, 59, 59, 999);
-                            if (orderDate > endDate) {
-                                includeOrder = false;
-                            }
-                        }
-                        
-                        if (includeOrder) {
+                        if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate)) {
                             revenueByType[client.type] += order.total;
                         }
                     });
@@ -2143,14 +2100,12 @@
                 revenueByType['vip']
             ];
             
-            // Cores para cada tipo
             const backgroundColors = [
-                'rgba(52, 152, 219, 0.8)',    // Regular - azul
-                'rgba(155, 89, 182, 0.8)',    // Premium - roxo
-                'rgba(231, 76, 60, 0.8)'      // VIP - vermelho
+                'rgba(52, 152, 219, 0.8)',
+                'rgba(155, 89, 182, 0.8)',
+                'rgba(231, 76, 60, 0.8)'
             ];
             
-            // Criar gráfico de doughnut
             if (salesChart) {
                 salesChart.destroy();
             }
@@ -2203,8 +2158,7 @@
         }
         
         function createProfitChart(ctx) {
-            // Calcular número de dias baseado no filtro
-            let days = 30; // padrão
+            let days = 30;
             let labels = [];
             let profitData = [];
             let costData = [];
@@ -2216,7 +2170,7 @@
                 const diffTime = Math.abs(endDate - startDate);
                 days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
                 
-                if (days > 365) days = 365; // limite máximo
+                if (days > 365) days = 365;
             }
             
             const today = dashboardFilter.endDate ? new Date(dashboardFilter.endDate) : new Date();
@@ -2225,13 +2179,14 @@
                 startDate.setDate(today.getDate() - (days - 1));
             }
             
+            startDate.setHours(0, 0, 0, 0);
+            
             for (let i = 0; i < days; i++) {
                 const date = new Date(startDate);
                 date.setDate(date.getDate() + i);
                 const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                 labels.push(dateStr);
                 
-                // Calcular lucro, custo e receita para este dia
                 let dayProfit = 0;
                 let dayCost = 0;
                 let dayRevenue = 0;
@@ -2241,27 +2196,29 @@
                         client.orders.forEach(order => {
                             const orderDate = new Date(order.createdAt);
                             
-                            if (orderDate.getDate() === date.getDate() &&
-                                orderDate.getMonth() === date.getMonth() &&
-                                orderDate.getFullYear() === date.getFullYear()) {
-                                
-                                let orderCost = 0;
-                                let orderProfit = 0;
-                                let orderRevenue = 0;
-                                
-                                order.items.forEach(item => {
-                                    const itemCost = (item.cost || 0) * item.quantity;
-                                    const itemRevenue = item.finalPrice * item.quantity;
-                                    const itemProfit = itemRevenue - itemCost;
+                            if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate)) {
+                                if (orderDate.getDate() === date.getDate() &&
+                                    orderDate.getMonth() === date.getMonth() &&
+                                    orderDate.getFullYear() === date.getFullYear()) {
                                     
-                                    orderCost += itemCost;
-                                    orderRevenue += itemRevenue;
-                                    orderProfit += itemProfit;
-                                });
-                                
-                                dayCost += orderCost;
-                                dayProfit += orderProfit;
-                                dayRevenue += orderRevenue;
+                                    let orderCost = 0;
+                                    let orderProfit = 0;
+                                    let orderRevenue = 0;
+                                    
+                                    order.items.forEach(item => {
+                                        const itemCost = (item.cost || 0) * item.quantity;
+                                        const itemRevenue = item.finalPrice * item.quantity;
+                                        const itemProfit = itemRevenue - itemCost;
+                                        
+                                        orderCost += itemCost;
+                                        orderRevenue += itemRevenue;
+                                        orderProfit += itemProfit;
+                                    });
+                                    
+                                    dayCost += orderCost;
+                                    dayProfit += orderProfit;
+                                    dayRevenue += orderRevenue;
+                                }
                             }
                         });
                     }
@@ -2272,7 +2229,6 @@
                 revenueData.push(dayRevenue);
             }
             
-            // Criar gráfico de barras para lucro
             if (salesChart) {
                 salesChart.destroy();
             }
@@ -2334,7 +2290,6 @@
             });
         }
         
-        // Update chart based on current type
         function updateChart() {
             const ctx = document.getElementById('salesChart');
             if (!ctx) {
@@ -2348,7 +2303,6 @@
                 return;
             }
             
-            // Criar novo gráfico baseado no tipo selecionado
             switch(currentChartType) {
                 case 'sales':
                     createSalesChart(context);
@@ -2367,9 +2321,7 @@
             }
         }
         
-        // REMOVER A FUNÇÃO initializeChart antiga e substituir por esta simplificada
         function initializeChart() {
-            // Esta função agora apenas inicializa o gráfico como vendas por padrão
             const ctx = document.getElementById('salesChart');
             if (!ctx) {
                 console.error('Canvas do gráfico não encontrado!');
@@ -2382,51 +2334,31 @@
                 return;
             }
             
-            // Inicializar como gráfico de vendas
             createSalesChart(context);
         }
         
-        // Update dashboard statistics
         function updateDashboardStats() {
-            // Calcular métricas baseadas no filtro
             let totalRevenue = 0;
             let totalCost = 0;
             let totalProfit = 0;
             let totalOrders = 0;
             let activeClients = new Set();
-            let ordersToday = 0;
-            const today = new Date();
             
-            // Coletar todas as encomendas
+            console.log("Dashboard Stats - Filtro Atual:", {
+                startDate: dashboardFilter.startDate ? dashboardFilter.startDate.toLocaleString('pt-BR') : 'Nenhum',
+                endDate: dashboardFilter.endDate ? dashboardFilter.endDate.toLocaleString('pt-BR') : 'Nenhum'
+            });
+            
             clients.forEach(client => {
                 if (client.orders && client.orders.length > 0) {
                     client.orders.forEach(order => {
                         const orderDate = new Date(order.createdAt);
-                        let includeOrder = true;
                         
-                        // Verificar se a encomenda está dentro do período do filtro
-                        if (dashboardFilter.startDate) {
-                            const startDate = new Date(dashboardFilter.startDate);
-                            startDate.setHours(0, 0, 0, 0);
-                            if (orderDate < startDate) {
-                                includeOrder = false;
-                            }
-                        }
-                        
-                        if (dashboardFilter.endDate) {
-                            const endDate = new Date(dashboardFilter.endDate);
-                            endDate.setHours(23, 59, 59, 999);
-                            if (orderDate > endDate) {
-                                includeOrder = false;
-                            }
-                        }
-                        
-                        if (includeOrder) {
+                        if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate)) {
                             totalRevenue += order.total;
                             totalOrders++;
                             activeClients.add(client.id);
                             
-                            // Calcular custo e lucro da encomenda
                             let orderCost = 0;
                             let orderProfit = 0;
                             
@@ -2443,99 +2375,116 @@
                             
                             totalCost += orderCost;
                             totalProfit += orderProfit;
-                            
-                            // Verificar se é hoje (para estatística "hoje")
-                            if (orderDate.getDate() === today.getDate() &&
-                                orderDate.getMonth() === today.getMonth() &&
-                                orderDate.getFullYear() === today.getFullYear()) {
-                                ordersToday++;
-                            }
                         }
                     });
                 }
             });
             
-            // Calcular margem média
             const avgMargin = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
             
-            // Atualizar estatísticas do dashboard
             document.getElementById('active-clients').textContent = activeClients.size;
-            document.getElementById('orders-today').textContent = totalOrders; // Alterado para mostrar total no período
+            document.getElementById('orders-today').textContent = totalOrders;
             document.getElementById('total-revenue').textContent = `R$ ${totalRevenue.toFixed(2).replace('.', ',')}`;
             document.getElementById('total-cost').textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
             document.getElementById('total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
             document.getElementById('avg-margin').textContent = `${avgMargin.toFixed(1)}%`;
+            
+            console.log("Dashboard Stats - Resultados:", {
+                totalOrders,
+                totalRevenue,
+                totalCost,
+                totalProfit,
+                activeClients: activeClients.size
+            });
         }
         
-        // Update dashboard
         function updateDashboard() {
             updateDashboardStats();
             updateChart();
         }
         
-        // Funções para filtro do dashboard
-        function applyDashboardFilter() {
-            const startDateInput = document.getElementById('dashboard-date-start').value;
-            const endDateInput = document.getElementById('dashboard-date-end').value;
-            
-            if (startDateInput && endDateInput) {
-                const startDate = new Date(startDateInput);
-                const endDate = new Date(endDateInput);
-                
-                if (startDate > endDate) {
-                    alert('A data inicial não pode ser maior que a data final!');
-                    return;
-                }
-                
-                dashboardFilter = {
-                    startDate: startDate,
-                    endDate: endDate
-                };
-            } else if (startDateInput || endDateInput) {
-                alert('Por favor, preencha ambas as datas ou deixe ambas em branco para usar o período padrão.');
-                return;
-            } else {
-                // Sem filtro - usar período padrão de 30 dias
-                const today = new Date();
-                const lastMonth = new Date();
-                lastMonth.setDate(today.getDate() - 30);
-                
-                dashboardFilter = {
-                    startDate: lastMonth,
-                    endDate: today
-                };
-            }
-            
-            updateDashboard();
-            
-            // Feedback visual
-            const applyBtn = document.querySelector('.dashboard-filter .btn');
-            applyBtn.innerHTML = '<i class="fas fa-check"></i> Filtro Aplicado';
-            applyBtn.style.backgroundColor = '#27ae60';
-            
-            setTimeout(() => {
-                applyBtn.innerHTML = '<i class="fas fa-filter"></i> Aplicar Filtro';
-                applyBtn.style.backgroundColor = '';
-            }, 1500);
+       function applyDashboardFilter() {
+    const startDateInput = document.getElementById('dashboard-date-start').value;
+    const endDateInput = document.getElementById('dashboard-date-end').value;
+    
+    if (startDateInput && endDateInput) {
+        // CORREÇÃO: Criar datas corretamente sem problemas de fuso horário
+        // Usar método que evita problemas de timezone
+        const startDateStr = startDateInput + 'T00:00:00';
+        const endDateStr = endDateInput + 'T23:59:59.999';
+        
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
+        
+        // Validar se as datas foram criadas corretamente
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            alert('Datas inválidas! Por favor, verifique as datas informadas.');
+            return;
         }
+        
+        console.log("Dashboard Filtro - Início:", startDate.toLocaleString('pt-BR'));
+        console.log("Dashboard Filtro - Fim:", endDate.toLocaleString('pt-BR'));
+        console.log("Dashboard Filtro - Valores originais:", startDateInput, endDateInput);
+        console.log("Dashboard Filtro - Start Date ISO:", startDate.toISOString());
+        console.log("Dashboard Filtro - End Date ISO:", endDate.toISOString());
+        
+        if (startDate > endDate) {
+            alert('A data inicial não pode ser maior que a data final!');
+            return;
+        }
+        
+        dashboardFilter = {
+            startDate: startDate,
+            endDate: endDate
+        };
+    } else if (startDateInput || endDateInput) {
+        alert('Por favor, preencha ambas as datas ou deixe ambas em branco para usar o período padrão.');
+        return;
+    } else {
+        const currentDate = new Date();
+        const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        
+        dashboardFilter = {
+            startDate: new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 0, 0, 0, 0),
+            endDate: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999)
+        };
+        
+        document.getElementById('dashboard-date-start').value = firstDayOfMonth.toISOString().split('T')[0];
+        document.getElementById('dashboard-date-end').value = lastDayOfMonth.toISOString().split('T')[0];
+    }
+    
+    updateDashboard();
+    
+    const applyBtn = document.querySelector('.dashboard-filter .btn');
+    applyBtn.innerHTML = '<i class="fas fa-check"></i> Filtro Aplicado';
+    applyBtn.style.backgroundColor = '#27ae60';
+    
+    setTimeout(() => {
+        applyBtn.innerHTML = '<i class="fas fa-filter"></i> Aplicar Filtro';
+        applyBtn.style.backgroundColor = '';
+    }, 1500);
+}
         
         function resetDashboardFilter() {
-            const today = new Date();
-            const lastMonth = new Date();
-            lastMonth.setDate(today.getDate() - 30);
-            
-            document.getElementById('dashboard-date-start').value = lastMonth.toISOString().split('T')[0];
-            document.getElementById('dashboard-date-end').value = today.toISOString().split('T')[0];
-            
-            dashboardFilter = {
-                startDate: lastMonth,
-                endDate: today
-            };
-            
-            updateDashboard();
-        }
+    // Resetar para o mês atual
+    const currentDate = new Date();
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    
+    // Usar formato ISO para evitar problemas de timezone
+    document.getElementById('dashboard-date-start').value = firstDayOfMonth.toISOString().split('T')[0];
+    document.getElementById('dashboard-date-end').value = lastDayOfMonth.toISOString().split('T')[0];
+    
+    // Criar datas com horas definidas
+    dashboardFilter = {
+        startDate: new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 0, 0, 0, 0),
+        endDate: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999)
+    };
+    
+    updateDashboard();
+}
         
-        // Função para abrir modal de edição de cliente
         function openEditClientModal(clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) {
@@ -2545,7 +2494,6 @@
             
             editingClient = client;
             
-            // Preencher o formulário com os dados do cliente
             document.getElementById('edit-client-id').value = client.id;
             document.getElementById('edit-client-name').value = client.name;
             document.getElementById('edit-client-phone').value = client.phone;
@@ -2554,24 +2502,20 @@
             document.getElementById('edit-client-address').value = client.address || '';
             document.getElementById('edit-client-type').value = client.type;
             
-            // Marcar o radio button correto para fidelizado
             if (client.loyal === 'sim') {
                 document.querySelector('input[name="edit-loyal"][value="sim"]').checked = true;
             } else {
                 document.querySelector('input[name="edit-loyal"][value="nao"]').checked = true;
             }
 
-            // Exibir o modal
             document.getElementById('edit-client-modal').style.display = 'flex';
         }
         
-        // Função para fechar modal de edição de cliente
         function closeEditClientModal() {
             document.getElementById('edit-client-modal').style.display = 'none';
             editingClient = null;
         }
         
-        // Função para salvar as alterações do cliente
         function saveEditedClient(event) {
             event.preventDefault();
             
@@ -2595,7 +2539,6 @@
                 return;
             }
 
-            // Atualizar os dados do cliente
             clients[clientIndex].name = name;
             clients[clientIndex].phone = phone;
             clients[clientIndex].email = email;
@@ -2604,7 +2547,6 @@
             clients[clientIndex].type = type;
             clients[clientIndex].loyal = loyal;
 
-            // Atualizar também o nome e telefone nas encomendas deste cliente
             if (clients[clientIndex].orders && clients[clientIndex].orders.length > 0) {
                 clients[clientIndex].orders.forEach(order => {
                     order.clientName = name;
@@ -2620,7 +2562,6 @@
             alert('Cliente atualizado com sucesso!');
         }
         
-        // Date Filter Functions
         function applyDateFilter() {
             const startDateInput = document.getElementById('date-start').value;
             const endDateInput = document.getElementById('date-end').value;
@@ -2628,21 +2569,35 @@
             const payment = document.getElementById('filter-payment').value;
             
             if (startDateInput && endDateInput) {
-                const startDate = new Date(startDateInput);
-                const endDate = new Date(endDateInput);
+                const startDate = createDateWithCorrectTime(new Date(startDateInput), 0, 0, 0, 0);
+                const endDate = createDateWithCorrectTime(new Date(endDateInput), 23, 59, 59, 999);
+                
+                console.log("Filtro aplicado:", startDateInput, "->", startDate.toLocaleString('pt-BR'));
+                console.log("Até:", endDateInput, "->", endDate.toLocaleString('pt-BR'));
                 
                 if (startDate > endDate) {
                     alert('A data inicial não pode ser maior que a data final!');
                     return;
                 }
+                
+                currentFilter = {
+                    startDate: startDate,
+                    endDate: endDate,
+                    status: status,
+                    payment: payment
+                };
+            } else {
+                const today = new Date();
+                const lastMonth = new Date();
+                lastMonth.setDate(today.getDate() - 30);
+                
+                currentFilter = {
+                    startDate: createDateWithCorrectTime(lastMonth, 0, 0, 0, 0),
+                    endDate: createDateWithCorrectTime(today, 23, 59, 59, 999),
+                    status: status,
+                    payment: payment
+                };
             }
-            
-            currentFilter = {
-                startDate: startDateInput ? new Date(startDateInput) : null,
-                endDate: endDateInput ? new Date(endDateInput) : null,
-                status: status,
-                payment: payment
-            };
             
             dateFilterApplied = true;
             renderOrdersList();
@@ -2654,14 +2609,14 @@
             const lastMonth = new Date();
             lastMonth.setDate(today.getDate() - 30);
             
-            document.getElementById('date-start').value = lastMonth.toISOString().split('T')[0];
-            document.getElementById('date-end').value = today.toISOString().split('T')[0];
+            document.getElementById('date-start').value = formatDateForInput(lastMonth);
+            document.getElementById('date-end').value = formatDateForInput(today);
             document.getElementById('filter-status').value = 'todos';
             document.getElementById('filter-payment').value = 'todos';
             
             currentFilter = {
-                startDate: new Date(lastMonth),
-                endDate: new Date(today),
+                startDate: createDateWithCorrectTime(lastMonth, 0, 0, 0, 0),
+                endDate: createDateWithCorrectTime(today, 23, 59, 59, 999),
                 status: 'todos',
                 payment: 'todos'
             };
@@ -2677,28 +2632,9 @@
             return orders.filter(order => {
                 const orderDate = new Date(order.createdAt);
                 
-                if (currentFilter.startDate) {
-                    const startDate = new Date(currentFilter.startDate);
-                    startDate.setHours(0, 0, 0, 0);
-                    
-                    if (orderDate < startDate) {
-                        return false;
-                    }
-                }
-                
-                if (currentFilter.endDate) {
-                    const endDate = new Date(currentFilter.endDate);
-                    endDate.setHours(23, 59, 59, 999);
-                    
-                    if (orderDate > endDate) {
-                        return false;
-                    }
-                }
-                
-                if (currentFilter.status !== 'todos' && order.status !== currentFilter.status) return false;
-                if (currentFilter.payment !== 'todos' && order.payment !== currentFilter.payment) return false;
-                
-                return true;
+                return isDateBetween(orderDate, currentFilter.startDate, currentFilter.endDate) &&
+                       (currentFilter.status === 'todos' || order.status === currentFilter.status) &&
+                       (currentFilter.payment === 'todos' || order.payment === currentFilter.payment);
             });
         }
         
@@ -2722,7 +2658,6 @@
             document.getElementById('filter-total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
         }
         
-        // Export to Excel functions
         function exportClientsToExcel() {
             if (clients.length === 0) {
                 alert('Não há clientes para exportar!');
@@ -2754,7 +2689,6 @@
             clients.forEach(client => {
                 if (client.orders && client.orders.length > 0) {
                     client.orders.forEach(order => {
-                        // Calcular custo e lucro da encomenda
                         let orderCost = 0;
                         let orderProfit = 0;
                         
@@ -2813,7 +2747,6 @@
             XLSX.writeFile(wb, fileName);
         }
         
-        // Client functions
         function saveClient() {
             const name = document.getElementById('client-name').value.trim();
             const phone = document.getElementById('client-phone').value.trim();
@@ -2914,7 +2847,6 @@
             updateDashboard();
         }
         
-        // Order functions
         function searchClientForOrder() {
             const searchTerm = document.getElementById('search-client-order').value.toLowerCase();
             const resultsDiv = document.getElementById('client-search-results');
@@ -2975,7 +2907,6 @@
             document.getElementById('order-items').style.display = 'block';
         }
         
-        // NOVA FUNÇÃO: Calcular valor com desconto
         function calculateDiscountedPrice(price, discountType, discountValue) {
             let finalPrice = price;
             
@@ -2983,14 +2914,12 @@
                 finalPrice = price - (price * discountValue / 100);
             } else if (discountType === 'fixed' && discountValue > 0) {
                 finalPrice = price - discountValue;
-                // Garantir que o preço final não seja negativo
                 if (finalPrice < 0) finalPrice = 0;
             }
             
             return finalPrice;
         }
         
-        // NOVA FUNÇÃO: Atualizar resumo de lucro da encomenda
         function updateOrderProfitSummary() {
             let totalCost = 0;
             let totalProfit = 0;
@@ -3045,7 +2974,6 @@
             
             const itemsList = document.getElementById('order-items-list');
             
-            // Determinar texto do desconto para exibição
             let discountText = '';
             if (discountType === 'percent' && discountValue > 0) {
                 discountText = ` (${discountValue}% de desconto)`;
@@ -3053,7 +2981,6 @@
                 discountText = ` (R$ ${discountValue.toFixed(2)} de desconto)`;
             }
             
-            // Determinar texto do lucro para exibição (apenas interna)
             const profitText = cost > 0 ? `Lucro: R$ ${profitValue.toFixed(2)} (${profitPercent.toFixed(1)}%)` : '';
             
             const itemHtml = `
@@ -3088,7 +3015,6 @@
             
             itemsList.innerHTML += itemHtml;
             
-            // Limpar formulário
             document.getElementById('new-item-desc').value = '';
             document.getElementById('new-item-qty').value = '1';
             document.getElementById('new-item-price').value = '';
@@ -3100,7 +3026,6 @@
             document.getElementById('new-item-profit-value').value = '';
             document.getElementById('new-item-profit-percent').value = '';
             
-            // Focar no primeiro campo
             document.getElementById('new-item-desc').focus();
             updateOrderTotal();
             updateOrderProfitSummary();
@@ -3130,26 +3055,22 @@
             }
         }
         
-        // NOVA FUNÇÃO: Atualizar status do pagamento baseado na entrada
         function updatePaymentStatus() {
             const downPayment = parseFloat(document.getElementById('down-payment').value) || 0;
             const total = orderTotal;
             
             if (downPayment > 0) {
-                // Se o valor da entrada for maior ou igual ao total, marcar como pago
                 if (downPayment >= total) {
                     document.querySelector('input[name="payment"][value="pago"]').checked = true;
                 } else if (downPayment > 0) {
-                    // Se houver entrada mas não cobrir o total, marcar como parcial
                     document.querySelector('input[name="payment"][value="parcial"]').checked = true;
                 }
             } else {
-                // Se não houver entrada, manter como pendente
                 document.querySelector('input[name="payment"][value="pendente"]').checked = true;
             }
         }
         
-        function saveOrder() {
+               function saveOrder() {
             if (!selectedClientForOrder) {
                 alert('Selecione um cliente primeiro!');
                 return;
@@ -3212,19 +3133,16 @@
             const downPayment = parseFloat(document.getElementById('down-payment').value) || 0;
             const available = document.querySelector('input[name="available"]:checked').value;
             
-            // Verificar se a entrada não é maior que o total
             if (downPayment > total) {
                 alert('O valor da entrada não pode ser maior que o total da encomenda!');
                 return;
             }
             
-            // Validação: se pagamento é "parcial" mas não há entrada
             if (payment === 'parcial' && downPayment <= 0) {
                 alert('Para pagamento parcial, é necessário informar o valor da entrada!');
                 return;
             }
             
-            // Validação: se há entrada mas o pagamento não é marcado como parcial ou pago
             let finalPayment = payment;
             if (downPayment > 0 && payment === 'pendente') {
                 if (confirm('Foi informado um valor de entrada. Deseja alterar o status do pagamento para "Parcial"?')) {
@@ -3250,22 +3168,17 @@
                 createdAt: new Date().toISOString()
             };
             
-            // Localiza o cliente no array global para garantir a persistência correta
             const clientIndex = clients.findIndex(c => c.id === selectedClientForOrder.id);
             
             if (clientIndex !== -1) {
-                // Garante que a propriedade 'orders' exista (evita erro em clientes novos)
                 if (!clients[clientIndex].orders) {
                     clients[clientIndex].orders = [];
                 }
                 
-                // Adiciona a encomenda ao array do cliente
                 clients[clientIndex].orders.push(newOrder);
                 
-                // Salva no Firebase através da sua função saveToLocalStorage()
                 saveToLocalStorage();
                 
-                // Atualiza o estado da aplicação e interface
                 currentOrder = newOrder;
                 updateStats();
                 updateDashboard();
@@ -3343,7 +3256,6 @@
                                 <input type="number" id="edit-cost-${index}" value="${item.cost ? item.cost.toFixed(2) : '0.00'}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                             </div>
                         </div>
-                        <!-- Campos de desconto na edição -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 9px;">
                             <div>
                                 <label style="font-size: 0.85rem;">Tipo Desconto</label>
@@ -3378,7 +3290,6 @@
                     Total: R$ <span id="edit-order-total">${editingOrder.total.toFixed(2)}</span>
                 </div>
                 
-                <!-- RESUMO DE LUCRO NA EDIÇÃO -->
                 <div class="profit-info" style="margin-top: 16px;">
                     <div class="profit-info-row">
                         <span class="profit-label">Custo Total:</span>
@@ -3421,7 +3332,6 @@
                     </div>
                 </div>
                 
-                <!-- NOVOS CAMPOS ADICIONADOS NA EDIÇÃO -->
                 <div style="margin-top: 16px;">
                     <label style="font-size: 0.9rem;">Valor de Entrada</label>
                     <input type="number" id="edit-down-payment" value="${editingOrder.downPayment || 0}" step="0.01" 
@@ -3439,7 +3349,6 @@
                         </label>
                     </div>
                 </div>
-                <!-- FIM DOS NOVOS CAMPOS -->
                 
                 <div class="button-group" style="margin-top: 22px;">
                     <button class="btn btn-success btn-sm" onclick="saveEditedOrder()">
@@ -3498,7 +3407,6 @@
                             <input type="number" id="edit-cost-${index}" value="${newItem.cost.toFixed(2)}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                         </div>
                     </div>
-                    <!-- Campos de desconto na edição -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 9px;">
                         <div>
                             <label style="font-size: 0.85rem;">Tipo Desconto</label>
@@ -3536,7 +3444,6 @@
             const discountType = document.getElementById('edit-discount-type-' + index).value;
             const discountValue = parseFloat(document.getElementById('edit-discount-value-' + index).value) || 0;
             
-            // Calcular preço final com desconto
             let finalPrice = price;
             if (discountType === 'percent' && discountValue > 0) {
                 finalPrice = price - (price * discountValue / 100);
@@ -3545,7 +3452,6 @@
                 if (finalPrice < 0) finalPrice = 0;
             }
             
-            // Calcular lucro
             const profitValue = finalPrice - cost;
             const profitPercent = cost > 0 ? (profitValue / cost) * 100 : 0;
             const total = quantity * finalPrice;
@@ -3607,23 +3513,19 @@
                 item.discountType = document.getElementById('edit-discount-type-' + index).value;
                 item.discountValue = parseFloat(document.getElementById('edit-discount-value-' + index).value) || 0;
                 
-                // Recalcular preço final, lucro e total
                 item.finalPrice = calculateDiscountedPrice(item.price, item.discountType, item.discountValue);
                 item.profitValue = item.finalPrice - item.cost;
                 item.profitPercent = item.cost > 0 ? (item.profitValue / item.cost) * 100 : 0;
                 item.total = item.quantity * item.finalPrice;
             });
             
-            // Recalcular totais
             updateEditOrderTotal();
             
-            // Verificar se a entrada não é maior que o total
             if (editingOrder.downPayment > editingOrder.total) {
                 alert('O valor da entrada não pode ser maior que o total da encomenda!');
                 return;
             }
             
-            // Validação: se pagamento é "parcial" mas não há entrada
             if (editingOrder.payment === 'parcial' && editingOrder.downPayment <= 0) {
                 alert('Para pagamento parcial, é necessário informar o valor da entrada!');
                 return;
@@ -3695,7 +3597,6 @@
         function showOrderModal() {
             if (!currentOrder) return;
             
-            // Determinar o texto do status de pagamento
             let paymentText = '';
             switch(currentOrder.payment) {
                 case 'pago':
@@ -3710,8 +3611,6 @@
                     break;
             }
             
-            // ATENÇÃO: NÃO MOSTRAR INFORMAÇÕES DE CUSTO/LUCRO PARA O CLIENTE
-            // Mantemos apenas as informações de venda
             let html = `
                 <h4>Cliente: ${currentOrder.clientName}</h4>
                 <p>Telefone: ${currentOrder.clientPhone}</p>
@@ -3772,10 +3671,8 @@
                 return;
             }
             
-            // Primeiro salva a encomenda
             saveOrder();
             
-            // Pequeno delay para garantir que a encomenda foi salva
             setTimeout(() => {
                 if (currentOrder) {
                     sendCurrentOrderWhatsApp();
@@ -3790,7 +3687,6 @@
             
             const phone = currentOrder.clientPhone.replace(/\D/g, '');
             
-            // Determinar o texto do status de pagamento
             let paymentStatusText = '';
             switch(currentOrder.payment) {
                 case 'pago':
@@ -3805,10 +3701,8 @@
                     break;
             }
             
-            // Saudação no início da mensagem
             const saudacao = `Olá ${currentOrder.clientName}! Tudo bem?%0A%0A`;
             
-            // Mensagem principal
             const message = `${saudacao}*SOUZA FARMA - FARMÁCIA DO TRABALHADOR - ENCOMENDA*%0A%0A` +
                            `*Cliente:* ${currentOrder.clientName}%0A` +
                            `*Data:* ${formatDate(currentOrder.createdAt)}%0A` +
@@ -3816,12 +3710,10 @@
                            `*Pagamento:* ${paymentStatusText}%0A` +
                            `*Disponível para retirada:* ${currentOrder.available === 'sim' ? 'Sim' : 'Não'}%0A%0A`;
             
-            // Adicionar informações de entrada se houver
             let finalMessage = message;
             if (currentOrder.downPayment > 0) {
                 finalMessage += `*Entrada paga:* R$ ${currentOrder.downPayment.toFixed(2)}%0A`;
                 
-                // Calcular saldo se houver entrada
                 const balance = currentOrder.total - currentOrder.downPayment;
                 if (balance > 0) {
                     finalMessage += `*Saldo restante:* R$ ${balance.toFixed(2)}%0A%0A`;
@@ -3833,7 +3725,6 @@
                 itemsText += `${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}%0A`;
             });
             
-            // Mensagem final baseada na disponibilidade
             let finalMessageText = '';
             if (currentOrder.available === 'sim') {
                 finalMessageText = `%0A*Total: R$ ${currentOrder.total.toFixed(2)}*%0A%0A` +
@@ -3859,7 +3750,6 @@
         function printCurrentOrder() {
             if (!currentOrder) return;
             
-            // Determinar o texto do status de pagamento
             const paymentStatus = currentOrder.payment === 'pago' ? 'Pago' : 
                                 currentOrder.payment === 'parcial' ? 'Parcial' : 
                                 'Pendente';
@@ -3939,7 +3829,6 @@
         function printThermalCurrentOrder() {
             if (!currentOrder) return;
             
-            // Determinar o texto do status de pagamento
             const paymentStatus = currentOrder.payment === 'pago' ? 'PAGO' : 
                                 currentOrder.payment === 'parcial' ? 'PARCIAL' : 
                                 'PENDENTE';
@@ -4116,7 +4005,6 @@
             document.getElementById('order-total').textContent = '0.00';
         }
         
-        // Render functions
         function renderClientsList() {
             const searchTerm = document.getElementById('search-clients').value.toLowerCase();
             const container = document.getElementById('clients-list');
@@ -4146,7 +4034,6 @@
                 const hasOrders = client.orders && client.orders.length > 0;
                 const pendingOrders = hasOrders ? client.orders.filter(o => o.status === 'pendente').length : 0;
                 
-                // Calcular lucro total do cliente
                 let clientProfit = 0;
                 let clientRevenue = 0;
                 let clientCost = 0;
@@ -4252,7 +4139,6 @@
                 const isPending = order.status === 'pendente';
                 const itemsSummary = order.items.map(item => `${item.quantity}x ${item.description.substring(0, 20)}`).join(', ');
                 
-                // Adicionar informações de entrada e disponibilidade
                 const paymentInfo = order.payment === 'pago' ? 'Pago' : 
                                   order.payment === 'parcial' ? 'Parcial' : 
                                   'Pendente';
@@ -4313,7 +4199,6 @@
             showOrderModal();
         }
         
-        // Utility functions
         function updateStats() {
             const totalClients = clients.length;
             const loyalClients = clients.filter(c => c.loyal === 'sim').length;
@@ -4351,7 +4236,6 @@
             window.open(whatsappUrl, '_blank');
         }
 
-        // Event listeners
         document.getElementById('search-clients').addEventListener('input', renderClientsList);
         document.getElementById('search-orders').addEventListener('input', renderOrdersList);
     </script>
