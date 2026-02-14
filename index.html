@@ -1920,7 +1920,7 @@
         const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
         labels.push(dateStr);
         
-        // Calcular vendas para este dia
+        // Calcular vendas para este dia (apenas encomendas entregues)
         let daySales = 0;
         
         clients.forEach(client => {
@@ -1928,8 +1928,8 @@
                 client.orders.forEach(order => {
                     const orderDate = new Date(order.createdAt);
                     
-                    // Verificar se está dentro do período usando função utilitária
-                    if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate)) {
+                    // Verificar se está dentro do período usando função utilitária e se está entregue
+                    if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate) && order.status === 'entregue') {
                         // Verificar se é o mesmo dia
                         if (orderDate.getDate() === date.getDate() &&
                             orderDate.getMonth() === date.getMonth() &&
@@ -1954,7 +1954,7 @@
         data: {
             labels: labels,
             datasets: [{
-                label: 'Vendas (R$)',
+                label: 'Vendas (R$) - Apenas entregues',
                 data: salesData,
                 borderColor: '#e74c3c',
                 backgroundColor: 'rgba(231, 76, 60, 0.1)',
@@ -2086,7 +2086,7 @@
                     client.orders.forEach(order => {
                         const orderDate = new Date(order.createdAt);
                         
-                        if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate)) {
+                        if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate) && order.status === 'entregue') {
                             revenueByType[client.type] += order.total;
                         }
                     });
@@ -2115,7 +2115,7 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Receita (R$)',
+                        label: 'Receita (R$) - Apenas entregues',
                         data: data,
                         backgroundColor: backgroundColors,
                         borderColor: [
@@ -2196,7 +2196,7 @@
                         client.orders.forEach(order => {
                             const orderDate = new Date(order.createdAt);
                             
-                            if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate)) {
+                            if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate) && order.status === 'entregue') {
                                 if (orderDate.getDate() === date.getDate() &&
                                     orderDate.getMonth() === date.getMonth() &&
                                     orderDate.getFullYear() === date.getFullYear()) {
@@ -2239,7 +2239,7 @@
                     labels: labels,
                     datasets: [
                         {
-                            label: 'Lucro (R$)',
+                            label: 'Lucro (R$) - Apenas entregues',
                             data: profitData,
                             backgroundColor: 'rgba(39, 174, 96, 0.8)',
                             borderColor: 'rgb(39, 174, 96)',
@@ -2248,7 +2248,7 @@
                             order: 3
                         },
                         {
-                            label: 'Custo (R$)',
+                            label: 'Custo (R$) - Apenas entregues',
                             data: costData,
                             backgroundColor: 'rgba(230, 126, 34, 0.8)',
                             borderColor: 'rgb(230, 126, 34)',
@@ -2257,7 +2257,7 @@
                             order: 2
                         },
                         {
-                            label: 'Receita (R$)',
+                            label: 'Receita (R$) - Apenas entregues',
                             data: revenueData,
                             backgroundColor: 'rgba(52, 152, 219, 0.8)',
                             borderColor: 'rgb(52, 152, 219)',
@@ -2354,7 +2354,8 @@
                     client.orders.forEach(order => {
                         const orderDate = new Date(order.createdAt);
                         
-                        if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate)) {
+                        // Considera apenas encomendas com status "entregue" para o dashboard
+                        if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate) && order.status === 'entregue') {
                             totalRevenue += order.total;
                             totalOrders++;
                             activeClients.add(client.id);
@@ -2389,7 +2390,7 @@
             document.getElementById('total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
             document.getElementById('avg-margin').textContent = `${avgMargin.toFixed(1)}%`;
             
-            console.log("Dashboard Stats - Resultados:", {
+            console.log("Dashboard Stats - Resultados (apenas entregues):", {
                 totalOrders,
                 totalRevenue,
                 totalCost,
@@ -2723,7 +2724,9 @@
                                 const itemCost = item.cost || 0;
                                 const itemProfit = item.finalPrice - itemCost;
                                 const itemMargin = itemCost > 0 ? ((itemProfit / itemCost) * 100).toFixed(2) : '0.00';
-                                return `${item.quantity}x ${item.description} (Custo: R$ ${itemCost.toFixed(2)}, Lucro: R$ ${itemProfit.toFixed(2)}, Margem: ${itemMargin}%)`;
+                                const discountInfo = (item.discountType !== 'none' && item.discountValue > 0) ? 
+                                    ` (Desconto: ${item.discountType === 'percent' ? item.discountValue + '%' : 'R$ ' + item.discountValue.toFixed(2)})` : '';
+                                return `${item.quantity}x ${item.description} (Original: R$ ${item.price.toFixed(2)}${discountInfo}, Final: R$ ${item.finalPrice.toFixed(2)}, Custo: R$ ${itemCost.toFixed(2)}, Lucro: R$ ${itemProfit.toFixed(2)}, Margem: ${itemMargin}%)`;
                             }).join('; ')
                         });
                     });
@@ -2992,7 +2995,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div style="font-size: 0.85rem;">
                             <span style="color: #666;">Quantidade: ${quantity}</span>
-                            <span style="margin-left: 11px; color: #666;">Valor unitário: R$ ${price.toFixed(2)}</span>
+                            <span style="margin-left: 11px; color: #666;">Valor original: R$ ${price.toFixed(2)}</span>
                             <span style="margin-left: 11px; color: #666;">Valor final: R$ ${finalPrice.toFixed(2)}</span>
                             ${cost > 0 ? `<span style="margin-left: 11px; color: var(--cost);">Custo: R$ ${cost.toFixed(2)}</span>` : ''}
                             ${profitText ? `<span style="margin-left: 11px; color: var(--profit); font-weight: bold;">${profitText}</span>` : ''}
@@ -3248,7 +3251,7 @@
                                 <input type="number" id="edit-qty-${index}" value="${item.quantity}" min="1" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                             </div>
                             <div>
-                                <label style="font-size: 0.85rem;">Valor Unitário</label>
+                                <label style="font-size: 0.85rem;">Valor Original</label>
                                 <input type="number" id="edit-price-${index}" value="${item.price.toFixed(2)}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                             </div>
                             <div>
@@ -3399,7 +3402,7 @@
                             <input type="number" id="edit-qty-${index}" value="${newItem.quantity}" min="1" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                         </div>
                         <div>
-                            <label style="font-size: 0.85rem;">Valor Unitário</label>
+                            <label style="font-size: 0.85rem;">Valor Original</label>
                             <input type="number" id="edit-price-${index}" value="${newItem.price.toFixed(2)}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditItemTotal(${index})">
                         </div>
                         <div>
@@ -3630,7 +3633,8 @@
                         <tr style="background: #f8f9fa;">
                             <th style="padding: 7px; text-align: left;">Descrição</th>
                             <th style="padding: 7px; text-align: left;">Qtd</th>
-                            <th style="padding: 7px; text-align: left;">Valor</th>
+                            <th style="padding: 7px; text-align: left;">Valor Original</th>
+                            <th style="padding: 7px; text-align: left;">Valor Final</th>
                             <th style="padding: 7px; text-align: left;">Total</th>
                         </tr>
                     </thead>
@@ -3638,10 +3642,13 @@
             `;
             
             currentOrder.items.forEach(item => {
+                const discountInfo = (item.discountType !== 'none' && item.discountValue > 0) ? 
+                    ` (${item.discountType === 'percent' ? item.discountValue + '%' : 'R$ ' + item.discountValue.toFixed(2)} desc.)` : '';
                 html += `
                     <tr>
-                        <td style="padding: 7px;">${item.description}</td>
+                        <td style="padding: 7px;">${item.description}${discountInfo}</td>
                         <td style="padding: 7px;">${item.quantity}</td>
+                        <td style="padding: 7px;">R$ ${item.price.toFixed(2)}</td>
                         <td style="padding: 7px;">R$ ${item.finalPrice.toFixed(2)}</td>
                         <td style="padding: 7px;">R$ ${item.total.toFixed(2)}</td>
                     </tr>
@@ -3722,7 +3729,11 @@
             
             let itemsText = `*Itens:*%0A`;
             currentOrder.items.forEach((item, index) => {
-                itemsText += `${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}%0A`;
+                let discountText = '';
+                if (item.discountType !== 'none' && item.discountValue > 0) {
+                    discountText = ` (Original: R$ ${item.price.toFixed(2)}${item.discountType === 'percent' ? ' - ' + item.discountValue + '%' : ' - R$ ' + item.discountValue.toFixed(2)})`;
+                }
+                itemsText += `${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}${discountText}%0A`;
             });
             
             let finalMessageText = '';
@@ -3791,19 +3802,33 @@
                                 <tr>
                                     <th>Descrição</th>
                                     <th>Qtd</th>
-                                    <th>Valor</th>
+                                    <th>Valor Original</th>
+                                    <th>Desconto</th>
+                                    <th>Valor Final</th>
                                     <th>Total</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${currentOrder.items.map(item => `
-                                    <tr>
-                                        <td>${item.description}</td>
-                                        <td>${item.quantity}</td>
-                                        <td>R$ ${item.finalPrice.toFixed(2)}</td>
-                                        <td>R$ ${item.total.toFixed(2)}</td>
-                                    </tr>
-                                `).join('')}
+                                ${currentOrder.items.map(item => {
+                                    let discountText = '';
+                                    if (item.discountType !== 'none' && item.discountValue > 0) {
+                                        discountText = item.discountType === 'percent' ? 
+                                            `${item.discountValue}%` : 
+                                            `R$ ${item.discountValue.toFixed(2)}`;
+                                    } else {
+                                        discountText = '-';
+                                    }
+                                    return `
+                                        <tr>
+                                            <td>${item.description}</td>
+                                            <td>${item.quantity}</td>
+                                            <td>R$ ${item.price.toFixed(2)}</td>
+                                            <td>${discountText}</td>
+                                            <td>R$ ${item.finalPrice.toFixed(2)}</td>
+                                            <td>R$ ${item.total.toFixed(2)}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
                             </tbody>
                         </table>
                         ${currentOrder.downPayment > 0 ? `
@@ -3941,7 +3966,9 @@
                                 <tr>
                                     <th>DESCRIÇÃO</th>
                                     <th>QTD</th>
-                                    <th class="right">VALOR</th>
+                                    <th class="right">ORIG</th>
+                                    <th class="right">DESC</th>
+                                    <th class="right">FINAL</th>
                                     <th class="right">TOTAL</th>
                                 </tr>
                             </thead>
@@ -3949,10 +3976,20 @@
             `);
             
             currentOrder.items.forEach(item => {
+                let discountText = '';
+                if (item.discountType !== 'none' && item.discountValue > 0) {
+                    discountText = item.discountType === 'percent' ? 
+                        `${item.discountValue}%` : 
+                        `R$${item.discountValue.toFixed(2)}`;
+                } else {
+                    discountText = '-';
+                }
                 printWindow.document.write(`
                     <tr>
-                        <td>${item.description.substring(0, 12)}</td>
+                        <td>${item.description.substring(0, 10)}</td>
                         <td>${item.quantity}</td>
+                        <td class="right">${item.price.toFixed(2)}</td>
+                        <td class="right">${discountText}</td>
                         <td class="right">${item.finalPrice.toFixed(2)}</td>
                         <td class="right">${item.total.toFixed(2)}</td>
                     </tr>
