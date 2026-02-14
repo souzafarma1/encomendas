@@ -34,6 +34,7 @@
             --dashboard-bg: #f8fafc;
             --profit: #27ae60;
             --cost: #e67e22;
+            --pending: #f39c12;
         }
         
         body {
@@ -424,6 +425,15 @@
             background-color: #d68910;
         }
         
+        .btn-pending {
+            background-color: var(--pending);
+            color: white;
+        }
+        
+        .btn-pending:hover {
+            background-color: #e67e22;
+        }
+        
         .section {
             background: white;
             border-radius: 8px;
@@ -533,6 +543,33 @@
         .filter-stat-label {
             font-size: 0.8rem;
             color: #6c757d;
+        }
+        
+        .pending-summary {
+            background: #fff3e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--pending);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        
+        .pending-summary-item {
+            text-align: center;
+        }
+        
+        .pending-summary-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--pending);
+            margin-bottom: 5px;
+        }
+        
+        .pending-summary-label {
+            font-size: 0.85rem;
+            color: #666;
         }
         
         .export-buttons {
@@ -690,6 +727,10 @@
             background-color: var(--cost);
         }
         
+        .badge-pending {
+            background-color: var(--pending);
+        }
+        
         .modal {
             display: none;
             position: fixed;
@@ -832,6 +873,10 @@
             }
             
             .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .pending-summary {
                 grid-template-columns: 1fr;
             }
         }
@@ -1045,6 +1090,14 @@
                 <h3>Encomendas</h3>
                 <p>Ver todas as encomendas</p>
                 <button class="btn btn-sm">Ver Encomendas</button>
+            </div>
+            
+            <!-- NOVA ABA: Encomendas Pendentes -->
+            <div class="card" onclick="showSection('pending-orders')">
+                <i class="fas fa-clock"></i>
+                <h3>Pendentes</h3>
+                <p>Ver encomendas pendentes</p>
+                <button class="btn btn-pending btn-sm">Acessar</button>
             </div>
         </div>
         
@@ -1401,6 +1454,47 @@
                 </div>
         </div>
         
+        <!-- NOVA SEÇÃO: Encomendas Pendentes -->
+        <div class="section" id="pending-orders-section">
+            <div class="section-header">
+                <h2><i class="fas fa-clock"></i> Encomendas Pendentes</h2>
+                <div class="quick-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="showDashboard()">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </button>
+                    <button class="btn btn-excel btn-sm" onclick="exportPendingOrdersToExcel()">
+                        <i class="fas fa-file-excel"></i> Exportar Excel
+                    </button>
+                </div>
+            </div>
+            
+            <div class="pending-summary" id="pending-summary">
+                <div class="pending-summary-item">
+                    <div class="pending-summary-value" id="pending-count">0</div>
+                    <div class="pending-summary-label">Encomendas Pendentes</div>
+                </div>
+                <div class="pending-summary-item">
+                    <div class="pending-summary-value" id="pending-total-value">R$ 0,00</div>
+                    <div class="pending-summary-label">Valor Total</div>
+                </div>
+                <div class="pending-summary-item">
+                    <div class="pending-summary-value" id="pending-total-cost">R$ 0,00</div>
+                    <div class="pending-summary-label">Custo Total</div>
+                </div>
+                <div class="pending-summary-item">
+                    <div class="pending-summary-value profit-text" id="pending-total-profit">R$ 0,00</div>
+                    <div class="pending-summary-label">Lucro Projetado</div>
+                </div>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="search-pending-orders" placeholder="Buscar encomenda pendente por cliente, produto...">
+            </div>
+            
+            <div class="list-container" id="pending-orders-list">
+                </div>
+        </div>
+        
         <div class="section" id="edit-order-section">
             <div class="section-header">
                 <h2><i class="fas fa-edit"></i> Editar Encomenda</h2>
@@ -1559,6 +1653,7 @@
                 updateDashboard();
                 if (document.getElementById('clients-section').classList.contains('active')) renderClientsList();
                 if (document.getElementById('orders-section').classList.contains('active')) renderOrdersList();
+                if (document.getElementById('pending-orders-section').classList.contains('active')) renderPendingOrdersList();
                 
                 console.log("Dados sincronizados com Firebase");
             });
@@ -1582,28 +1677,28 @@
             dateFilterApplied = true;
             applyDateFilter();
             
-                // ******** NOVO CÓDIGO CORRIGIDO ********
-    const currentDate = new Date();
-    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-    
-    // CORREÇÃO: Usar formato ISO diretamente para evitar problemas
-    document.getElementById('dashboard-date-start').value = firstDayOfMonth.toISOString().split('T')[0];
-    document.getElementById('dashboard-date-end').value = lastDayOfMonth.toISOString().split('T')[0];
-    
-    // CORREÇÃO: Criar datas com horas definidas explicitamente
-    dashboardFilter = {
-        startDate: new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 0, 0, 0, 0),
-        endDate: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999)
-    };
-    
-    console.log("Dashboard inicializado com:", {
-        startDate: dashboardFilter.startDate.toLocaleString('pt-BR'),
-        endDate: dashboardFilter.endDate.toLocaleString('pt-BR'),
-        startDateISO: dashboardFilter.startDate.toISOString(),
-        endDateISO: dashboardFilter.endDate.toISOString()
-    });
-    // ******** FIM DO NOVO CÓDIGO CORRIGIDO ********
+            // ******** NOVO CÓDIGO CORRIGIDO ********
+            const currentDate = new Date();
+            const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+            
+            // CORREÇÃO: Usar formato ISO diretamente para evitar problemas
+            document.getElementById('dashboard-date-start').value = firstDayOfMonth.toISOString().split('T')[0];
+            document.getElementById('dashboard-date-end').value = lastDayOfMonth.toISOString().split('T')[0];
+            
+            // CORREÇÃO: Criar datas com horas definidas explicitamente
+            dashboardFilter = {
+                startDate: new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 0, 0, 0, 0),
+                endDate: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999)
+            };
+            
+            console.log("Dashboard inicializado com:", {
+                startDate: dashboardFilter.startDate.toLocaleString('pt-BR'),
+                endDate: dashboardFilter.endDate.toLocaleString('pt-BR'),
+                startDateISO: dashboardFilter.startDate.toISOString(),
+                endDateISO: dashboardFilter.endDate.toISOString()
+            });
+            // ******** FIM DO NOVO CÓDIGO CORRIGIDO ********
             
             loadPharmacyLogo();
             
@@ -1623,6 +1718,11 @@
             setupEnterNavigation();
             
             setupDiscountAndProfitCalculation();
+
+            // Event listeners para busca nas listas
+            document.getElementById('search-clients').addEventListener('input', renderClientsList);
+            document.getElementById('search-orders').addEventListener('input', renderOrdersList);
+            document.getElementById('search-pending-orders').addEventListener('input', renderPendingOrdersList);
         });
         
         function createDateWithCorrectTime(date, hours, minutes, seconds, milliseconds) {
@@ -1643,15 +1743,15 @@
         }
         
         function isDateBetween(dateToCheck, startDate, endDate) {
-    if (!dateToCheck || !startDate || !endDate) return false;
-    
-    // Normalizar as datas para comparar apenas data (sem hora)
-    const checkDate = new Date(dateToCheck.getFullYear(), dateToCheck.getMonth(), dateToCheck.getDate());
-    const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-    const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-    
-    return checkDate >= startDateOnly && checkDate <= endDateOnly;
-}
+            if (!dateToCheck || !startDate || !endDate) return false;
+            
+            // Normalizar as datas para comparar apenas data (sem hora)
+            const checkDate = new Date(dateToCheck.getFullYear(), dateToCheck.getMonth(), dateToCheck.getDate());
+            const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+            const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+            
+            return checkDate >= startDateOnly && checkDate <= endDateOnly;
+        }
         
         function setupEnterNavigation() {
             document.getElementById('new-item-desc').addEventListener('keypress', function(e) {
@@ -1827,6 +1927,8 @@
                 renderClientsList();
             } else if (section === 'orders') {
                 renderOrdersList();
+            } else if (section === 'pending-orders') {
+                renderPendingOrdersList();
             } else if (section === 'new-order') {
                 resetOrderForm();
             } else if (section === 'edit-order') {
@@ -1888,108 +1990,108 @@
         }
         
         function createSalesChart(ctx) {
-    // Calcular número de dias baseado no filtro
-    let days = 30; // padrão
-    let labels = [];
-    let salesData = [];
-    
-    if (dashboardFilter.startDate && dashboardFilter.endDate) {
-        const startDate = new Date(dashboardFilter.startDate);
-        const endDate = new Date(dashboardFilter.endDate);
-        const diffTime = Math.abs(endDate - startDate);
-        days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        // Se for o mesmo dia, garantir que days seja pelo menos 1
-        if (days === 0) days = 1;
-        
-        if (days > 365) days = 365; // limite máximo
-    }
-    
-    const today = dashboardFilter.endDate ? new Date(dashboardFilter.endDate) : new Date();
-    const startDate = dashboardFilter.startDate ? new Date(dashboardFilter.startDate) : new Date(today);
-    if (!dashboardFilter.startDate) {
-        startDate.setDate(today.getDate() - (days - 1));
-    }
-    
-    // Ajustar para início do dia
-    startDate.setHours(0, 0, 0, 0);
-    
-    for (let i = 0; i < days; i++) {
-        const date = new Date(startDate);
-        date.setDate(date.getDate() + i);
-        const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-        labels.push(dateStr);
-        
-        // Calcular vendas para este dia (apenas encomendas entregues)
-        let daySales = 0;
-        
-        clients.forEach(client => {
-            if (client.orders) {
-                client.orders.forEach(order => {
-                    const orderDate = new Date(order.createdAt);
-                    
-                    // Verificar se está dentro do período usando função utilitária e se está entregue
-                    if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate) && order.status === 'entregue') {
-                        // Verificar se é o mesmo dia
-                        if (orderDate.getDate() === date.getDate() &&
-                            orderDate.getMonth() === date.getMonth() &&
-                            orderDate.getFullYear() === date.getFullYear()) {
-                            daySales += order.total;
-                        }
+            // Calcular número de dias baseado no filtro
+            let days = 30; // padrão
+            let labels = [];
+            let salesData = [];
+            
+            if (dashboardFilter.startDate && dashboardFilter.endDate) {
+                const startDate = new Date(dashboardFilter.startDate);
+                const endDate = new Date(dashboardFilter.endDate);
+                const diffTime = Math.abs(endDate - startDate);
+                days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                // Se for o mesmo dia, garantir que days seja pelo menos 1
+                if (days === 0) days = 1;
+                
+                if (days > 365) days = 365; // limite máximo
+            }
+            
+            const today = dashboardFilter.endDate ? new Date(dashboardFilter.endDate) : new Date();
+            const startDate = dashboardFilter.startDate ? new Date(dashboardFilter.startDate) : new Date(today);
+            if (!dashboardFilter.startDate) {
+                startDate.setDate(today.getDate() - (days - 1));
+            }
+            
+            // Ajustar para início do dia
+            startDate.setHours(0, 0, 0, 0);
+            
+            for (let i = 0; i < days; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                labels.push(dateStr);
+                
+                // Calcular vendas para este dia (apenas encomendas entregues)
+                let daySales = 0;
+                
+                clients.forEach(client => {
+                    if (client.orders) {
+                        client.orders.forEach(order => {
+                            const orderDate = new Date(order.createdAt);
+                            
+                            // Verificar se está dentro do período usando função utilitária e se está entregue
+                            if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate) && order.status === 'entregue') {
+                                // Verificar se é o mesmo dia
+                                if (orderDate.getDate() === date.getDate() &&
+                                    orderDate.getMonth() === date.getMonth() &&
+                                    orderDate.getFullYear() === date.getFullYear()) {
+                                    daySales += order.total;
+                                }
+                            }
+                        });
                     }
                 });
+                
+                salesData.push(daySales);
             }
-        });
-        
-        salesData.push(daySales);
-    }
-    
-    // Criar gráfico de linha
-    if (salesChart) {
-        salesChart.destroy();
-    }
-    
-    salesChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Vendas (R$) - Apenas entregues',
-                data: salesData,
-                borderColor: '#e74c3c',
-                backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#e74c3c',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return 'R$ ' + value;
+            
+            // Criar gráfico de linha
+            if (salesChart) {
+                salesChart.destroy();
+            }
+            
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Vendas (R$) - Apenas entregues',
+                        data: salesData,
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#e74c3c',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value;
+                                }
+                            }
                         }
                     }
                 }
-            }
+            });
         }
-    });
-}
         
         function createClientsChart(ctx) {
             let days = 30;
@@ -2404,87 +2506,87 @@
             updateChart();
         }
         
-       function applyDashboardFilter() {
-    const startDateInput = document.getElementById('dashboard-date-start').value;
-    const endDateInput = document.getElementById('dashboard-date-end').value;
-    
-    if (startDateInput && endDateInput) {
-        // CORREÇÃO: Criar datas corretamente sem problemas de fuso horário
-        // Usar método que evita problemas de timezone
-        const startDateStr = startDateInput + 'T00:00:00';
-        const endDateStr = endDateInput + 'T23:59:59.999';
-        
-        const startDate = new Date(startDateStr);
-        const endDate = new Date(endDateStr);
-        
-        // Validar se as datas foram criadas corretamente
-        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-            alert('Datas inválidas! Por favor, verifique as datas informadas.');
-            return;
+        function applyDashboardFilter() {
+            const startDateInput = document.getElementById('dashboard-date-start').value;
+            const endDateInput = document.getElementById('dashboard-date-end').value;
+            
+            if (startDateInput && endDateInput) {
+                // CORREÇÃO: Criar datas corretamente sem problemas de fuso horário
+                // Usar método que evita problemas de timezone
+                const startDateStr = startDateInput + 'T00:00:00';
+                const endDateStr = endDateInput + 'T23:59:59.999';
+                
+                const startDate = new Date(startDateStr);
+                const endDate = new Date(endDateStr);
+                
+                // Validar se as datas foram criadas corretamente
+                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                    alert('Datas inválidas! Por favor, verifique as datas informadas.');
+                    return;
+                }
+                
+                console.log("Dashboard Filtro - Início:", startDate.toLocaleString('pt-BR'));
+                console.log("Dashboard Filtro - Fim:", endDate.toLocaleString('pt-BR'));
+                console.log("Dashboard Filtro - Valores originais:", startDateInput, endDateInput);
+                console.log("Dashboard Filtro - Start Date ISO:", startDate.toISOString());
+                console.log("Dashboard Filtro - End Date ISO:", endDate.toISOString());
+                
+                if (startDate > endDate) {
+                    alert('A data inicial não pode ser maior que a data final!');
+                    return;
+                }
+                
+                dashboardFilter = {
+                    startDate: startDate,
+                    endDate: endDate
+                };
+            } else if (startDateInput || endDateInput) {
+                alert('Por favor, preencha ambas as datas ou deixe ambas em branco para usar o período padrão.');
+                return;
+            } else {
+                const currentDate = new Date();
+                const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+                
+                dashboardFilter = {
+                    startDate: new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 0, 0, 0, 0),
+                    endDate: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999)
+                };
+                
+                document.getElementById('dashboard-date-start').value = firstDayOfMonth.toISOString().split('T')[0];
+                document.getElementById('dashboard-date-end').value = lastDayOfMonth.toISOString().split('T')[0];
+            }
+            
+            updateDashboard();
+            
+            const applyBtn = document.querySelector('.dashboard-filter .btn');
+            applyBtn.innerHTML = '<i class="fas fa-check"></i> Filtro Aplicado';
+            applyBtn.style.backgroundColor = '#27ae60';
+            
+            setTimeout(() => {
+                applyBtn.innerHTML = '<i class="fas fa-filter"></i> Aplicar Filtro';
+                applyBtn.style.backgroundColor = '';
+            }, 1500);
         }
-        
-        console.log("Dashboard Filtro - Início:", startDate.toLocaleString('pt-BR'));
-        console.log("Dashboard Filtro - Fim:", endDate.toLocaleString('pt-BR'));
-        console.log("Dashboard Filtro - Valores originais:", startDateInput, endDateInput);
-        console.log("Dashboard Filtro - Start Date ISO:", startDate.toISOString());
-        console.log("Dashboard Filtro - End Date ISO:", endDate.toISOString());
-        
-        if (startDate > endDate) {
-            alert('A data inicial não pode ser maior que a data final!');
-            return;
-        }
-        
-        dashboardFilter = {
-            startDate: startDate,
-            endDate: endDate
-        };
-    } else if (startDateInput || endDateInput) {
-        alert('Por favor, preencha ambas as datas ou deixe ambas em branco para usar o período padrão.');
-        return;
-    } else {
-        const currentDate = new Date();
-        const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-        const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-        
-        dashboardFilter = {
-            startDate: new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 0, 0, 0, 0),
-            endDate: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999)
-        };
-        
-        document.getElementById('dashboard-date-start').value = firstDayOfMonth.toISOString().split('T')[0];
-        document.getElementById('dashboard-date-end').value = lastDayOfMonth.toISOString().split('T')[0];
-    }
-    
-    updateDashboard();
-    
-    const applyBtn = document.querySelector('.dashboard-filter .btn');
-    applyBtn.innerHTML = '<i class="fas fa-check"></i> Filtro Aplicado';
-    applyBtn.style.backgroundColor = '#27ae60';
-    
-    setTimeout(() => {
-        applyBtn.innerHTML = '<i class="fas fa-filter"></i> Aplicar Filtro';
-        applyBtn.style.backgroundColor = '';
-    }, 1500);
-}
         
         function resetDashboardFilter() {
-    // Resetar para o mês atual
-    const currentDate = new Date();
-    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-    
-    // Usar formato ISO para evitar problemas de timezone
-    document.getElementById('dashboard-date-start').value = firstDayOfMonth.toISOString().split('T')[0];
-    document.getElementById('dashboard-date-end').value = lastDayOfMonth.toISOString().split('T')[0];
-    
-    // Criar datas com horas definidas
-    dashboardFilter = {
-        startDate: new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 0, 0, 0, 0),
-        endDate: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999)
-    };
-    
-    updateDashboard();
-}
+            // Resetar para o mês atual
+            const currentDate = new Date();
+            const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+            
+            // Usar formato ISO para evitar problemas de timezone
+            document.getElementById('dashboard-date-start').value = firstDayOfMonth.toISOString().split('T')[0];
+            document.getElementById('dashboard-date-end').value = lastDayOfMonth.toISOString().split('T')[0];
+            
+            // Criar datas com horas definidas
+            dashboardFilter = {
+                startDate: new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 0, 0, 0, 0),
+                endDate: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999)
+            };
+            
+            updateDashboard();
+        }
         
         function openEditClientModal(clientId) {
             const client = clients.find(c => c.id === clientId);
@@ -2747,6 +2849,70 @@
             XLSX.utils.book_append_sheet(wb, ws, "Encomendas");
             
             const fileName = `Encomendas_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+        
+        // NOVA FUNÇÃO: Exportar encomendas pendentes para Excel
+        function exportPendingOrdersToExcel() {
+            let pendingOrders = [];
+            clients.forEach(client => {
+                if (client.orders && client.orders.length > 0) {
+                    client.orders.forEach(order => {
+                        if (order.status === 'pendente') {
+                            let orderCost = 0;
+                            let orderProfit = 0;
+                            
+                            if (order.items && order.items.length > 0) {
+                                order.items.forEach(item => {
+                                    const itemCost = (item.cost || 0) * item.quantity;
+                                    const itemRevenue = item.finalPrice * item.quantity;
+                                    const itemProfit = itemRevenue - itemCost;
+                                    
+                                    orderCost += itemCost;
+                                    orderProfit += itemProfit;
+                                });
+                            }
+                            
+                            pendingOrders.push({
+                                'ID Encomenda': order.id,
+                                'Cliente': order.clientName,
+                                'Telefone': order.clientPhone,
+                                'Data': formatDate(order.createdAt),
+                                'Pagamento': order.payment === 'pago' ? 'Pago' : 
+                                            order.payment === 'parcial' ? 'Parcial' : 
+                                            'Pendente',
+                                'Entrada': order.downPayment || 0,
+                                'Saldo': order.total - (order.downPayment || 0),
+                                'Disponível': order.available === 'sim' ? 'Sim' : 'Não',
+                                'Total Venda': order.total,
+                                'Custo Total': orderCost,
+                                'Lucro Projetado': orderProfit,
+                                'Margem Projetada (%)': orderCost > 0 ? ((orderProfit / orderCost) * 100).toFixed(2) : '0.00',
+                                'Quantidade de Itens': order.items.length,
+                                'Itens': order.items.map(item => {
+                                    const itemCost = item.cost || 0;
+                                    const itemProfit = item.finalPrice - itemCost;
+                                    const itemMargin = itemCost > 0 ? ((itemProfit / itemCost) * 100).toFixed(2) : '0.00';
+                                    const discountInfo = (item.discountType !== 'none' && item.discountValue > 0) ? 
+                                        ` (Desconto: ${item.discountType === 'percent' ? item.discountValue + '%' : 'R$ ' + item.discountValue.toFixed(2)})` : '';
+                                    return `${item.quantity}x ${item.description} (Original: R$ ${item.price.toFixed(2)}${discountInfo}, Final: R$ ${item.finalPrice.toFixed(2)}, Custo: R$ ${itemCost.toFixed(2)}, Lucro: R$ ${itemProfit.toFixed(2)}, Margem: ${itemMargin}%)`;
+                                }).join('; ')
+                            });
+                        }
+                    });
+                }
+            });
+            
+            if (pendingOrders.length === 0) {
+                alert('Não há encomendas pendentes para exportar!');
+                return;
+            }
+            
+            const ws = XLSX.utils.json_to_sheet(pendingOrders);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Encomendas Pendentes");
+            
+            const fileName = `Pendentes_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`;
             XLSX.writeFile(wb, fileName);
         }
         
@@ -3073,7 +3239,7 @@
             }
         }
         
-               function saveOrder() {
+        function saveOrder() {
             if (!selectedClientForOrder) {
                 alert('Selecione um cliente primeiro!');
                 return;
@@ -3574,6 +3740,8 @@
                 showSection('orders');
             } else if (document.getElementById('orders-section').classList.contains('active')) {
                 renderOrdersList();
+            } else if (document.getElementById('pending-orders-section').classList.contains('active')) {
+                renderPendingOrdersList();
             }
             
             alert('Encomenda excluída com sucesso!');
@@ -3593,6 +3761,7 @@
             saveToLocalStorage();
             updateStats();
             renderOrdersList();
+            renderPendingOrdersList();
             alert('Encomenda marcada como entregue!');
             updateDashboard();
         }
@@ -4225,6 +4394,123 @@
             container.innerHTML = html;
         }
         
+        // NOVA FUNÇÃO: Renderizar lista de encomendas pendentes
+        function renderPendingOrdersList() {
+            const searchTerm = document.getElementById('search-pending-orders').value.toLowerCase();
+            const container = document.getElementById('pending-orders-list');
+            
+            let pendingOrders = [];
+            clients.forEach(client => {
+                if (client.orders && client.orders.length > 0) {
+                    client.orders.forEach(order => {
+                        if (order.status === 'pendente') {
+                            pendingOrders.push({
+                                ...order,
+                                client: client
+                            });
+                        }
+                    });
+                }
+            });
+            
+            if (searchTerm) {
+                pendingOrders = pendingOrders.filter(order =>
+                    order.clientName.toLowerCase().includes(searchTerm) ||
+                    order.clientPhone.includes(searchTerm) ||
+                    order.items.some(item => item.description.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            // Atualizar resumo de pendentes
+            updatePendingSummary(pendingOrders);
+            
+            if (pendingOrders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>Nenhuma encomenda pendente</h3>
+                        <p>Todas as encomendas foram entregues!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            pendingOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            let html = '';
+            pendingOrders.forEach(order => {
+                const itemsSummary = order.items.map(item => `${item.quantity}x ${item.description.substring(0, 20)}`).join(', ');
+                
+                const paymentInfo = order.payment === 'pago' ? 'Pago' : 
+                                  order.payment === 'parcial' ? 'Parcial' : 
+                                  'Pendente';
+                const downPaymentInfo = order.downPayment > 0 ? ` | Entrada: R$ ${order.downPayment.toFixed(2)}` : '';
+                const balanceInfo = order.downPayment > 0 ? ` | Saldo: R$ ${(order.total - order.downPayment).toFixed(2)}` : '';
+                const availableInfo = order.available ? ` | Disponível: ${order.available === 'sim' ? 'Sim' : 'Não'}` : '';
+                const profitInfo = order.totalProfit ? ` | Lucro Proj.: R$ ${order.totalProfit.toFixed(2)}` : '';
+                const marginInfo = order.profitMargin ? ` | Margem Proj.: ${order.profitMargin.toFixed(1)}%` : '';
+                
+                html += `
+                    <div class="item-card pending">
+                        <div class="item-header">
+                            <div class="item-name">${order.clientName}</div>
+                            <div>
+                                <span class="badge badge-warning">Pendente</span>
+                                <span class="badge">
+                                    R$ ${order.total.toFixed(2)}
+                                </span>
+                                ${order.totalProfit > 0 ? `<span class="badge badge-profit">Lucro: R$ ${order.totalProfit.toFixed(2)}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="item-contact">
+                            <i class="fas fa-phone"></i> ${order.clientPhone}
+                        </div>
+                        <div class="compact-info">
+                            ${formatDate(order.createdAt)} | ${order.items.length} itens | ${paymentInfo}${downPaymentInfo}${balanceInfo}${availableInfo}${profitInfo}${marginInfo}
+                            ${itemsSummary.length > 50 ? `<br>${itemsSummary.substring(0, 50)}...` : `<br>${itemsSummary}`}
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn btn-sm" onclick="viewOrder(${order.id}, ${order.client.id})">
+                                <i class="fas fa-eye"></i> Ver
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="editOrder(${order.id}, ${order.client.id})">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="markAsDelivered(${order.id}, ${order.client.id})">
+                                <i class="fas fa-check"></i> Entregue
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteOrder(${order.id}, ${order.client.id})">
+                                <i class="fas fa-trash"></i> Excluir
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // NOVA FUNÇÃO: Atualizar resumo de encomendas pendentes
+        function updatePendingSummary(pendingOrders) {
+            const totalOrders = pendingOrders.length;
+            const totalValue = pendingOrders.reduce((sum, order) => sum + order.total, 0);
+            const totalCost = pendingOrders.reduce((sum, order) => {
+                let orderCost = 0;
+                if (order.items && order.items.length > 0) {
+                    order.items.forEach(item => {
+                        orderCost += (item.cost || 0) * item.quantity;
+                    });
+                }
+                return sum + orderCost;
+            }, 0);
+            const totalProfit = totalValue - totalCost;
+            
+            document.getElementById('pending-count').textContent = totalOrders;
+            document.getElementById('pending-total-value').textContent = `R$ ${totalValue.toFixed(2).replace('.', ',')}`;
+            document.getElementById('pending-total-cost').textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
+            document.getElementById('pending-total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
+        }
+        
         function viewOrder(orderId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -4272,9 +4558,6 @@
             const whatsappUrl = `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
         }
-
-        document.getElementById('search-clients').addEventListener('input', renderClientsList);
-        document.getElementById('search-orders').addEventListener('input', renderOrdersList);
     </script>
 </body>
 </html>
