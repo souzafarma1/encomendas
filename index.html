@@ -13,6 +13,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
     <style>
+        /* Mesmo estilo do original - mantido igual */
         * {
             margin: 0;
             padding: 0;
@@ -35,6 +36,7 @@
             --profit: #27ae60;
             --cost: #e67e22;
             --pending: #f39c12;
+            --budget: #9b59b6;
         }
         
         body {
@@ -433,6 +435,15 @@
         .btn-pending:hover {
             background-color: #e67e22;
         }
+
+        .btn-budget {
+            background-color: var(--budget);
+            color: white;
+        }
+        
+        .btn-budget:hover {
+            background-color: #8e44ad;
+        }
         
         .section {
             background: white;
@@ -572,6 +583,33 @@
             color: #666;
         }
         
+        .budget-summary {
+            background: #f3e5f5;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--budget);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        
+        .budget-summary-item {
+            text-align: center;
+        }
+        
+        .budget-summary-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--budget);
+            margin-bottom: 5px;
+        }
+        
+        .budget-summary-label {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
         .export-buttons {
             display: flex;
             gap: 9px;
@@ -673,6 +711,11 @@
             background: #e8f6f3;
         }
         
+        .item-card.budget {
+            border-left-color: var(--budget);
+            background: #f3e5f5;
+        }
+        
         .item-header {
             display: flex;
             justify-content: space-between;
@@ -729,6 +772,10 @@
         
         .badge-pending {
             background-color: var(--pending);
+        }
+        
+        .badge-budget {
+            background-color: var(--budget);
         }
         
         .modal {
@@ -819,6 +866,45 @@
             display: none;
         }
         
+        .budget-total {
+            background: #f3e5f5;
+            padding: 14px;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 18px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .budget-total span {
+            color: var(--budget);
+            font-size: 1.15rem;
+        }
+        
+        .budget-info {
+            background: #f3e5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .budget-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+        
+        .budget-label {
+            color: #666;
+        }
+        
+        .budget-value {
+            font-weight: bold;
+            color: var(--budget);
+        }
+        
         @media (max-width: 768px) {
             .form-row, .filter-row, .dashboard-filter {
                 flex-direction: column;
@@ -877,6 +963,10 @@
             }
             
             .pending-summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .budget-summary {
                 grid-template-columns: 1fr;
             }
         }
@@ -1092,12 +1182,26 @@
                 <button class="btn btn-sm">Ver Encomendas</button>
             </div>
             
-            <!-- NOVA ABA: Encomendas Pendentes -->
             <div class="card" onclick="showSection('pending-orders')">
                 <i class="fas fa-clock"></i>
                 <h3>Pendentes</h3>
                 <p>Ver encomendas pendentes</p>
                 <button class="btn btn-pending btn-sm">Acessar</button>
+            </div>
+
+            <!-- NOVA ABA: Orçamentos -->
+            <div class="card" onclick="showSection('budgets')">
+                <i class="fas fa-file-invoice"></i>
+                <h3>Orçamentos</h3>
+                <p>Gerenciar orçamentos</p>
+                <button class="btn btn-budget btn-sm">Acessar</button>
+            </div>
+
+            <div class="card" onclick="showSection('new-budget')">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <h3>Novo Orçamento</h3>
+                <p>Criar novo orçamento</p>
+                <button class="btn btn-budget btn-sm">Criar</button>
             </div>
         </div>
         
@@ -1117,6 +1221,10 @@
             <div class="stat-card">
                 <div class="stat-value" id="delivered-orders">0</div>
                 <div class="stat-label">Encomendas Entregues</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-budgets">0</div>
+                <div class="stat-label">Orçamentos</div>
             </div>
         </div>
         
@@ -1454,7 +1562,6 @@
                 </div>
         </div>
         
-        <!-- NOVA SEÇÃO: Encomendas Pendentes -->
         <div class="section" id="pending-orders-section">
             <div class="section-header">
                 <h2><i class="fas fa-clock"></i> Encomendas Pendentes</h2>
@@ -1494,6 +1601,194 @@
             <div class="list-container" id="pending-orders-list">
                 </div>
         </div>
+
+        <!-- NOVA SEÇÃO: Lista de Orçamentos -->
+        <div class="section" id="budgets-section">
+            <div class="section-header">
+                <h2><i class="fas fa-file-invoice"></i> Lista de Orçamentos</h2>
+                <div class="quick-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="showDashboard()">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </button>
+                    <button class="btn btn-excel btn-sm" onclick="exportBudgetsToExcel()">
+                        <i class="fas fa-file-excel"></i> Exportar Excel
+                    </button>
+                </div>
+            </div>
+            
+            <div class="date-filter">
+                <h4><i class="fas fa-filter"></i> Filtrar por Período</h4>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Data Inicial</label>
+                        <input type="date" id="budget-date-start" value="">
+                    </div>
+                    <div class="filter-group">
+                        <label>Data Final</label>
+                        <input type="date" id="budget-date-end" value="">
+                    </div>
+                    <div>
+                        <button class="btn btn-sm" onclick="applyBudgetDateFilter()">
+                            <i class="fas fa-filter"></i> Aplicar Filtro
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="clearBudgetDateFilter()">
+                            <i class="fas fa-times"></i> Limpar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="budget-summary" id="budget-summary">
+                <div class="budget-summary-item">
+                    <div class="budget-summary-value" id="budget-count">0</div>
+                    <div class="budget-summary-label">Total de Orçamentos</div>
+                </div>
+                <div class="budget-summary-item">
+                    <div class="budget-summary-value" id="budget-total-value">R$ 0,00</div>
+                    <div class="budget-summary-label">Valor Total</div>
+                </div>
+                <div class="budget-summary-item">
+                    <div class="budget-summary-value" id="budget-avg-value">R$ 0,00</div>
+                    <div class="budget-summary-label">Média por Orçamento</div>
+                </div>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="search-budgets" placeholder="Buscar orçamento por cliente, produto...">
+            </div>
+            
+            <div class="list-container" id="budgets-list">
+                </div>
+        </div>
+
+        <!-- NOVA SEÇÃO: Novo Orçamento (SIMPLIFICADA E CORRIGIDA) -->
+        <div class="section" id="new-budget-section">
+            <div class="section-header">
+                <h2><i class="fas fa-file-invoice-dollar"></i> Novo Orçamento</h2>
+                <button class="btn btn-secondary btn-sm" onclick="showDashboard()">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </button>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="search-client-budget" placeholder="Buscar cliente para orçamento..." oninput="searchClientForBudget()">
+                <div id="client-budget-search-results" style="margin-top: 9px; display: none;"></div>
+            </div>
+            
+            <div class="new-client-option" id="new-client-budget-option">
+                <h4 style="margin-bottom: 9px; color: var(--souza-red); font-size: 0.95rem;">Cliente não encontrado</h4>
+                <p style="margin-bottom: 11px; font-size: 0.9rem;">Deseja cadastrar um novo cliente?</p>
+                <div class="button-group">
+                    <button type="button" class="btn btn-sm" onclick="quickRegisterClientForBudget()">
+                        <i class="fas fa-user-plus"></i> Cadastrar Novo Cliente
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('new-client-budget-option').style.display='none'">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+            
+            <div id="selected-budget-client-info" style="display: none; margin-bottom: 16px;">
+                <div class="item-card">
+                    <div class="item-header">
+                        <div class="item-name" id="selected-budget-client-name"></div>
+                        <div class="item-contact" id="selected-budget-client-phone"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="budget-items" style="display: none;">
+                <h3 style="margin-bottom: 14px; font-size: 1.05rem;">Itens do Orçamento</h3>
+                
+                <div id="budget-items-list">
+                    <!-- Itens adicionados aparecerão aqui -->
+                </div>
+                
+                <div class="order-item-form">
+                    <h4 style="margin-bottom: 9px; font-size: 0.95rem;">Adicionar Novo Item</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Descrição</label>
+                            <input type="text" id="new-budget-item-desc" placeholder="Nome do medicamento">
+                        </div>
+                        <div class="form-group">
+                            <label>Quantidade</label>
+                            <input type="number" id="new-budget-item-qty" value="1" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Valor Unitário</label>
+                            <input type="number" id="new-budget-item-price" step="0.01" placeholder="0.00">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tipo de Desconto</label>
+                            <select id="new-budget-item-discount-type">
+                                <option value="none">Sem desconto</option>
+                                <option value="percent">%</option>
+                                <option value="fixed">R$</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor do Desconto</label>
+                            <input type="number" id="new-budget-item-discount-value" step="0.01" placeholder="0.00" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor Final</label>
+                            <input type="number" id="new-budget-item-final-price" step="0.01" placeholder="0.00" readonly style="background-color: #f8f9fa;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Observações do Item</label>
+                            <input type="text" id="new-budget-item-obs" placeholder="Ex: Genérico, Marca X, etc.">
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-success btn-sm" onclick="addBudgetItem()">
+                        <i class="fas fa-plus"></i> Adicionar Item
+                    </button>
+                </div>
+                
+                <div class="budget-total" id="budget-total-display">
+                    Total: R$ <span id="budget-total">0.00</span>
+                </div>
+                
+                <div class="budget-info" id="budget-info" style="display: none;">
+                    <div class="budget-info-row">
+                        <span class="budget-label">Total de Itens:</span>
+                        <span class="budget-value" id="budget-item-count">0</span>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 16px;">
+                    <label>Validade do Orçamento (dias)</label>
+                    <input type="number" id="budget-validity" value="7" min="1" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;">
+                </div>
+                
+                <div style="margin-top: 16px;">
+                    <label>Observações do Orçamento</label>
+                    <textarea id="budget-observations" rows="3" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;" placeholder="Condições de pagamento, informações adicionais..."></textarea>
+                </div>
+                
+                <div class="button-group" style="margin-top: 22px;">
+                    <button type="button" class="btn btn-success btn-sm" onclick="saveBudget()">
+                        <i class="fas fa-save"></i> Salvar Orçamento
+                    </button>
+                    <button type="button" class="btn btn-whatsapp btn-sm" onclick="sendBudgetWhatsApp()">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </button>
+                    <button type="button" class="btn btn-sm" onclick="printBudget()">
+                        <i class="fas fa-print"></i> Imprimir Normal
+                    </button>
+                    <button type="button" class="btn btn-warning btn-sm" onclick="printThermalBudget()">
+                        <i class="fas fa-receipt"></i> Imprimir Térmica
+                    </button>
+                </div>
+            </div>
+        </div>
         
         <div class="section" id="edit-order-section">
             <div class="section-header">
@@ -1504,6 +1799,19 @@
             </div>
             
             <div id="edit-order-content">
+                </div>
+        </div>
+
+        <!-- NOVA SEÇÃO: Editar Orçamento -->
+        <div class="section" id="edit-budget-section">
+            <div class="section-header">
+                <h2><i class="fas fa-edit"></i> Editar Orçamento</h2>
+                <button class="btn btn-secondary btn-sm" onclick="showSection('budgets')">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </button>
+            </div>
+            
+            <div id="edit-budget-content">
                 </div>
         </div>
     </div>
@@ -1527,6 +1835,30 @@
                     <i class="fas fa-receipt"></i> Térmica
                 </button>
                 <button class="btn btn-secondary btn-sm" onclick="closeModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOVO MODAL: Detalhes do Orçamento -->
+    <div class="modal" id="budget-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalhes do Orçamento</h3>
+                <button onclick="closeBudgetModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer;">×</button>
+            </div>
+            <div id="budget-details">
+                </div>
+            <div style="margin-top: 16px; text-align: center;">
+                <button class="btn btn-whatsapp btn-sm" onclick="sendCurrentBudgetWhatsApp()">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </button>
+                <button class="btn btn-sm" onclick="printCurrentBudget()">
+                    <i class="fas fa-print"></i> Normal
+                </button>
+                <button class="btn btn-warning btn-sm" onclick="printThermalCurrentBudget()">
+                    <i class="fas fa-receipt"></i> Térmica
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="closeBudgetModal()">Fechar</button>
             </div>
         </div>
     </div>
@@ -1602,6 +1934,7 @@
     </div>
 
     <script>
+        // Configuração do Firebase
         const firebaseConfig = {
           apiKey: "SUA_API_KEY",
           authDomain: "souza-farma.firebaseapp.com",
@@ -1615,18 +1948,30 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // Variáveis globais
         let clients = [];
         let selectedClientForOrder = null;
+        let selectedClientForBudget = null;
         let currentOrder = null;
+        let currentBudget = null;
         let orderTotal = 0;
+        let budgetTotal = 0;
+        let budgetItems = []; // Array para armazenar itens do orçamento temporariamente
         let editingOrder = null;
+        let editingBudget = null;
         let editingOrderClientId = null;
+        let editingBudgetClientId = null;
         let dateFilterApplied = false;
+        let budgetDateFilterApplied = false;
         let currentFilter = {
             startDate: null,
             endDate: null,
             status: 'todos',
             payment: 'todos'
+        };
+        let currentBudgetFilter = {
+            startDate: null,
+            endDate: null
         };
         
         let salesChart = null;
@@ -1642,6 +1987,7 @@
             endDate: null
         };
         
+        // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
             console.log("Sistema Souza Farma conectando ao Firebase...");
             
@@ -1654,6 +2000,7 @@
                 if (document.getElementById('clients-section').classList.contains('active')) renderClientsList();
                 if (document.getElementById('orders-section').classList.contains('active')) renderOrdersList();
                 if (document.getElementById('pending-orders-section').classList.contains('active')) renderPendingOrdersList();
+                if (document.getElementById('budgets-section').classList.contains('active')) renderBudgetsList();
                 
                 console.log("Dados sincronizados com Firebase");
             });
@@ -1677,28 +2024,17 @@
             dateFilterApplied = true;
             applyDateFilter();
             
-            // ******** NOVO CÓDIGO CORRIGIDO ********
             const currentDate = new Date();
             const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
             const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
             
-            // CORREÇÃO: Usar formato ISO diretamente para evitar problemas
             document.getElementById('dashboard-date-start').value = firstDayOfMonth.toISOString().split('T')[0];
             document.getElementById('dashboard-date-end').value = lastDayOfMonth.toISOString().split('T')[0];
             
-            // CORREÇÃO: Criar datas com horas definidas explicitamente
             dashboardFilter = {
                 startDate: new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 0, 0, 0, 0),
                 endDate: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999)
             };
-            
-            console.log("Dashboard inicializado com:", {
-                startDate: dashboardFilter.startDate.toLocaleString('pt-BR'),
-                endDate: dashboardFilter.endDate.toLocaleString('pt-BR'),
-                startDateISO: dashboardFilter.startDate.toISOString(),
-                endDateISO: dashboardFilter.endDate.toISOString()
-            });
-            // ******** FIM DO NOVO CÓDIGO CORRIGIDO ********
             
             loadPharmacyLogo();
             
@@ -1706,23 +2042,14 @@
             
             initializeDashboard();
             
-            window.addEventListener('click', function(event) {
-                const modal = document.getElementById('edit-client-modal');
-                if (event.target === modal) {
-                    closeEditClientModal();
-                }
-            });
+            // Configurar eventos para orçamento
+            setupBudgetDiscountCalculation();
             
-            document.getElementById('down-payment').addEventListener('input', updatePaymentStatus);
-            
-            setupEnterNavigation();
-            
-            setupDiscountAndProfitCalculation();
-
             // Event listeners para busca nas listas
             document.getElementById('search-clients').addEventListener('input', renderClientsList);
             document.getElementById('search-orders').addEventListener('input', renderOrdersList);
             document.getElementById('search-pending-orders').addEventListener('input', renderPendingOrdersList);
+            document.getElementById('search-budgets').addEventListener('input', renderBudgetsList);
         });
         
         function createDateWithCorrectTime(date, hours, minutes, seconds, milliseconds) {
@@ -1745,7 +2072,6 @@
         function isDateBetween(dateToCheck, startDate, endDate) {
             if (!dateToCheck || !startDate || !endDate) return false;
             
-            // Normalizar as datas para comparar apenas data (sem hora)
             const checkDate = new Date(dateToCheck.getFullYear(), dateToCheck.getMonth(), dateToCheck.getDate());
             const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
             const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
@@ -1753,58 +2079,14 @@
             return checkDate >= startDateOnly && checkDate <= endDateOnly;
         }
         
-        function setupEnterNavigation() {
-            document.getElementById('new-item-desc').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    document.getElementById('new-item-qty').focus();
-                }
-            });
+        // Configurar cálculo de desconto para orçamento
+        function setupBudgetDiscountCalculation() {
+            const discountType = document.getElementById('new-budget-item-discount-type');
+            const discountValue = document.getElementById('new-budget-item-discount-value');
+            const priceInput = document.getElementById('new-budget-item-price');
+            const finalPriceInput = document.getElementById('new-budget-item-final-price');
             
-            document.getElementById('new-item-qty').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    document.getElementById('new-item-price').focus();
-                }
-            });
-            
-            document.getElementById('new-item-price').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    document.getElementById('new-item-cost').focus();
-                }
-            });
-            
-            document.getElementById('new-item-cost').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    document.getElementById('new-item-discount-type').focus();
-                }
-            });
-            
-            document.getElementById('new-item-discount-type').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    document.getElementById('new-item-discount-value').focus();
-                }
-            });
-            
-            document.getElementById('new-item-discount-value').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addOrderItemFromForm();
-                }
-            });
-        }
-        
-        function setupDiscountAndProfitCalculation() {
-            const discountType = document.getElementById('new-item-discount-type');
-            const discountValue = document.getElementById('new-item-discount-value');
-            const priceInput = document.getElementById('new-item-price');
-            const costInput = document.getElementById('new-item-cost');
-            const profitValueInput = document.getElementById('new-item-profit-value');
-            const profitPercentInput = document.getElementById('new-item-profit-percent');
-            const finalPriceInput = document.getElementById('new-item-final-price');
+            if (!discountType || !discountValue || !priceInput || !finalPriceInput) return;
             
             discountType.addEventListener('change', function() {
                 if (this.value === 'none') {
@@ -1815,16 +2097,14 @@
                     discountValue.disabled = false;
                     discountValue.focus();
                 }
-                calculateProfit();
+                calculateBudgetFinalPrice();
             });
             
-            priceInput.addEventListener('input', calculateProfit);
-            costInput.addEventListener('input', calculateProfit);
-            discountValue.addEventListener('input', calculateProfit);
+            priceInput.addEventListener('input', calculateBudgetFinalPrice);
+            discountValue.addEventListener('input', calculateBudgetFinalPrice);
             
-            function calculateProfit() {
+            function calculateBudgetFinalPrice() {
                 const price = parseFloat(priceInput.value) || 0;
-                const cost = parseFloat(costInput.value) || 0;
                 const discountTypeValue = discountType.value;
                 const discountVal = parseFloat(discountValue.value) || 0;
                 let finalPrice = price;
@@ -1837,12 +2117,6 @@
                 }
                 
                 finalPriceInput.value = finalPrice.toFixed(2);
-                
-                const profitValue = finalPrice - cost;
-                const profitPercent = cost > 0 ? (profitValue / cost) * 100 : 0;
-                
-                profitValueInput.value = profitValue.toFixed(2);
-                profitPercentInput.value = profitPercent.toFixed(2);
             }
         }
         
@@ -1929,10 +2203,16 @@
                 renderOrdersList();
             } else if (section === 'pending-orders') {
                 renderPendingOrdersList();
+            } else if (section === 'budgets') {
+                renderBudgetsList();
             } else if (section === 'new-order') {
                 resetOrderForm();
+            } else if (section === 'new-budget') {
+                resetBudgetForm();
             } else if (section === 'edit-order') {
                 renderEditOrderForm();
+            } else if (section === 'edit-budget') {
+                renderEditBudgetForm();
             }
         }
         
@@ -1990,8 +2270,7 @@
         }
         
         function createSalesChart(ctx) {
-            // Calcular número de dias baseado no filtro
-            let days = 30; // padrão
+            let days = 30;
             let labels = [];
             let salesData = [];
             
@@ -2001,10 +2280,9 @@
                 const diffTime = Math.abs(endDate - startDate);
                 days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 
-                // Se for o mesmo dia, garantir que days seja pelo menos 1
                 if (days === 0) days = 1;
                 
-                if (days > 365) days = 365; // limite máximo
+                if (days > 365) days = 365;
             }
             
             const today = dashboardFilter.endDate ? new Date(dashboardFilter.endDate) : new Date();
@@ -2013,7 +2291,6 @@
                 startDate.setDate(today.getDate() - (days - 1));
             }
             
-            // Ajustar para início do dia
             startDate.setHours(0, 0, 0, 0);
             
             for (let i = 0; i < days; i++) {
@@ -2022,7 +2299,6 @@
                 const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                 labels.push(dateStr);
                 
-                // Calcular vendas para este dia (apenas encomendas entregues)
                 let daySales = 0;
                 
                 clients.forEach(client => {
@@ -2030,9 +2306,7 @@
                         client.orders.forEach(order => {
                             const orderDate = new Date(order.createdAt);
                             
-                            // Verificar se está dentro do período usando função utilitária e se está entregue
                             if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate) && order.status === 'entregue') {
-                                // Verificar se é o mesmo dia
                                 if (orderDate.getDate() === date.getDate() &&
                                     orderDate.getMonth() === date.getMonth() &&
                                     orderDate.getFullYear() === date.getFullYear()) {
@@ -2046,7 +2320,6 @@
                 salesData.push(daySales);
             }
             
-            // Criar gráfico de linha
             if (salesChart) {
                 salesChart.destroy();
             }
@@ -2456,7 +2729,6 @@
                     client.orders.forEach(order => {
                         const orderDate = new Date(order.createdAt);
                         
-                        // Considera apenas encomendas com status "entregue" para o dashboard
                         if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate) && order.status === 'entregue') {
                             totalRevenue += order.total;
                             totalOrders++;
@@ -2511,15 +2783,12 @@
             const endDateInput = document.getElementById('dashboard-date-end').value;
             
             if (startDateInput && endDateInput) {
-                // CORREÇÃO: Criar datas corretamente sem problemas de fuso horário
-                // Usar método que evita problemas de timezone
                 const startDateStr = startDateInput + 'T00:00:00';
                 const endDateStr = endDateInput + 'T23:59:59.999';
                 
                 const startDate = new Date(startDateStr);
                 const endDate = new Date(endDateStr);
                 
-                // Validar se as datas foram criadas corretamente
                 if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
                     alert('Datas inválidas! Por favor, verifique as datas informadas.');
                     return;
@@ -2527,9 +2796,6 @@
                 
                 console.log("Dashboard Filtro - Início:", startDate.toLocaleString('pt-BR'));
                 console.log("Dashboard Filtro - Fim:", endDate.toLocaleString('pt-BR'));
-                console.log("Dashboard Filtro - Valores originais:", startDateInput, endDateInput);
-                console.log("Dashboard Filtro - Start Date ISO:", startDate.toISOString());
-                console.log("Dashboard Filtro - End Date ISO:", endDate.toISOString());
                 
                 if (startDate > endDate) {
                     alert('A data inicial não pode ser maior que a data final!');
@@ -2570,16 +2836,13 @@
         }
         
         function resetDashboardFilter() {
-            // Resetar para o mês atual
             const currentDate = new Date();
             const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
             const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
             
-            // Usar formato ISO para evitar problemas de timezone
             document.getElementById('dashboard-date-start').value = firstDayOfMonth.toISOString().split('T')[0];
             document.getElementById('dashboard-date-end').value = lastDayOfMonth.toISOString().split('T')[0];
             
-            // Criar datas com horas definidas
             dashboardFilter = {
                 startDate: new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 0, 0, 0, 0),
                 endDate: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999)
@@ -2654,6 +2917,13 @@
                 clients[clientIndex].orders.forEach(order => {
                     order.clientName = name;
                     order.clientPhone = phone;
+                });
+            }
+            
+            if (clients[clientIndex].budgets && clients[clientIndex].budgets.length > 0) {
+                clients[clientIndex].budgets.forEach(budget => {
+                    budget.clientName = name;
+                    budget.clientPhone = phone;
                 });
             }
 
@@ -2776,6 +3046,7 @@
                 'Tipo': client.type,
                 'Fidelizado': client.loyal === 'sim' ? 'Sim' : 'Não',
                 'Total Encomendas': client.orders ? client.orders.length : 0,
+                'Total Orçamentos': client.budgets ? client.budgets.length : 0,
                 'Data Cadastro': formatDate(client.createdAt)
             }));
             
@@ -2852,7 +3123,6 @@
             XLSX.writeFile(wb, fileName);
         }
         
-        // NOVA FUNÇÃO: Exportar encomendas pendentes para Excel
         function exportPendingOrdersToExcel() {
             let pendingOrders = [];
             clients.forEach(client => {
@@ -2916,6 +3186,49 @@
             XLSX.writeFile(wb, fileName);
         }
         
+        function exportBudgetsToExcel() {
+            let allBudgets = [];
+            clients.forEach(client => {
+                if (client.budgets && client.budgets.length > 0) {
+                    client.budgets.forEach(budget => {
+                        allBudgets.push({
+                            'ID Orçamento': budget.id,
+                            'Cliente': budget.clientName,
+                            'Telefone': budget.clientPhone,
+                            'Data': formatDate(budget.createdAt),
+                            'Validade (dias)': budget.validity,
+                            'Data Validade': formatValidityDate(budget.createdAt, budget.validity),
+                            'Total': budget.total,
+                            'Quantidade de Itens': budget.items.length,
+                            'Observações': budget.observations || '',
+                            'Itens': budget.items.map(item => {
+                                const discountInfo = (item.discountType !== 'none' && item.discountValue > 0) ? 
+                                    ` (Desconto: ${item.discountType === 'percent' ? item.discountValue + '%' : 'R$ ' + item.discountValue.toFixed(2)})` : '';
+                                const obsInfo = item.observations ? ` - Obs: ${item.observations}` : '';
+                                return `${item.quantity}x ${item.description} (Original: R$ ${item.price.toFixed(2)}${discountInfo}, Final: R$ ${item.finalPrice.toFixed(2)})${obsInfo}`;
+                            }).join('; ')
+                        });
+                    });
+                }
+            });
+            
+            if (budgetDateFilterApplied) {
+                allBudgets = filterBudgetsByDate(allBudgets);
+            }
+            
+            if (allBudgets.length === 0) {
+                alert('Não há orçamentos para exportar!');
+                return;
+            }
+            
+            const ws = XLSX.utils.json_to_sheet(allBudgets);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Orçamentos");
+            
+            const fileName = `Orcamentos_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+        
         function saveClient() {
             const name = document.getElementById('client-name').value.trim();
             const phone = document.getElementById('client-phone').value.trim();
@@ -2940,6 +3253,7 @@
                 type: type,
                 loyal: loyal,
                 orders: [],
+                budgets: [],
                 createdAt: new Date().toISOString()
             };
             
@@ -2953,6 +3267,10 @@
                 selectedClientForOrder = newClient;
                 showSelectedClientInfo();
                 document.getElementById('new-client-option').style.display = 'none';
+            } else if (selectedClientForBudget === 'new') {
+                selectedClientForBudget = newClient;
+                showSelectedBudgetClientInfo();
+                document.getElementById('new-client-budget-option').style.display = 'none';
             } else {
                 showSection('clients');
             }
@@ -2973,6 +3291,19 @@
             showSection('new-client');
         }
         
+        function quickRegisterClientForBudget() {
+            const name = document.getElementById('search-client-budget').value.trim();
+            if (!name) {
+                alert('Digite um nome para o cliente!');
+                return;
+            }
+            
+            selectedClientForBudget = 'new';
+            document.getElementById('client-name').value = name;
+            document.getElementById('client-phone').focus();
+            showSection('new-client');
+        }
+        
         function clearClientForm() {
             document.getElementById('client-form').reset();
             document.getElementById('client-type').value = 'regular';
@@ -2987,10 +3318,11 @@
             }
             
             const hasOrders = client.orders && client.orders.length > 0;
+            const hasBudgets = client.budgets && client.budgets.length > 0;
             let confirmationMessage = `Tem certeza que deseja excluir o cliente "${client.name}"?`;
             
-            if (hasOrders) {
-                confirmationMessage += `\n\nATENÇÃO: Este cliente possui ${client.orders.length} encomenda(s) que também serão excluídas!`;
+            if (hasOrders || hasBudgets) {
+                confirmationMessage += `\n\nATENÇÃO: Este cliente possui ${client.orders ? client.orders.length : 0} encomenda(s) e ${client.budgets ? client.budgets.length : 0} orçamento(s) que também serão excluídos!`;
             }
             
             if (!confirm(confirmationMessage)) {
@@ -3074,6 +3406,68 @@
             document.getElementById('selected-client-phone').textContent = selectedClientForOrder.phone;
             document.getElementById('selected-client-info').style.display = 'block';
             document.getElementById('order-items').style.display = 'block';
+        }
+        
+        function searchClientForBudget() {
+            const searchTerm = document.getElementById('search-client-budget').value.toLowerCase();
+            const resultsDiv = document.getElementById('client-budget-search-results');
+            const newClientOption = document.getElementById('new-client-budget-option');
+            
+            if (searchTerm.length < 2) {
+                resultsDiv.style.display = 'none';
+                newClientOption.style.display = 'none';
+                return;
+            }
+            
+            const filteredClients = clients.filter(client => 
+                client.name.toLowerCase().includes(searchTerm) ||
+                client.phone.includes(searchTerm) ||
+                (client.cpf && client.cpf.includes(searchTerm))
+            );
+            
+            if (filteredClients.length === 0) {
+                resultsDiv.style.display = 'none';
+                newClientOption.style.display = 'block';
+                return;
+            }
+            
+            newClientOption.style.display = 'none';
+            
+            let html = '<div style="background: #f8f9fa; padding: 9px; border-radius: 5px;">';
+            filteredClients.forEach(client => {
+                html += `
+                    <div style="padding: 7px; border-bottom: 1px solid #ddd; cursor: pointer;" onclick="selectClientForBudget(${client.id})">
+                        <div style="font-weight: bold; font-size: 0.95rem;">${client.name}</div>
+                        <div style="font-size: 0.85em; color: #666;">${client.phone}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            resultsDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+        
+        function selectClientForBudget(id) {
+            selectedClientForBudget = clients.find(client => client.id === id);
+            if (!selectedClientForBudget) return;
+            
+            showSelectedBudgetClientInfo();
+            document.getElementById('client-budget-search-results').style.display = 'none';
+            document.getElementById('new-client-budget-option').style.display = 'none';
+            
+            document.getElementById('budget-items-list').innerHTML = '';
+            budgetItems = [];
+            budgetTotal = 0;
+            document.getElementById('budget-total').textContent = '0.00';
+            document.getElementById('budget-info').style.display = 'none';
+        }
+        
+        function showSelectedBudgetClientInfo() {
+            document.getElementById('selected-budget-client-name').textContent = selectedClientForBudget.name;
+            document.getElementById('selected-budget-client-phone').textContent = selectedClientForBudget.phone;
+            document.getElementById('selected-budget-client-info').style.display = 'block';
+            document.getElementById('budget-items').style.display = 'block';
         }
         
         function calculateDiscountedPrice(price, discountType, discountValue) {
@@ -3200,6 +3594,98 @@
             updateOrderProfitSummary();
         }
         
+        // FUNÇÃO CORRIGIDA: Adicionar item ao orçamento
+        function addBudgetItem() {
+            const description = document.getElementById('new-budget-item-desc').value.trim();
+            const quantity = parseInt(document.getElementById('new-budget-item-qty').value) || 1;
+            const price = parseFloat(document.getElementById('new-budget-item-price').value) || 0;
+            const discountType = document.getElementById('new-budget-item-discount-type').value;
+            const discountValue = parseFloat(document.getElementById('new-budget-item-discount-value').value) || 0;
+            const finalPrice = parseFloat(document.getElementById('new-budget-item-final-price').value) || price;
+            const observations = document.getElementById('new-budget-item-obs').value.trim();
+            
+            if (!description) {
+                alert('Por favor, informe a descrição do item!');
+                return;
+            }
+            
+            if (price <= 0) {
+                alert('Por favor, informe um valor válido para o item!');
+                return;
+            }
+            
+            const itemId = Date.now();
+            const total = quantity * finalPrice;
+            
+            // Adicionar ao array de itens
+            budgetItems.push({
+                id: itemId,
+                description: description,
+                quantity: quantity,
+                price: price,
+                discountType: discountType,
+                discountValue: discountValue,
+                finalPrice: finalPrice,
+                observations: observations,
+                total: total
+            });
+            
+            // Atualizar a lista visual
+            renderBudgetItems();
+            
+            // Limpar formulário
+            document.getElementById('new-budget-item-desc').value = '';
+            document.getElementById('new-budget-item-qty').value = '1';
+            document.getElementById('new-budget-item-price').value = '';
+            document.getElementById('new-budget-item-discount-type').value = 'none';
+            document.getElementById('new-budget-item-discount-value').value = '';
+            document.getElementById('new-budget-item-discount-value').disabled = true;
+            document.getElementById('new-budget-item-final-price').value = '';
+            document.getElementById('new-budget-item-obs').value = '';
+            
+            document.getElementById('new-budget-item-desc').focus();
+            updateBudgetTotal();
+            updateBudgetInfo();
+        }
+        
+        // NOVA FUNÇÃO: Renderizar itens do orçamento
+        function renderBudgetItems() {
+            const itemsList = document.getElementById('budget-items-list');
+            itemsList.innerHTML = '';
+            
+            budgetItems.forEach(item => {
+                let discountText = '';
+                if (item.discountType === 'percent' && item.discountValue > 0) {
+                    discountText = ` (${item.discountValue}% de desconto)`;
+                } else if (item.discountType === 'fixed' && item.discountValue > 0) {
+                    discountText = ` (R$ ${item.discountValue.toFixed(2)} de desconto)`;
+                }
+                
+                const obsText = item.observations ? ` - Obs: ${item.observations}` : '';
+                
+                const itemHtml = `
+                    <div id="budget-item-${item.id}" class="order-item">
+                        <div class="order-item-header">
+                            <div style="font-weight: bold; font-size: 0.95rem;">${item.description}${discountText}${obsText}</div>
+                            <div class="order-item-total">R$ ${item.total.toFixed(2)}</div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 0.85rem;">
+                                <span style="color: #666;">Quantidade: ${item.quantity}</span>
+                                <span style="margin-left: 11px; color: #666;">Valor original: R$ ${item.price.toFixed(2)}</span>
+                                <span style="margin-left: 11px; color: #666;">Valor final: R$ ${item.finalPrice.toFixed(2)}</span>
+                            </div>
+                            <button onclick="removeBudgetItem(${item.id})" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i> Remover
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                itemsList.innerHTML += itemHtml;
+            });
+        }
+        
         function updateOrderTotal() {
             let total = 0;
             const itemDivs = document.querySelectorAll('[id^="item-"]');
@@ -3215,6 +3701,30 @@
             document.getElementById('order-total').textContent = total.toFixed(2);
         }
         
+        // FUNÇÃO CORRIGIDA: Atualizar total do orçamento
+        function updateBudgetTotal() {
+            let total = 0;
+            
+            budgetItems.forEach(item => {
+                total += item.total;
+            });
+            
+            budgetTotal = total;
+            document.getElementById('budget-total').textContent = total.toFixed(2);
+        }
+        
+        function updateBudgetInfo() {
+            const itemCount = budgetItems.length;
+            
+            if (itemCount === 0) {
+                document.getElementById('budget-info').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('budget-item-count').textContent = itemCount;
+            document.getElementById('budget-info').style.display = 'block';
+        }
+        
         function removeOrderItem(id) {
             const itemDiv = document.getElementById('item-' + id);
             if (itemDiv) {
@@ -3222,6 +3732,14 @@
                 updateOrderTotal();
                 updateOrderProfitSummary();
             }
+        }
+        
+        // FUNÇÃO CORRIGIDA: Remover item do orçamento
+        function removeBudgetItem(id) {
+            budgetItems = budgetItems.filter(item => item.id !== id);
+            renderBudgetItems();
+            updateBudgetTotal();
+            updateBudgetInfo();
         }
         
         function updatePaymentStatus() {
@@ -3359,6 +3877,67 @@
             }
         }
         
+        // FUNÇÃO CORRIGIDA: Salvar orçamento
+        function saveBudget() {
+            if (!selectedClientForBudget) {
+                alert('Selecione um cliente primeiro!');
+                return;
+            }
+            
+            if (budgetItems.length === 0) {
+                alert('Adicione pelo menos um item ao orçamento!');
+                return;
+            }
+            
+            const items = budgetItems.map(item => ({
+                quantity: item.quantity,
+                description: item.description,
+                price: item.price,
+                discountType: item.discountType,
+                discountValue: item.discountValue,
+                finalPrice: item.finalPrice,
+                observations: item.observations,
+                total: item.total
+            }));
+            
+            const total = budgetTotal;
+            const validity = parseInt(document.getElementById('budget-validity').value) || 7;
+            const observations = document.getElementById('budget-observations').value.trim();
+            
+            const newBudget = {
+                id: Date.now(),
+                clientId: selectedClientForBudget.id,
+                clientName: selectedClientForBudget.name,
+                clientPhone: selectedClientForBudget.phone,
+                items: items,
+                total: total,
+                validity: validity,
+                observations: observations,
+                createdAt: new Date().toISOString()
+            };
+            
+            const clientIndex = clients.findIndex(c => c.id === selectedClientForBudget.id);
+            
+            if (clientIndex !== -1) {
+                if (!clients[clientIndex].budgets) {
+                    clients[clientIndex].budgets = [];
+                }
+                
+                clients[clientIndex].budgets.push(newBudget);
+                
+                saveToLocalStorage();
+                
+                currentBudget = newBudget;
+                updateStats();
+                updateDashboard();
+                
+                alert('Orçamento salvo com sucesso!');
+                showBudgetModal();
+            } else {
+                alert('Erro: Cliente não encontrado na base de dados. Tente selecionar o cliente novamente.');
+            }
+        }
+        
         function editOrder(orderId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) {
@@ -3376,6 +3955,25 @@
             editingOrderClientId = clientId;
             
             showSection('edit-order');
+        }
+        
+        function editBudget(budgetId, clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                alert("Cliente não encontrado!");
+                return;
+            }
+            
+            const budget = client.budgets.find(b => b.id === budgetId);
+            if (!budget) {
+                alert("Orçamento não encontrado!");
+                return;
+            }
+            
+            editingBudget = JSON.parse(JSON.stringify(budget));
+            editingBudgetClientId = clientId;
+            
+            showSection('edit-budget');
         }
         
         function renderEditOrderForm() {
@@ -3535,6 +4133,124 @@
             document.getElementById('edit-order-content').innerHTML = html;
         }
         
+        function renderEditBudgetForm() {
+            if (!editingBudget) {
+                document.getElementById('edit-budget-content').innerHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <p>Erro: Nenhum orçamento carregado para edição.</p>
+                        <button class="btn btn-secondary" onclick="showSection('budgets')">
+                            Voltar para Orçamentos
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div style="margin-bottom: 16px;">
+                    <h3 style="font-size: 1.05rem;">Editar Orçamento</h3>
+                    <p><strong>Cliente:</strong> ${editingBudget.clientName}</p>
+                    <p><strong>Telefone:</strong> ${editingBudget.clientPhone}</p>
+                </div>
+                
+                <h4 style="margin-bottom: 11px; font-size: 0.95rem;">Itens do Orçamento</h4>
+                <div id="edit-budget-items-list">
+            `;
+            
+            editingBudget.items.forEach((item, index) => {
+                const discountText = (item.discountType !== 'none' && item.discountValue > 0) ? 
+                    (item.discountType === 'percent' ? ` (${item.discountValue}% desc.)` : ` (R$ ${item.discountValue.toFixed(2)} desc.)`) : '';
+                const obsText = item.observations ? ` - Obs: ${item.observations}` : '';
+                
+                html += `
+                    <div class="order-item" id="edit-budget-item-${index}">
+                        <div class="order-item-header">
+                            <div>
+                                <input type="text" id="edit-budget-desc-${index}" value="${item.description}" style="width: 200px; padding: 7px; font-size: 0.9rem;">
+                            </div>
+                            <div class="order-item-total" id="edit-budget-total-${index}">R$ ${item.total.toFixed(2)}</div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 9px;">
+                            <div>
+                                <label style="font-size: 0.85rem;">Quantidade</label>
+                                <input type="number" id="edit-budget-qty-${index}" value="${item.quantity}" min="1" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditBudgetItemTotal(${index})">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.85rem;">Valor Original</label>
+                                <input type="number" id="edit-budget-price-${index}" value="${item.price.toFixed(2)}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditBudgetItemTotal(${index})">
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 9px;">
+                            <div>
+                                <label style="font-size: 0.85rem;">Tipo Desconto</label>
+                                <select id="edit-budget-discount-type-${index}" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditBudgetItemTotal(${index})">
+                                    <option value="none" ${!item.discountType || item.discountType === 'none' ? 'selected' : ''}>Sem desconto</option>
+                                    <option value="percent" ${item.discountType === 'percent' ? 'selected' : ''}>%</option>
+                                    <option value="fixed" ${item.discountType === 'fixed' ? 'selected' : ''}>R$</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.85rem;">Valor Desconto</label>
+                                <input type="number" id="edit-budget-discount-value-${index}" value="${item.discountValue || 0}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditBudgetItemTotal(${index})">
+                            </div>
+                        </div>
+                        <div style="margin-top: 9px;">
+                            <label style="font-size: 0.85rem;">Observações</label>
+                            <input type="text" id="edit-budget-obs-${index}" value="${item.observations || ''}" style="width: 100%; padding: 7px; font-size: 0.9rem;">
+                        </div>
+                        <div style="margin-top: 9px; text-align: right;">
+                            <button onclick="removeEditBudgetItem(${index})" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i> Remover Item
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                </div>
+                
+                <button class="btn btn-secondary btn-sm" onclick="addEditBudgetItem()" style="margin-top: 14px;">
+                    <i class="fas fa-plus"></i> Adicionar Item
+                </button>
+                
+                <div class="budget-total" style="margin-top: 16px;">
+                    Total: R$ <span id="edit-budget-total">${editingBudget.total.toFixed(2)}</span>
+                </div>
+                
+                <div class="budget-info" style="margin-top: 16px;">
+                    <div class="budget-info-row">
+                        <span class="budget-label">Total de Itens:</span>
+                        <span class="budget-value" id="edit-budget-item-count">${editingBudget.items.length}</span>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 16px;">
+                    <label style="font-size: 0.9rem;">Validade do Orçamento (dias)</label>
+                    <input type="number" id="edit-budget-validity" value="${editingBudget.validity || 7}" min="1" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;">
+                </div>
+                
+                <div style="margin-top: 16px;">
+                    <label style="font-size: 0.9rem;">Observações</label>
+                    <textarea id="edit-budget-observations" rows="3" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;">${editingBudget.observations || ''}</textarea>
+                </div>
+                
+                <div class="button-group" style="margin-top: 22px;">
+                    <button class="btn btn-success btn-sm" onclick="saveEditedBudget()">
+                        <i class="fas fa-save"></i> Salvar Alterações
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteBudget(${editingBudget.id}, ${editingBudgetClientId})">
+                        <i class="fas fa-trash"></i> Excluir Orçamento
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="showSection('budgets')">
+                        Cancelar
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('edit-budget-content').innerHTML = html;
+        }
+        
         function addEditOrderItem() {
             const itemsList = document.getElementById('edit-order-items-list');
             const index = editingOrder.items.length;
@@ -3601,9 +4317,78 @@
             itemsList.innerHTML += itemHtml;
         }
         
+        function addEditBudgetItem() {
+            const itemsList = document.getElementById('edit-budget-items-list');
+            const index = editingBudget.items.length;
+            
+            const newItem = {
+                quantity: 1,
+                description: "Novo Item",
+                price: 0,
+                discountType: 'none',
+                discountValue: 0,
+                finalPrice: 0,
+                observations: '',
+                total: 0
+            };
+            
+            editingBudget.items.push(newItem);
+            
+            const itemHtml = `
+                <div class="order-item" id="edit-budget-item-${index}">
+                    <div class="order-item-header">
+                        <div>
+                            <input type="text" id="edit-budget-desc-${index}" value="${newItem.description}" style="width: 200px; padding: 7px; font-size: 0.9rem;">
+                        </div>
+                        <div class="order-item-total" id="edit-budget-total-${index}">R$ ${newItem.total.toFixed(2)}</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 9px;">
+                        <div>
+                            <label style="font-size: 0.85rem;">Quantidade</label>
+                            <input type="number" id="edit-budget-qty-${index}" value="${newItem.quantity}" min="1" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditBudgetItemTotal(${index})">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.85rem;">Valor Original</label>
+                            <input type="number" id="edit-budget-price-${index}" value="${newItem.price.toFixed(2)}" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditBudgetItemTotal(${index})">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 9px;">
+                        <div>
+                            <label style="font-size: 0.85rem;">Tipo Desconto</label>
+                            <select id="edit-budget-discount-type-${index}" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditBudgetItemTotal(${index})">
+                                <option value="none" selected>Sem desconto</option>
+                                <option value="percent">%</option>
+                                <option value="fixed">R$</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.85rem;">Valor Desconto</label>
+                            <input type="number" id="edit-budget-discount-value-${index}" value="0" step="0.01" style="width: 100%; padding: 7px; font-size: 0.9rem;" oninput="updateEditBudgetItemTotal(${index})">
+                        </div>
+                    </div>
+                    <div style="margin-top: 9px;">
+                        <label style="font-size: 0.85rem;">Observações</label>
+                        <input type="text" id="edit-budget-obs-${index}" value="" style="width: 100%; padding: 7px; font-size: 0.9rem;">
+                    </div>
+                    <div style="margin-top: 9px; text-align: right;">
+                        <button onclick="removeEditBudgetItem(${index})" class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash"></i> Remover Item
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            itemsList.innerHTML += itemHtml;
+        }
+        
         function removeEditItem(index) {
             editingOrder.items.splice(index, 1);
             renderEditOrderForm();
+        }
+        
+        function removeEditBudgetItem(index) {
+            editingBudget.items.splice(index, 1);
+            renderEditBudgetForm();
         }
         
         function updateEditItemTotal(index) {
@@ -3640,6 +4425,35 @@
             updateEditOrderTotal();
         }
         
+        function updateEditBudgetItemTotal(index) {
+            const quantity = parseFloat(document.getElementById('edit-budget-qty-' + index).value) || 0;
+            const price = parseFloat(document.getElementById('edit-budget-price-' + index).value) || 0;
+            const discountType = document.getElementById('edit-budget-discount-type-' + index).value;
+            const discountValue = parseFloat(document.getElementById('edit-budget-discount-value-' + index).value) || 0;
+            
+            let finalPrice = price;
+            if (discountType === 'percent' && discountValue > 0) {
+                finalPrice = price - (price * discountValue / 100);
+            } else if (discountType === 'fixed' && discountValue > 0) {
+                finalPrice = price - discountValue;
+                if (finalPrice < 0) finalPrice = 0;
+            }
+            
+            const total = quantity * finalPrice;
+            
+            document.getElementById('edit-budget-total-' + index).textContent = `R$ ${total.toFixed(2)}`;
+            editingBudget.items[index].quantity = quantity;
+            editingBudget.items[index].price = price;
+            editingBudget.items[index].discountType = discountType;
+            editingBudget.items[index].discountValue = discountValue;
+            editingBudget.items[index].finalPrice = finalPrice;
+            editingBudget.items[index].total = total;
+            editingBudget.items[index].description = document.getElementById('edit-budget-desc-' + index).value;
+            editingBudget.items[index].observations = document.getElementById('edit-budget-obs-' + index).value;
+            
+            updateEditBudgetTotal();
+        }
+        
         function updateEditOrderTotal() {
             let total = 0;
             let totalCost = 0;
@@ -3660,6 +4474,19 @@
             document.getElementById('edit-order-total-cost').textContent = `R$ ${totalCost.toFixed(2)}`;
             document.getElementById('edit-order-total-profit').textContent = `R$ ${totalProfit.toFixed(2)}`;
             document.getElementById('edit-order-profit-margin').textContent = `${editingOrder.profitMargin.toFixed(1)}%`;
+        }
+        
+        function updateEditBudgetTotal() {
+            let total = 0;
+            
+            editingBudget.items.forEach(item => {
+                total += item.total;
+            });
+            
+            editingBudget.total = total;
+            
+            document.getElementById('edit-budget-total').textContent = total.toFixed(2);
+            document.getElementById('edit-budget-item-count').textContent = editingBudget.items.length;
         }
         
         function saveEditedOrder() {
@@ -3709,6 +4536,39 @@
             updateDashboard();
         }
         
+        function saveEditedBudget() {
+            const client = clients.find(c => c.id === editingBudgetClientId);
+            if (!client) return;
+            
+            const budgetIndex = client.budgets.findIndex(b => b.id === editingBudget.id);
+            if (budgetIndex === -1) return;
+            
+            editingBudget.items.forEach((item, index) => {
+                item.description = document.getElementById('edit-budget-desc-' + index).value;
+                item.quantity = parseFloat(document.getElementById('edit-budget-qty-' + index).value) || 0;
+                item.price = parseFloat(document.getElementById('edit-budget-price-' + index).value) || 0;
+                item.discountType = document.getElementById('edit-budget-discount-type-' + index).value;
+                item.discountValue = parseFloat(document.getElementById('edit-budget-discount-value-' + index).value) || 0;
+                item.observations = document.getElementById('edit-budget-obs-' + index).value;
+                
+                item.finalPrice = calculateDiscountedPrice(item.price, item.discountType, item.discountValue);
+                item.total = item.quantity * item.finalPrice;
+            });
+            
+            updateEditBudgetTotal();
+            
+            editingBudget.validity = parseInt(document.getElementById('edit-budget-validity').value) || 7;
+            editingBudget.observations = document.getElementById('edit-budget-observations').value;
+            
+            client.budgets[budgetIndex] = editingBudget;
+            
+            saveToLocalStorage();
+            updateStats();
+            alert('Orçamento atualizado com sucesso!');
+            showSection('budgets');
+            updateDashboard();
+        }
+        
         function deleteOrder(orderId, clientId) {
             if (!confirm('Tem certeza que deseja excluir esta encomenda?')) {
                 return;
@@ -3745,6 +4605,43 @@
             }
             
             alert('Encomenda excluída com sucesso!');
+            updateDashboard();
+        }
+        
+        function deleteBudget(budgetId, clientId) {
+            if (!confirm('Tem certeza que deseja excluir este orçamento?')) {
+                return;
+            }
+            
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                alert('Cliente não encontrado!');
+                return;
+            }
+            
+            const budgetIndex = client.budgets.findIndex(b => b.id === budgetId);
+            if (budgetIndex === -1) {
+                alert('Orçamento não encontrado!');
+                return;
+            }
+            
+            client.budgets.splice(budgetIndex, 1);
+            
+            const clientIndex = clients.findIndex(c => c.id === clientId);
+            if (clientIndex !== -1) {
+                clients[clientIndex] = client;
+            }
+            
+            saveToLocalStorage();
+            updateStats();
+            
+            if (document.getElementById('edit-budget-section').classList.contains('active')) {
+                showSection('budgets');
+            } else if (document.getElementById('budgets-section').classList.contains('active')) {
+                renderBudgetsList();
+            }
+            
+            alert('Orçamento excluído com sucesso!');
             updateDashboard();
         }
         
@@ -3836,9 +4733,68 @@
             document.getElementById('order-modal').style.display = 'flex';
         }
         
+        function showBudgetModal() {
+            if (!currentBudget) return;
+            
+            const validityDate = new Date(currentBudget.createdAt);
+            validityDate.setDate(validityDate.getDate() + (currentBudget.validity || 7));
+            
+            let html = `
+                <h4>Cliente: ${currentBudget.clientName}</h4>
+                <p>Telefone: ${currentBudget.clientPhone}</p>
+                <p>Data: ${formatDate(currentBudget.createdAt)}</p>
+                <p>Validade: ${currentBudget.validity} dias (${formatDate(validityDate)})</p>
+                ${currentBudget.observations ? `<p>Observações: ${currentBudget.observations}</p>` : ''}
+                
+                <h4 style="margin-top: 16px;">Itens:</h4>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 9px; font-size: 0.95rem;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="padding: 7px; text-align: left;">Descrição</th>
+                            <th style="padding: 7px; text-align: left;">Qtd</th>
+                            <th style="padding: 7px; text-align: left;">Valor Original</th>
+                            <th style="padding: 7px; text-align: left;">Valor Final</th>
+                            <th style="padding: 7px; text-align: left;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            currentBudget.items.forEach(item => {
+                const discountInfo = (item.discountType !== 'none' && item.discountValue > 0) ? 
+                    ` (${item.discountType === 'percent' ? item.discountValue + '%' : 'R$ ' + item.discountValue.toFixed(2)} desc.)` : '';
+                const obsInfo = item.observations ? ` - Obs: ${item.observations}` : '';
+                html += `
+                    <tr>
+                        <td style="padding: 7px;">${item.description}${discountInfo}${obsInfo}</td>
+                        <td style="padding: 7px;">${item.quantity}</td>
+                        <td style="padding: 7px;">R$ ${item.price.toFixed(2)}</td>
+                        <td style="padding: 7px;">R$ ${item.finalPrice.toFixed(2)}</td>
+                        <td style="padding: 7px;">R$ ${item.total.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+                <h4 style="margin-top: 16px; text-align: right;">
+                    Total: R$ ${currentBudget.total.toFixed(2)}
+                </h4>
+            `;
+            
+            document.getElementById('budget-details').innerHTML = html;
+            document.getElementById('budget-modal').style.display = 'flex';
+        }
+        
         function closeModal() {
             document.getElementById('order-modal').style.display = 'none';
             resetOrderForm();
+        }
+        
+        function closeBudgetModal() {
+            document.getElementById('budget-modal').style.display = 'none';
+            resetBudgetForm();
         }
         
         function sendOrderWhatsApp() {
@@ -3852,6 +4808,23 @@
             setTimeout(() => {
                 if (currentOrder) {
                     sendCurrentOrderWhatsApp();
+                } else {
+                    alert('Erro ao enviar pelo WhatsApp. Tente novamente.');
+                }
+            }, 500);
+        }
+        
+        function sendBudgetWhatsApp() {
+            if (!selectedClientForBudget) {
+                alert('Selecione um cliente primeiro!');
+                return;
+            }
+            
+            saveBudget();
+            
+            setTimeout(() => {
+                if (currentBudget) {
+                    sendCurrentBudgetWhatsApp();
                 } else {
                     alert('Erro ao enviar pelo WhatsApp. Tente novamente.');
                 }
@@ -3922,9 +4895,54 @@
             window.open(whatsappUrl, '_blank');
         }
         
+        function sendCurrentBudgetWhatsApp() {
+            if (!currentBudget) return;
+            
+            const phone = currentBudget.clientPhone.replace(/\D/g, '');
+            
+            const validityDate = new Date(currentBudget.createdAt);
+            validityDate.setDate(validityDate.getDate() + (currentBudget.validity || 7));
+            
+            const saudacao = `Olá ${currentBudget.clientName}! Tudo bem?%0A%0A`;
+            
+            const message = `${saudacao}*SOUZA FARMA - FARMÁCIA DO TRABALHADOR - ORÇAMENTO*%0A%0A` +
+                           `*Cliente:* ${currentBudget.clientName}%0A` +
+                           `*Data:* ${formatDate(currentBudget.createdAt)}%0A` +
+                           `*Validade:* ${currentBudget.validity} dias (${formatDate(validityDate)})%0A%0A`;
+            
+            let itemsText = `*Itens:*%0A`;
+            currentBudget.items.forEach((item, index) => {
+                let discountText = '';
+                if (item.discountType !== 'none' && item.discountValue > 0) {
+                    discountText = ` (Original: R$ ${item.price.toFixed(2)}${item.discountType === 'percent' ? ' - ' + item.discountValue + '%' : ' - R$ ' + item.discountValue.toFixed(2)})`;
+                }
+                const obsText = item.observations ? ` - Obs: ${item.observations}` : '';
+                itemsText += `${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}${discountText}${obsText}%0A`;
+            });
+            
+            let obsMessage = '';
+            if (currentBudget.observations) {
+                obsMessage = `%0A*Observações:* ${currentBudget.observations}%0A`;
+            }
+            
+            const finalMessageText = `%0A*Total: R$ ${currentBudget.total.toFixed(2)}*%0A%0A` +
+                                 `Este orçamento é válido até ${formatDate(validityDate)}.%0A` +
+                                 `Estamos à disposição para esclarecer dúvidas e confirmar o pedido!%0A%0A` +
+                                 `Av José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A` +
+                                 `Telefone: 98-98628-7296`;
+            
+            const whatsappUrl = `https://wa.me/55${phone}?text=${message}${itemsText}${obsMessage}${finalMessageText}`;
+            window.open(whatsappUrl, '_blank');
+        }
+        
         function printOrder() {
             saveOrder();
             printCurrentOrder();
+        }
+        
+        function printBudget() {
+            saveBudget();
+            printCurrentBudget();
         }
         
         function printCurrentOrder() {
@@ -4015,9 +5033,95 @@
             printWindow.document.close();
         }
         
+        function printCurrentBudget() {
+            if (!currentBudget) return;
+            
+            const validityDate = new Date(currentBudget.createdAt);
+            validityDate.setDate(validityDate.getDate() + (currentBudget.validity || 7));
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Orçamento - ${pharmacyName}</title>
+                        <style>
+                            body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; color: #333; }
+                            .header-print { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #9b59b6; padding-bottom: 15px; }
+                            .logo-print { max-height: 90px; width: auto; margin-bottom: 10px; }
+                            h1 { color: #9b59b6; margin: 5px 0; font-size: 20px; }
+                            .info-print { color: #666; font-size: 11px; margin-bottom: 3px; }
+                            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+                            th { background-color: #f8f9fa; border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; }
+                            td { border: 1px solid #ddd; padding: 8px; font-size: 13px; }
+                            .total-box { text-align: right; font-weight: bold; font-size: 16px; margin-top: 15px; color: #9b59b6; }
+                            .footer-print { margin-top: 30px; text-align: center; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+                            .obs-info { margin-top: 10px; font-size: 13px; color: #666; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header-print">
+                            <img src="Souza-Farma-logomarca.png" class="logo-print" alt="Logo">
+                            <h1>${pharmacyName.toUpperCase()}</h1>
+                            <div class="info-print">Av José Sarney n°06 quadra 03 - Bom Jesus - São Luís MA</div>
+                            <div class="info-print">Telefone: 98-98628-7296</div>
+                        </div>
+                        <div style="margin-bottom: 15px; font-size: 13px;">
+                            <p><strong>Cliente:</strong> ${currentBudget.clientName} | <strong>Data:</strong> ${formatDate(currentBudget.createdAt)}</p>
+                            <p><strong>Validade:</strong> ${currentBudget.validity} dias (${formatDate(validityDate)})</p>
+                            ${currentBudget.observations ? `<p class="obs-info"><strong>Observações:</strong> ${currentBudget.observations}</p>` : ''}
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Descrição</th>
+                                    <th>Qtd</th>
+                                    <th>Valor Original</th>
+                                    <th>Desconto</th>
+                                    <th>Valor Final</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${currentBudget.items.map(item => {
+                                    let discountText = '';
+                                    if (item.discountType !== 'none' && item.discountValue > 0) {
+                                        discountText = item.discountType === 'percent' ? 
+                                            `${item.discountValue}%` : 
+                                            `R$ ${item.discountValue.toFixed(2)}`;
+                                    } else {
+                                        discountText = '-';
+                                    }
+                                    const obsText = item.observations ? ` (${item.observations})` : '';
+                                    return `
+                                        <tr>
+                                            <td>${item.description}${obsText}</td>
+                                            <td>${item.quantity}</td>
+                                            <td>R$ ${item.price.toFixed(2)}</td>
+                                            <td>${discountText}</td>
+                                            <td>R$ ${item.finalPrice.toFixed(2)}</td>
+                                            <td>R$ ${item.total.toFixed(2)}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                        <div class="total-box">TOTAL: R$ ${currentBudget.total.toFixed(2)}</div>
+                        <div class="footer-print"><p>Cuidando da sua saúde, economia e preço baixo 💊💉</p></div>
+                        <script>window.onload = function() { window.print(); };<\/script>
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+        
         function printThermalOrder() {
             saveOrder();
             printThermalCurrentOrder();
+        }
+        
+        function printThermalBudget() {
+            saveBudget();
+            printThermalCurrentBudget();
         }
         
         function printThermalCurrentOrder() {
@@ -4186,6 +5290,170 @@
             setTimeout(() => { printWindow.print(); }, 100);
         }
         
+        function printThermalCurrentBudget() {
+            if (!currentBudget) return;
+            
+            const validityDate = new Date(currentBudget.createdAt);
+            validityDate.setDate(validityDate.getDate() + (currentBudget.validity || 7));
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Orçamento - ${pharmacyName}</title>
+                        <style>
+                            @page { margin: 5mm !important; }
+                            body { 
+                                font-family: 'Courier New', monospace; 
+                                padding: 0;
+                                margin: 0;
+                                max-width: 65mm !important;
+                                font-size: 11px !important;
+                                line-height: 1.1;
+                                font-weight: bold !important;
+                            }
+                            * { font-weight: bold !important; }
+                            .header { 
+                                text-align: center; 
+                                margin-bottom: 4px; 
+                                padding-bottom: 3px;
+                                border-bottom: 2px solid #000 !important;
+                            }
+                            h1 { 
+                                font-size: 13px !important;
+                                margin: 2px 0; 
+                                font-weight: bold !important;
+                            }
+                            .slogan {
+                                font-size: 9px !important;
+                                font-style: italic;
+                                margin-bottom: 2px;
+                                line-height: 1.1;
+                            }
+                            .contact { 
+                                font-size: 9px !important;
+                                margin-bottom: 3px; 
+                                line-height: 1.1;
+                                font-weight: bold !important;
+                            }
+                            table { 
+                                width: 100%; 
+                                border-collapse: collapse; 
+                                margin: 4px 0; 
+                                font-size: 10px !important;
+                            }
+                            th, td { 
+                                padding: 2px 1px !important; 
+                                text-align: left; 
+                                border-bottom: 1px solid #000 !important;
+                                font-weight: bold !important;
+                            }
+                            th { border-bottom: 2px solid #000 !important; }
+                            .separator { border-top: 2px solid #000 !important; margin: 3px 0; }
+                            .total { 
+                                text-align: right; 
+                                font-weight: bold !important; 
+                                margin-top: 6px;
+                                font-size: 12px !important;
+                            }
+                            .footer { 
+                                margin-top: 8px;
+                                padding-top: 3px; 
+                                border-top: 2px solid #000 !important;
+                                font-size: 9px !important;
+                                text-align: center; 
+                                font-weight: bold !important;
+                            }
+                            .center { text-align: center; }
+                            .right { text-align: right; }
+                            .bold { font-weight: bold !important; }
+                            .info-line { margin: 2px 0; font-size: 10px !important; font-weight: bold !important; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>${pharmacyName.toUpperCase()}</h1>
+                            <div class="slogan">Cuidando da sua saúde, economia e preço baixo 💊💉</div>
+                            <div class="contact">
+                                Av José Sarney n°06 Q03<br>
+                                Bom Jesus - São Luís MA<br>
+                                Tel: 98-98628-7296
+                            </div>
+                        </div>
+                        
+                        <div class="center bold" style="margin: 4px 0; font-size: 12px !important;">
+                            ORÇAMENTO
+                        </div>
+                        
+                        <div class="info-line"><span class="bold">Cliente:</span> ${currentBudget.clientName.substring(0, 25)}</div>
+                        <div class="info-line"><span class="bold">Tel:</span> ${currentBudget.clientPhone}</div>
+                        <div class="info-line"><span class="bold">Data:</span> ${formatDate(currentBudget.createdAt)}</div>
+                        <div class="info-line"><span class="bold">Validade:</span> ${formatDate(validityDate)}</div>
+                        ${currentBudget.observations ? `<div class="info-line"><span class="bold">Obs:</span> ${currentBudget.observations.substring(0, 30)}</div>` : ''}
+                        
+                        <div class="separator"></div>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>DESCRIÇÃO</th>
+                                    <th>QTD</th>
+                                    <th class="right">ORIG</th>
+                                    <th class="right">DESC</th>
+                                    <th class="right">FINAL</th>
+                                    <th class="right">TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `);
+            
+            currentBudget.items.forEach(item => {
+                let discountText = '';
+                if (item.discountType !== 'none' && item.discountValue > 0) {
+                    discountText = item.discountType === 'percent' ? 
+                        `${item.discountValue}%` : 
+                        `R$${item.discountValue.toFixed(2)}`;
+                } else {
+                    discountText = '-';
+                }
+                let desc = item.description;
+                if (item.observations) {
+                    desc += ` (${item.observations.substring(0, 10)})`;
+                }
+                printWindow.document.write(`
+                    <tr>
+                        <td>${desc.substring(0, 10)}</td>
+                        <td>${item.quantity}</td>
+                        <td class="right">${item.price.toFixed(2)}</td>
+                        <td class="right">${discountText}</td>
+                        <td class="right">${item.finalPrice.toFixed(2)}</td>
+                        <td class="right">${item.total.toFixed(2)}</td>
+                    </tr>
+                `);
+            });
+            
+            printWindow.document.write(`
+                            </tbody>
+                        </table>
+                        
+                        <div class="separator"></div>
+                        
+                        <div class="total">
+                            TOTAL: R$ ${currentBudget.total.toFixed(2)}
+                        </div>
+                        
+                        <div class="footer">
+                            <div>Orçamento válido até ${formatDate(validityDate)}</div>
+                            <div>Obrigado pela preferência!</div>
+                            <div>${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</div>
+                        </div>
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+            setTimeout(() => { printWindow.print(); }, 100);
+        }
+        
         function resetOrderForm() {
             document.getElementById('search-client-order').value = '';
             document.getElementById('client-search-results').style.display = 'none';
@@ -4209,6 +5477,31 @@
             selectedClientForOrder = null;
             orderTotal = 0;
             document.getElementById('order-total').textContent = '0.00';
+        }
+        
+        // FUNÇÃO CORRIGIDA: Resetar formulário de orçamento
+        function resetBudgetForm() {
+            document.getElementById('search-client-budget').value = '';
+            document.getElementById('client-budget-search-results').style.display = 'none';
+            document.getElementById('selected-budget-client-info').style.display = 'none';
+            document.getElementById('budget-items').style.display = 'none';
+            document.getElementById('budget-items-list').innerHTML = '';
+            document.getElementById('new-client-budget-option').style.display = 'none';
+            document.getElementById('new-budget-item-desc').value = '';
+            document.getElementById('new-budget-item-qty').value = '1';
+            document.getElementById('new-budget-item-price').value = '';
+            document.getElementById('new-budget-item-discount-type').value = 'none';
+            document.getElementById('new-budget-item-discount-value').value = '';
+            document.getElementById('new-budget-item-discount-value').disabled = true;
+            document.getElementById('new-budget-item-final-price').value = '';
+            document.getElementById('new-budget-item-obs').value = '';
+            document.getElementById('budget-info').style.display = 'none';
+            document.getElementById('budget-validity').value = '7';
+            document.getElementById('budget-observations').value = '';
+            selectedClientForBudget = null;
+            budgetItems = [];
+            budgetTotal = 0;
+            document.getElementById('budget-total').textContent = '0.00';
         }
         
         function renderClientsList() {
@@ -4238,6 +5531,7 @@
             let html = '';
             filteredClients.forEach(client => {
                 const hasOrders = client.orders && client.orders.length > 0;
+                const hasBudgets = client.budgets && client.budgets.length > 0;
                 const pendingOrders = hasOrders ? client.orders.filter(o => o.status === 'pendente').length : 0;
                 
                 let clientProfit = 0;
@@ -4252,13 +5546,19 @@
                     });
                 }
                 
+                let budgetTotal = 0;
+                if (hasBudgets) {
+                    budgetTotal = client.budgets.reduce((sum, b) => sum + b.total, 0);
+                }
+                
                 html += `
                     <div class="item-card">
                         <div class="item-header">
                             <div class="item-name">${client.name}</div>
                             <div>
                                 ${client.loyal === 'sim' ? '<span class="badge badge-success">Fidelizado</span>' : ''}
-                                ${hasOrders ? `<span class="badge">${client.orders.length}</span>` : ''}
+                                ${hasOrders ? `<span class="badge">${client.orders.length} enc</span>` : ''}
+                                ${hasBudgets ? `<span class="badge badge-budget">${client.budgets.length} orç</span>` : ''}
                                 ${clientProfit > 0 ? `<span class="badge badge-profit">Lucro: R$ ${clientProfit.toFixed(2)}</span>` : ''}
                             </div>
                         </div>
@@ -4271,6 +5571,7 @@
                             Tipo: ${client.type} | Cadastrado: ${formatDate(client.createdAt)}
                             ${hasOrders ? ` | Pendentes: ${pendingOrders}` : ''}
                             ${hasOrders ? `<br>Receita: R$ ${clientRevenue.toFixed(2)} | Custo: R$ ${clientCost.toFixed(2)} | Lucro: R$ ${clientProfit.toFixed(2)}` : ''}
+                            ${hasBudgets ? `<br>Total Orçamentos: R$ ${budgetTotal.toFixed(2)}` : ''}
                         </div>
                         <div class="item-actions">
                             <button class="btn btn-whatsapp btn-sm" onclick="sendClientWhatsApp('${client.phone}', '${client.name}')">
@@ -4281,6 +5582,9 @@
                             </button>
                             <button class="btn btn-sm" onclick="selectClientForOrder(${client.id}); showSection('new-order')">
                                 <i class="fas fa-plus"></i> Encomenda
+                            </button>
+                            <button class="btn btn-budget btn-sm" onclick="selectClientForBudget(${client.id}); showSection('new-budget')">
+                                <i class="fas fa-file-invoice"></i> Orçamento
                             </button>
                             <button class="btn btn-danger btn-sm" onclick="deleteClient(${client.id})">
                                 <i class="fas fa-trash"></i> Excluir
@@ -4394,7 +5698,6 @@
             container.innerHTML = html;
         }
         
-        // NOVA FUNÇÃO: Renderizar lista de encomendas pendentes
         function renderPendingOrdersList() {
             const searchTerm = document.getElementById('search-pending-orders').value.toLowerCase();
             const container = document.getElementById('pending-orders-list');
@@ -4421,7 +5724,6 @@
                 );
             }
             
-            // Atualizar resumo de pendentes
             updatePendingSummary(pendingOrders);
             
             if (pendingOrders.length === 0) {
@@ -4490,7 +5792,96 @@
             container.innerHTML = html;
         }
         
-        // NOVA FUNÇÃO: Atualizar resumo de encomendas pendentes
+        function renderBudgetsList() {
+            const searchTerm = document.getElementById('search-budgets').value.toLowerCase();
+            const container = document.getElementById('budgets-list');
+            
+            let allBudgets = [];
+            clients.forEach(client => {
+                if (client.budgets && client.budgets.length > 0) {
+                    client.budgets.forEach(budget => {
+                        allBudgets.push({
+                            ...budget,
+                            client: client
+                        });
+                    });
+                }
+            });
+            
+            if (budgetDateFilterApplied) {
+                allBudgets = filterBudgetsByDate(allBudgets);
+            }
+            
+            if (searchTerm) {
+                allBudgets = allBudgets.filter(budget =>
+                    budget.clientName.toLowerCase().includes(searchTerm) ||
+                    budget.clientPhone.includes(searchTerm) ||
+                    budget.items.some(item => item.description.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            updateBudgetSummary(allBudgets);
+            
+            if (allBudgets.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-file-invoice"></i>
+                        <h3>Nenhum orçamento encontrado</h3>
+                        <p>${budgetDateFilterApplied ? 'Nenhum orçamento no período selecionado' : 'Crie seu primeiro orçamento!'}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            allBudgets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            let html = '';
+            allBudgets.forEach(budget => {
+                const validityDate = new Date(budget.createdAt);
+                validityDate.setDate(validityDate.getDate() + (budget.validity || 7));
+                const isValid = validityDate >= new Date();
+                
+                const itemsSummary = budget.items.map(item => `${item.quantity}x ${item.description.substring(0, 20)}`).join(', ');
+                
+                html += `
+                    <div class="item-card budget">
+                        <div class="item-header">
+                            <div class="item-name">${budget.clientName}</div>
+                            <div>
+                                <span class="badge ${isValid ? 'badge-success' : 'badge-warning'}">
+                                    ${isValid ? 'Válido' : 'Vencido'}
+                                </span>
+                                <span class="badge">
+                                    R$ ${budget.total.toFixed(2)}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="item-contact">
+                            <i class="fas fa-phone"></i> ${budget.clientPhone}
+                        </div>
+                        <div class="compact-info">
+                            ${formatDate(budget.createdAt)} | Validade: ${formatDate(validityDate)} | ${budget.items.length} itens
+                            ${budget.observations ? `<br>Obs: ${budget.observations}` : ''}
+                            ${itemsSummary.length > 50 ? `<br>${itemsSummary.substring(0, 50)}...` : `<br>${itemsSummary}`}
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn btn-sm" onclick="viewBudget(${budget.id}, ${budget.client.id})">
+                                <i class="fas fa-eye"></i> Ver
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="editBudget(${budget.id}, ${budget.client.id})">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteBudget(${budget.id}, ${budget.client.id})">
+                                <i class="fas fa-trash"></i> Excluir
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
         function updatePendingSummary(pendingOrders) {
             const totalOrders = pendingOrders.length;
             const totalValue = pendingOrders.reduce((sum, order) => sum + order.total, 0);
@@ -4511,6 +5902,16 @@
             document.getElementById('pending-total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
         }
         
+        function updateBudgetSummary(budgets) {
+            const totalBudgets = budgets.length;
+            const totalValue = budgets.reduce((sum, budget) => sum + budget.total, 0);
+            const avgValue = totalBudgets > 0 ? totalValue / totalBudgets : 0;
+            
+            document.getElementById('budget-count').textContent = totalBudgets;
+            document.getElementById('budget-total-value').textContent = `R$ ${totalValue.toFixed(2).replace('.', ',')}`;
+            document.getElementById('budget-avg-value').textContent = `R$ ${avgValue.toFixed(2).replace('.', ',')}`;
+        }
+        
         function viewOrder(orderId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -4522,12 +5923,24 @@
             showOrderModal();
         }
         
+        function viewBudget(budgetId, clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            
+            const budget = client.budgets.find(b => b.id === budgetId);
+            if (!budget) return;
+            
+            currentBudget = budget;
+            showBudgetModal();
+        }
+        
         function updateStats() {
             const totalClients = clients.length;
             const loyalClients = clients.filter(c => c.loyal === 'sim').length;
             
             let pendingOrders = 0;
             let deliveredOrders = 0;
+            let totalBudgets = 0;
             
             clients.forEach(client => {
                 if (client.orders) {
@@ -4539,16 +5952,79 @@
                         }
                     });
                 }
+                if (client.budgets) {
+                    totalBudgets += client.budgets.length;
+                }
             });
             
             document.getElementById('total-clients').textContent = totalClients;
             document.getElementById('loyal-clients').textContent = loyalClients;
             document.getElementById('pending-orders').textContent = pendingOrders;
             document.getElementById('delivered-orders').textContent = deliveredOrders;
+            document.getElementById('total-budgets').textContent = totalBudgets;
+        }
+        
+        function applyBudgetDateFilter() {
+            const startDateInput = document.getElementById('budget-date-start').value;
+            const endDateInput = document.getElementById('budget-date-end').value;
+            
+            if (startDateInput && endDateInput) {
+                const startDate = createDateWithCorrectTime(new Date(startDateInput), 0, 0, 0, 0);
+                const endDate = createDateWithCorrectTime(new Date(endDateInput), 23, 59, 59, 999);
+                
+                if (startDate > endDate) {
+                    alert('A data inicial não pode ser maior que a data final!');
+                    return;
+                }
+                
+                currentBudgetFilter = {
+                    startDate: startDate,
+                    endDate: endDate
+                };
+            } else if (startDateInput || endDateInput) {
+                alert('Por favor, preencha ambas as datas ou deixe ambas em branco para ver todos os orçamentos.');
+                return;
+            } else {
+                currentBudgetFilter = {
+                    startDate: null,
+                    endDate: null
+                };
+            }
+            
+            budgetDateFilterApplied = true;
+            renderBudgetsList();
+        }
+        
+        function clearBudgetDateFilter() {
+            document.getElementById('budget-date-start').value = '';
+            document.getElementById('budget-date-end').value = '';
+            
+            currentBudgetFilter = {
+                startDate: null,
+                endDate: null
+            };
+            
+            budgetDateFilterApplied = false;
+            renderBudgetsList();
+        }
+        
+        function filterBudgetsByDate(budgets) {
+            if (!budgetDateFilterApplied || !currentBudgetFilter.startDate || !currentBudgetFilter.endDate) return budgets;
+            
+            return budgets.filter(budget => {
+                const budgetDate = new Date(budget.createdAt);
+                return isDateBetween(budgetDate, currentBudgetFilter.startDate, currentBudgetFilter.endDate);
+            });
         }
         
         function formatDate(dateString) {
             const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR');
+        }
+        
+        function formatValidityDate(createdAt, validity) {
+            const date = new Date(createdAt);
+            date.setDate(date.getDate() + (validity || 7));
             return date.toLocaleDateString('pt-BR');
         }
         
