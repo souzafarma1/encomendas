@@ -1368,18 +1368,18 @@
                         </div>
                         <div class="form-group">
                             <label>Quantidade</label>
-                            <input type="number" id="new-item-qty" value="1" min="1">
+                            <input type="number" id="new-item-qty" value="1" min="1" oninput="calculateItemProfit()">
                         </div>
                         <div class="form-group">
                             <label>Valor Unitário</label>
-                            <input type="number" id="new-item-price" step="0.01" placeholder="0.00">
+                            <input type="number" id="new-item-price" step="0.01" placeholder="0.00" oninput="calculateItemProfit()">
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label>Valor de Custo</label>
-                            <input type="number" id="new-item-cost" step="0.01" placeholder="0.00">
+                            <input type="number" id="new-item-cost" step="0.01" placeholder="0.00" oninput="calculateItemProfit()">
                         </div>
                         <div class="form-group">
                             <label>Lucro (R$)</label>
@@ -1394,7 +1394,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Tipo de Desconto</label>
-                            <select id="new-item-discount-type">
+                            <select id="new-item-discount-type" onchange="toggleDiscountField()">
                                 <option value="none">Sem desconto</option>
                                 <option value="percent">%</option>
                                 <option value="fixed">R$</option>
@@ -1402,7 +1402,7 @@
                         </div>
                         <div class="form-group">
                             <label>Valor do Desconto</label>
-                            <input type="number" id="new-item-discount-value" step="0.01" placeholder="0.00" disabled>
+                            <input type="number" id="new-item-discount-value" step="0.01" placeholder="0.00" disabled oninput="calculateFinalPrice()">
                         </div>
                         <div class="form-group">
                             <label>Valor Final</label>
@@ -1956,7 +1956,7 @@
         let currentBudget = null;
         let orderTotal = 0;
         let budgetTotal = 0;
-        let budgetItems = []; // Array para armazenar itens do orçamento temporariamente
+        let budgetItems = [];
         let editingOrder = null;
         let editingBudget = null;
         let editingOrderClientId = null;
@@ -2045,12 +2045,79 @@
             // Configurar eventos para orçamento
             setupBudgetDiscountCalculation();
             
+            // Configurar eventos para cálculo de lucro
+            setupProfitCalculation();
+            
             // Event listeners para busca nas listas
             document.getElementById('search-clients').addEventListener('input', renderClientsList);
             document.getElementById('search-orders').addEventListener('input', renderOrdersList);
             document.getElementById('search-pending-orders').addEventListener('input', renderPendingOrdersList);
             document.getElementById('search-budgets').addEventListener('input', renderBudgetsList);
         });
+        
+        function setupProfitCalculation() {
+            const priceInput = document.getElementById('new-item-price');
+            const costInput = document.getElementById('new-item-cost');
+            const qtyInput = document.getElementById('new-item-qty');
+            const discountType = document.getElementById('new-item-discount-type');
+            const discountValue = document.getElementById('new-item-discount-value');
+            
+            if (priceInput) priceInput.addEventListener('input', calculateItemProfit);
+            if (costInput) costInput.addEventListener('input', calculateItemProfit);
+            if (qtyInput) qtyInput.addEventListener('input', calculateItemProfit);
+            if (discountType) discountType.addEventListener('change', function() {
+                toggleDiscountField();
+                calculateItemProfit();
+            });
+            if (discountValue) discountValue.addEventListener('input', calculateItemProfit);
+        }
+        
+        function calculateItemProfit() {
+            const price = parseFloat(document.getElementById('new-item-price').value) || 0;
+            const cost = parseFloat(document.getElementById('new-item-cost').value) || 0;
+            const discountType = document.getElementById('new-item-discount-type').value;
+            const discountValue = parseFloat(document.getElementById('new-item-discount-value').value) || 0;
+            
+            // Calcular preço final com desconto
+            let finalPrice = price;
+            if (discountType === 'percent' && discountValue > 0) {
+                finalPrice = price - (price * discountValue / 100);
+            } else if (discountType === 'fixed' && discountValue > 0) {
+                finalPrice = price - discountValue;
+                if (finalPrice < 0) finalPrice = 0;
+            }
+            
+            document.getElementById('new-item-final-price').value = finalPrice.toFixed(2);
+            
+            // Calcular lucro
+            const profitValue = finalPrice - cost;
+            document.getElementById('new-item-profit-value').value = profitValue.toFixed(2);
+            
+            // Calcular percentual de lucro
+            let profitPercent = 0;
+            if (cost > 0) {
+                profitPercent = (profitValue / cost) * 100;
+            }
+            document.getElementById('new-item-profit-percent').value = profitPercent.toFixed(2);
+        }
+        
+        function toggleDiscountField() {
+            const discountType = document.getElementById('new-item-discount-type').value;
+            const discountValue = document.getElementById('new-item-discount-value');
+            
+            if (discountType === 'none') {
+                discountValue.disabled = true;
+                discountValue.value = '';
+                calculateItemProfit();
+            } else {
+                discountValue.disabled = false;
+                discountValue.focus();
+            }
+        }
+        
+        function calculateFinalPrice() {
+            calculateItemProfit();
+        }
         
         function createDateWithCorrectTime(date, hours, minutes, seconds, milliseconds) {
             const newDate = new Date(date);
@@ -3594,7 +3661,6 @@
             updateOrderProfitSummary();
         }
         
-        // FUNÇÃO CORRIGIDA: Adicionar item ao orçamento
         function addBudgetItem() {
             const description = document.getElementById('new-budget-item-desc').value.trim();
             const quantity = parseInt(document.getElementById('new-budget-item-qty').value) || 1;
@@ -3648,7 +3714,6 @@
             updateBudgetInfo();
         }
         
-        // NOVA FUNÇÃO: Renderizar itens do orçamento
         function renderBudgetItems() {
             const itemsList = document.getElementById('budget-items-list');
             itemsList.innerHTML = '';
@@ -3701,7 +3766,6 @@
             document.getElementById('order-total').textContent = total.toFixed(2);
         }
         
-        // FUNÇÃO CORRIGIDA: Atualizar total do orçamento
         function updateBudgetTotal() {
             let total = 0;
             
@@ -3734,7 +3798,6 @@
             }
         }
         
-        // FUNÇÃO CORRIGIDA: Remover item do orçamento
         function removeBudgetItem(id) {
             budgetItems = budgetItems.filter(item => item.id !== id);
             renderBudgetItems();
@@ -3877,7 +3940,6 @@
             }
         }
         
-        // FUNÇÃO CORRIGIDA: Salvar orçamento
         function saveBudget() {
             if (!selectedClientForBudget) {
                 alert('Selecione um cliente primeiro!');
@@ -5479,7 +5541,6 @@
             document.getElementById('order-total').textContent = '0.00';
         }
         
-        // FUNÇÃO CORRIGIDA: Resetar formulário de orçamento
         function resetBudgetForm() {
             document.getElementById('search-client-budget').value = '';
             document.getElementById('client-budget-search-results').style.display = 'none';
