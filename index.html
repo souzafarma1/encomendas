@@ -10,9 +10,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
     <style>
         /* Mesmo estilo do original - mantido igual */
@@ -1867,7 +1864,6 @@
                 <h3 style="margin-bottom: 14px; font-size: 1.05rem;">Itens do Orçamento</h3>
                 
                 <div id="budget-items-list">
-                    <!-- Itens adicionados aparecerão aqui -->
                 </div>
                 
                 <div class="order-item-form">
@@ -2270,20 +2266,6 @@
     </div>
 
     <script>
-        // Configuração do Firebase
-        const firebaseConfig = {
-          apiKey: "SUA_API_KEY",
-          authDomain: "souza-farma.firebaseapp.com",
-          databaseURL: "https://souza-farma-default-rtdb.firebaseio.com",
-          projectId: "souza-farma",
-          storageBucket: "souza-farma.appspot.com",
-          messagingSenderId: "SEU_ID",
-          appId: "SEU_APP_ID"
-        };
-        
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
         // Variáveis globais
         let clients = [];
         let selectedClientForOrder = null;
@@ -2330,21 +2312,12 @@
 
         // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("Sistema Souza Farma conectando ao Firebase...");
+            console.log("Sistema Souza Farma iniciado...");
             
-            db.ref('clients').on('value', (snapshot) => {
-                const data = snapshot.val();
-                clients = data ? Object.values(data) : [];
-                
-                updateStats();
-                updateDashboard();
-                if (document.getElementById('clients-section').classList.contains('active')) renderClientsList();
-                if (document.getElementById('orders-section').classList.contains('active')) renderOrdersList();
-                if (document.getElementById('pending-orders-section').classList.contains('active')) renderPendingOrdersList();
-                if (document.getElementById('budgets-section').classList.contains('active')) renderBudgetsList();
-                
-                console.log("Dados sincronizados com Firebase");
-            });
+            loadFromLocalStorage();
+            
+            updateStats();
+            updateDashboard();
             
             setTimeout(generateQRCode, 100);
             
@@ -2393,6 +2366,19 @@
             document.getElementById('search-pending-orders').addEventListener('input', renderPendingOrdersList);
             document.getElementById('search-budgets').addEventListener('input', renderBudgetsList);
         });
+
+        function loadFromLocalStorage() {
+            const savedClients = localStorage.getItem('souza-farma-clients');
+            if (savedClients) {
+                clients = JSON.parse(savedClients);
+            } else {
+                clients = [];
+            }
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('souza-farma-clients', JSON.stringify(clients));
+        }
 
         function checkUrlForApproval() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -2969,8 +2955,6 @@
                 let totalSpent = 0;
                 let totalProfit = 0;
                 let frequency = 0;
-                const lastYear = new Date();
-                lastYear.setFullYear(lastYear.getFullYear() - 1);
                 
                 if (client.orders) {
                     const filteredOrders = client.orders.filter(o => {
@@ -3522,12 +3506,6 @@
                 
                 finalPriceInput.value = finalPrice.toFixed(2);
             }
-        }
-
-        function saveToLocalStorage() {
-            const clientsObj = {};
-            clients.forEach(c => { clientsObj[c.id] = c; });
-            db.ref('clients').set(clientsObj);
         }
 
         function loadPharmacyLogo() {
@@ -4844,48 +4822,6 @@
             // (código de edição mantido igual ao original)
         }
 
-        function addEditOrderItem() {
-            // (mantido igual ao original)
-        }
-
-        function addEditBudgetItem() {
-            // (mantido igual ao original)
-        }
-
-        function removeEditItem(index) {
-            editingOrder.items.splice(index, 1);
-            renderEditOrderForm();
-        }
-
-        function removeEditBudgetItem(index) {
-            editingBudget.items.splice(index, 1);
-            renderEditBudgetForm();
-        }
-
-        function updateEditItemTotal(index) {
-            // (mantido igual ao original)
-        }
-
-        function updateEditBudgetItemTotal(index) {
-            // (mantido igual ao original)
-        }
-
-        function updateEditOrderTotal() {
-            // (mantido igual ao original)
-        }
-
-        function updateEditBudgetTotal() {
-            // (mantido igual ao original)
-        }
-
-        function saveEditedOrder() {
-            // (mantido igual ao original)
-        }
-
-        function saveEditedBudget() {
-            // (mantido igual ao original)
-        }
-
         function deleteOrder(orderId, clientId) {
             if (!confirm('Tem certeza que deseja excluir esta encomenda?')) return;
             
@@ -5056,8 +4992,8 @@
             message += `*Disponível para retirada:* ${availableText}%0A%0A`;
             message += `*Itens:*%0A`;
             
-            currentOrder.items.forEach(item => {
-                message += `${item.quantity}x ${item.description} - R$ ${item.finalPrice.toFixed(2)}%0A`;
+            currentOrder.items.forEach((item, index) => {
+                message += `${index+1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}%0A`;
             });
             
             message += `%0A*Total:* R$ ${currentOrder.total.toFixed(2)}%0A%0A`;
@@ -5087,9 +5023,9 @@
             message += `*Validade:* ${currentBudget.validity} dias%0A%0A`;
             message += `*Itens:*%0A`;
             
-            currentBudget.items.forEach(item => {
+            currentBudget.items.forEach((item, index) => {
                 const obs = item.observations ? ` (${item.observations})` : '';
-                message += `${item.quantity}x ${item.description}${obs} - R$ ${item.finalPrice.toFixed(2)}%0A`;
+                message += `${index+1}. ${item.description}${obs} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}%0A`;
             });
             
             message += `%0A*Total:* R$ ${currentBudget.total.toFixed(2)}%0A%0A`;
@@ -5139,8 +5075,8 @@
                 </div>
                 <table><thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead><tbody>
             `);
-            currentOrder.items.forEach(item => {
-                printWindow.document.write(`<tr><td>${item.description}</td><td>${item.quantity}x</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`);
+            currentOrder.items.forEach((item, index) => {
+                printWindow.document.write(`<tr><td>${index+1}. ${item.description}</td><td>${item.quantity}x</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`);
             });
             printWindow.document.write(`</tbody></table><div class="total">TOTAL: R$ ${currentOrder.total.toFixed(2)}</div>`);
             
@@ -5183,9 +5119,9 @@
                 ${currentBudget.observations ? `<p><strong>Observações:</strong> ${currentBudget.observations}</p>` : ''}
                 <table><thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead><tbody>
             `);
-            currentBudget.items.forEach(item => {
+            currentBudget.items.forEach((item, index) => {
                 const obs = item.observations ? ` (${item.observations})` : '';
-                printWindow.document.write(`<tr><td>${item.description}${obs}</td><td>${item.quantity}x</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`);
+                printWindow.document.write(`<tr><td>${index+1}. ${item.description}${obs}</td><td>${item.quantity}x</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`);
             });
             printWindow.document.write(`</tbody></table><div class="total">TOTAL: R$ ${currentBudget.total.toFixed(2)}</div></body></html>`);
             printWindow.document.close();
@@ -5204,13 +5140,11 @@
 
         function printThermalCurrentOrder() {
             if (!currentOrder) return;
-            // (código de impressão térmica mantido igual ao original)
             alert('Impressão térmica será implementada em breve!');
         }
 
         function printThermalCurrentBudget() {
             if (!currentBudget) return;
-            // (código de impressão térmica mantido igual ao original)
             alert('Impressão térmica será implementada em breve!');
         }
 
