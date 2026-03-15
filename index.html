@@ -1084,6 +1084,7 @@
             border-radius: 5px;
             margin-top: 8px;
             font-size: 0.85rem;
+            display: block !important; /* Força a exibição */
         }
         
         .profit-info-row {
@@ -1498,7 +1499,8 @@
                 <h3 style="margin-bottom: 14px; font-size: 1.05rem;">Itens da Encomenda</h3>
                 
                 <div id="order-items-list">
-                    </div>
+                    <!-- Itens adicionados aparecerão aqui -->
+                </div>
                 
                 <div class="order-item-form">
                     <h4 style="margin-bottom: 9px; font-size: 0.95rem;">Adicionar Novo Item</h4>
@@ -1524,11 +1526,11 @@
                         </div>
                         <div class="form-group">
                             <label>Lucro (R$)</label>
-                            <input type="number" id="new-item-profit-value" step="0.01" placeholder="0.00" readonly style="background-color: #e8f6f3;">
+                            <input type="number" id="new-item-profit-value" step="0.01" placeholder="0.00" readonly style="background-color: #e8f6f3; color: var(--profit); font-weight: bold;">
                         </div>
                         <div class="form-group">
                             <label>Lucro (%)</label>
-                            <input type="number" id="new-item-profit-percent" step="0.01" placeholder="0.00" readonly style="background-color: #e8f6f3;">
+                            <input type="number" id="new-item-profit-percent" step="0.01" placeholder="0.00" readonly style="background-color: #e8f6f3; color: var(--profit); font-weight: bold;">
                         </div>
                     </div>
                     
@@ -1560,7 +1562,8 @@
                     Total: R$ <span id="order-total">0.00</span>
                 </div>
                 
-                <div class="profit-info" id="order-profit-summary" style="display: none;">
+                <!-- Resumo de Lucro - Agora visível mesmo sem itens -->
+                <div class="profit-info" id="order-profit-summary">
                     <div class="profit-info-row">
                         <span class="profit-label">Custo Total:</span>
                         <span class="profit-value cost-value" id="order-total-cost">R$ 0.00</span>
@@ -2562,7 +2565,8 @@
             `;
             
             // Esconder botões de ação
-            document.querySelector('#budget-approval-modal .button-group')?.remove();
+            const buttons = document.querySelector('#budget-approval-modal .button-group');
+            if (buttons) buttons.style.display = 'none';
             
             setTimeout(() => {
                 closeApprovalModal();
@@ -3506,6 +3510,9 @@
                 profitPercent = (profitValue / cost) * 100;
             }
             document.getElementById('new-item-profit-percent').value = profitPercent.toFixed(2);
+            
+            // Atualizar resumo de lucro
+            updateOrderProfitSummary();
         }
 
         function toggleDiscountField() {
@@ -4381,6 +4388,9 @@
             document.getElementById('order-items-list').innerHTML = '';
             orderTotal = 0;
             document.getElementById('order-total').textContent = '0.00';
+            
+            // Resetar resumo de lucro
+            updateOrderProfitSummary();
         }
 
         function showSelectedClientInfo() {
@@ -4463,8 +4473,11 @@
         function updateOrderProfitSummary() {
             let totalCost = 0, totalProfit = 0;
             const itemDivs = document.querySelectorAll('[id^="item-"]');
+            
             if (itemDivs.length === 0) {
-                document.getElementById('order-profit-summary').style.display = 'none';
+                document.getElementById('order-total-cost').textContent = 'R$ 0.00';
+                document.getElementById('order-total-profit').textContent = 'R$ 0.00';
+                document.getElementById('order-profit-margin').textContent = '0%';
                 return;
             }
             
@@ -4481,7 +4494,6 @@
             document.getElementById('order-total-cost').textContent = `R$ ${totalCost.toFixed(2)}`;
             document.getElementById('order-total-profit').textContent = `R$ ${totalProfit.toFixed(2)}`;
             document.getElementById('order-profit-margin').textContent = `${profitMargin.toFixed(1)}%`;
-            document.getElementById('order-profit-summary').style.display = 'block';
         }
 
         function addOrderItemFromForm() {
@@ -4547,6 +4559,7 @@
             
             itemsList.innerHTML += itemHtml;
             
+            // Limpar formulário
             document.getElementById('new-item-desc').value = '';
             document.getElementById('new-item-qty').value = '1';
             document.getElementById('new-item-price').value = '';
@@ -4924,6 +4937,16 @@
                                 <input type="number" id="edit-final-price-${index}" value="${item.finalPrice}" step="0.01" readonly style="background-color: #f8f9fa;">
                             </div>
                             <div class="form-group">
+                                <label>Lucro (R$)</label>
+                                <input type="number" id="edit-profit-value-${index}" value="${item.profitValue}" step="0.01" readonly style="background-color: #e8f6f3; color: var(--profit);">
+                            </div>
+                            <div class="form-group">
+                                <label>Lucro (%)</label>
+                                <input type="number" id="edit-profit-percent-${index}" value="${item.profitPercent}" step="0.01" readonly style="background-color: #e8f6f3; color: var(--profit);">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
                                 <label>Total</label>
                                 <input type="number" id="edit-total-${index}" value="${item.total}" step="0.01" readonly style="background-color: #f8f9fa;">
                             </div>
@@ -4941,6 +4964,21 @@
                 
                 <div class="order-total" style="margin-top: 20px;">
                     Total: R$ <span id="edit-order-total">${editingOrder.total.toFixed(2)}</span>
+                </div>
+                
+                <div class="profit-info" style="margin-top: 10px;">
+                    <div class="profit-info-row">
+                        <span class="profit-label">Custo Total:</span>
+                        <span class="profit-value cost-value" id="edit-order-total-cost">R$ ${(editingOrder.totalCost || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="profit-info-row">
+                        <span class="profit-label">Lucro Total:</span>
+                        <span class="profit-value profit-positive" id="edit-order-total-profit">R$ ${(editingOrder.totalProfit || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="profit-info-row">
+                        <span class="profit-label">Margem:</span>
+                        <span class="profit-value profit-positive" id="edit-order-profit-margin">${(editingOrder.profitMargin || 0).toFixed(1)}%</span>
+                    </div>
                 </div>
                 
                 <div class="form-row" style="margin-top: 20px;">
@@ -5172,8 +5210,11 @@
             
             const total = qty * finalPrice;
             const profitValue = finalPrice - cost;
+            const profitPercent = cost > 0 ? (profitValue / cost) * 100 : 0;
             
             document.getElementById('edit-final-price-' + index).value = finalPrice.toFixed(2);
+            document.getElementById('edit-profit-value-' + index).value = profitValue.toFixed(2);
+            document.getElementById('edit-profit-percent-' + index).value = profitPercent.toFixed(2);
             document.getElementById('edit-total-' + index).value = total.toFixed(2);
             
             // Atualizar o item no array
@@ -5184,6 +5225,8 @@
                 editingOrder.items[index].discountType = discountType;
                 editingOrder.items[index].discountValue = discountValue;
                 editingOrder.items[index].finalPrice = finalPrice;
+                editingOrder.items[index].profitValue = profitValue;
+                editingOrder.items[index].profitPercent = profitPercent;
                 editingOrder.items[index].total = total;
             }
             
@@ -5223,12 +5266,23 @@
         }
 
         function updateEditOrderTotal() {
-            let total = 0;
+            let total = 0, totalCost = 0, totalProfit = 0;
             if (editingOrder && editingOrder.items) {
-                total = editingOrder.items.reduce((sum, item) => sum + item.total, 0);
+                editingOrder.items.forEach(item => {
+                    total += item.total;
+                    totalCost += (item.cost || 0) * item.quantity;
+                    totalProfit += (item.profitValue || 0) * item.quantity;
+                });
             }
             editingOrder.total = total;
+            editingOrder.totalCost = totalCost;
+            editingOrder.totalProfit = totalProfit;
+            editingOrder.profitMargin = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
+            
             document.getElementById('edit-order-total').textContent = total.toFixed(2);
+            document.getElementById('edit-order-total-cost').textContent = `R$ ${totalCost.toFixed(2)}`;
+            document.getElementById('edit-order-total-profit').textContent = `R$ ${totalProfit.toFixed(2)}`;
+            document.getElementById('edit-order-profit-margin').textContent = `${editingOrder.profitMargin.toFixed(1)}%`;
         }
 
         function updateEditBudgetTotal() {
@@ -5254,7 +5308,7 @@
             editingOrder.items.forEach(item => {
                 total += item.total;
                 totalCost += (item.cost || 0) * item.quantity;
-                totalProfit += (item.finalPrice - (item.cost || 0)) * item.quantity;
+                totalProfit += (item.profitValue || 0) * item.quantity;
             });
             editingOrder.total = total;
             editingOrder.totalCost = totalCost;
@@ -5392,13 +5446,49 @@
                 <p>Disponível: ${currentOrder.available === 'sim' ? 'Sim' : 'Não'}</p>
                 <h4>Itens:</h4>
                 <table style="width: 100%; border-collapse: collapse;">
-                    <thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th style="padding: 7px; text-align: left;">Descrição</th>
+                            <th style="padding: 7px; text-align: left;">Qtd</th>
+                            <th style="padding: 7px; text-align: left;">Valor</th>
+                            <th style="padding: 7px; text-align: left;">Total</th>
+                            <th style="padding: 7px; text-align: left;">Lucro</th>
+                        </tr>
+                    </thead>
                     <tbody>
             `;
             currentOrder.items.forEach(item => {
-                html += `<tr><td>${item.description}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`;
+                const profitText = item.cost > 0 ? `R$ ${((item.finalPrice - item.cost) * item.quantity).toFixed(2)}` : '-';
+                html += `
+                    <tr>
+                        <td style="padding: 7px;">${item.description}</td>
+                        <td style="padding: 7px;">${item.quantity}</td>
+                        <td style="padding: 7px;">R$ ${item.finalPrice.toFixed(2)}</td>
+                        <td style="padding: 7px;">R$ ${item.total.toFixed(2)}</td>
+                        <td style="padding: 7px; color: var(--profit);">${profitText}</td>
+                    </tr>
+                `;
             });
-            html += `</tbody></table><h4>Total: R$ ${currentOrder.total.toFixed(2)}</h4>`;
+            html += `</tbody></table>`;
+            
+            // Adicionar resumo de lucro
+            html += `
+                <div style="margin-top: 16px; background: #e8f6f3; padding: 10px; border-radius: 5px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Custo Total:</span>
+                        <span style="color: var(--cost);">R$ ${(currentOrder.totalCost || 0).toFixed(2)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Lucro Total:</span>
+                        <span style="color: var(--profit);">R$ ${(currentOrder.totalProfit || 0).toFixed(2)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Margem:</span>
+                        <span style="color: var(--profit);">${(currentOrder.profitMargin || 0).toFixed(1)}%</span>
+                    </div>
+                </div>
+                <h4 style="margin-top: 16px; text-align: right;">Total: R$ ${currentOrder.total.toFixed(2)}</h4>
+            `;
             
             document.getElementById('order-details').innerHTML = html;
             document.getElementById('order-modal').style.display = 'flex';
@@ -5692,12 +5782,14 @@
             document.getElementById('new-item-final-price').value = '';
             document.getElementById('new-item-profit-value').value = '';
             document.getElementById('new-item-profit-percent').value = '';
-            document.getElementById('order-profit-summary').style.display = 'none';
             document.getElementById('down-payment').value = '';
             document.querySelector('input[name="available"][value="sim"]').checked = true;
             selectedClientForOrder = null;
             orderTotal = 0;
             document.getElementById('order-total').textContent = '0.00';
+            document.getElementById('order-total-cost').textContent = 'R$ 0.00';
+            document.getElementById('order-total-profit').textContent = 'R$ 0.00';
+            document.getElementById('order-profit-margin').textContent = '0%';
         }
 
         function resetBudgetForm() {
@@ -5824,7 +5916,7 @@
                         </div>
                         <div class="item-contact">📞 ${order.clientPhone}</div>
                         <div class="compact-info">
-                            ${formatDate(order.createdAt)} | ${order.items.length} itens | Pgto: ${order.payment}
+                            ${formatDate(order.createdAt)} | ${order.items.length} itens | Pgto: ${order.payment} | Lucro: R$ ${(order.totalProfit || 0).toFixed(2)}
                         </div>
                         <div class="item-actions">
                             <button class="btn btn-sm" onclick="viewOrder(${order.id}, ${order.client.id})">👁️ Ver</button>
@@ -5881,7 +5973,7 @@
                         </div>
                         <div class="item-contact">📞 ${order.clientPhone}</div>
                         <div class="compact-info">
-                            ${formatDate(order.createdAt)} | ${order.items.length} itens | Pgto: ${order.payment}
+                            ${formatDate(order.createdAt)} | ${order.items.length} itens | Pgto: ${order.payment} | Lucro: R$ ${(order.totalProfit || 0).toFixed(2)}
                         </div>
                         <div class="item-actions">
                             <button class="btn btn-sm" onclick="viewOrder(${order.id}, ${order.client.id})">👁️ Ver</button>
