@@ -2359,17 +2359,6 @@
             db.ref('clients').set(clientsObj);
         }
 
-        // Função para converter objetos do Firebase em arrays
-        function normalizeClientData(client) {
-            if (client.orders && typeof client.orders === 'object' && !Array.isArray(client.orders)) {
-                client.orders = Object.values(client.orders);
-            }
-            if (client.budgets && typeof client.budgets === 'object' && !Array.isArray(client.budgets)) {
-                client.budgets = Object.values(client.budgets);
-            }
-            return client;
-        }
-
         // Função para excluir orçamento do modal (NOVA)
         function deleteBudgetFromModal() {
             if (!currentBudget) return;
@@ -2411,9 +2400,14 @@
             
             currentOrder.items.forEach((item, index) => {
                 message += `${index+1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}%0A`;
+                if (item.cost > 0) {
+                    message += `   Custo: R$ ${item.cost.toFixed(2)} | Lucro: R$ ${item.profitValue.toFixed(2)} (${item.profitPercent.toFixed(1)}%)%0A`;
+                }
             });
             
-            message += `%0A*Total:* R$ ${currentOrder.total.toFixed(2)}%0A%0A`;
+            message += `%0A*Total:* R$ ${currentOrder.total.toFixed(2)}%0A`;
+            message += `*Custo Total:* R$ ${currentOrder.totalCost.toFixed(2)}%0A`;
+            message += `*Lucro Total:* R$ ${currentOrder.totalProfit.toFixed(2)}%0A%0A`;
             
             if (currentOrder.available === 'nao') {
                 message += `Aguarde a chegada do produto! Assim que disponível, informaremos por aqui.%0A%0A`;
@@ -2428,7 +2422,7 @@
             window.open(whatsappUrl, '_blank');
         }
 
-        // Função para enviar WhatsApp do orçamento - CORRIGIDA
+        // Função para enviar WhatsApp do orçamento
         function sendCurrentBudgetWhatsApp() {
             if (!currentBudget) return;
             
@@ -2673,6 +2667,7 @@
             return checkDate >= startDateOnly && checkDate <= endDateOnly;
         }
 
+        // Funções do Dashboard
         function createSalesChart(ctx) {
             let days = 30;
             let labels = [];
@@ -3964,8 +3959,22 @@
                                 <input type="number" id="edit-price-${index}" value="${item.price}" step="0.01" onchange="updateEditItemTotal(${index})">
                             </div>
                             <div class="form-group">
+                                <label>Custo Unitário</label>
+                                <input type="number" id="edit-cost-${index}" value="${item.cost || 0}" step="0.01" onchange="updateEditItemTotal(${index})">
+                            </div>
+                            <div class="form-group">
                                 <label>Valor Final</label>
                                 <input type="number" id="edit-final-${index}" value="${item.finalPrice}" step="0.01" readonly style="background-color: #f8f9fa;">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Lucro (R$)</label>
+                                <input type="number" id="edit-profit-${index}" value="${item.profitValue || 0}" step="0.01" readonly style="background-color: #e8f6f3;">
+                            </div>
+                            <div class="form-group">
+                                <label>Lucro (%)</label>
+                                <input type="number" id="edit-profit-percent-${index}" value="${item.profitPercent || 0}" step="0.01" readonly style="background-color: #e8f6f3;">
                             </div>
                         </div>
                         <button class="btn btn-danger btn-sm" onclick="removeEditItem(${index})">Remover Item</button>
@@ -3992,11 +4001,20 @@
                                     <input type="number" id="edit-new-item-price" step="0.01" placeholder="0.00">
                                 </div>
                             </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Custo Unitário</label>
+                                    <input type="number" id="edit-new-item-cost" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
                             <button class="btn btn-success btn-sm" onclick="addEditOrderItem()">Adicionar Item</button>
                         </div>
                         
                         <div class="order-total" style="margin-top: 20px;">
-                            Total: R$ <span id="edit-order-total">${editingOrder.total.toFixed(2)}</span>
+                            Total: R$ <span id="edit-order-total">${editingOrder.total.toFixed(2)}</span><br>
+                            Custo Total: R$ <span id="edit-order-total-cost">${editingOrder.totalCost.toFixed(2)}</span><br>
+                            Lucro Total: R$ <span id="edit-order-total-profit">${editingOrder.totalProfit.toFixed(2)}</span><br>
+                            Margem: <span id="edit-order-margin">${editingOrder.profitMargin.toFixed(1)}%</span>
                         </div>
                         
                         <div style="margin-top: 16px;">
@@ -4080,6 +4098,12 @@
                                 <input type="number" id="edit-budget-final-${index}" value="${item.finalPrice}" step="0.01" readonly style="background-color: #f8f9fa;">
                             </div>
                         </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Observações</label>
+                                <input type="text" id="edit-budget-obs-${index}" value="${item.observations || ''}" placeholder="Observações">
+                            </div>
+                        </div>
                         <button class="btn btn-danger btn-sm" onclick="removeEditBudgetItem(${index})">Remover Item</button>
                     </div>
                 `;
@@ -4142,6 +4166,7 @@
             const desc = document.getElementById('edit-new-item-desc').value.trim();
             const qty = parseInt(document.getElementById('edit-new-item-qty').value) || 1;
             const price = parseFloat(document.getElementById('edit-new-item-price').value) || 0;
+            const cost = parseFloat(document.getElementById('edit-new-item-cost').value) || 0;
             
             if (!desc) {
                 alert('Por favor, informe a descrição do item!');
@@ -4152,15 +4177,18 @@
                 return;
             }
             
+            const profitValue = price - cost;
+            const profitPercent = cost > 0 ? (profitValue / cost) * 100 : 0;
+            
             editingOrder.items.push({
                 description: desc,
                 quantity: qty,
                 price: price,
+                cost: cost,
                 finalPrice: price,
-                total: qty * price,
-                cost: 0,
-                profitValue: 0,
-                profitPercent: 0
+                profitValue: profitValue,
+                profitPercent: profitPercent,
+                total: qty * price
             });
             
             renderEditOrderForm();
@@ -4206,27 +4234,52 @@
         function updateEditItemTotal(index) {
             const qty = parseFloat(document.getElementById('edit-qty-' + index).value) || 1;
             const price = parseFloat(document.getElementById('edit-price-' + index).value) || 0;
+            const cost = parseFloat(document.getElementById('edit-cost-' + index).value) || 0;
             const finalPriceInput = document.getElementById('edit-final-' + index);
+            const profitInput = document.getElementById('edit-profit-' + index);
+            const profitPercentInput = document.getElementById('edit-profit-percent-' + index);
             
             finalPriceInput.value = price.toFixed(2);
             
+            const profitValue = price - cost;
+            profitInput.value = profitValue.toFixed(2);
+            
+            let profitPercent = 0;
+            if (cost > 0) {
+                profitPercent = (profitValue / cost) * 100;
+            }
+            profitPercentInput.value = profitPercent.toFixed(2);
+            
             editingOrder.items[index].quantity = qty;
             editingOrder.items[index].price = price;
+            editingOrder.items[index].cost = cost;
             editingOrder.items[index].finalPrice = price;
+            editingOrder.items[index].profitValue = profitValue;
+            editingOrder.items[index].profitPercent = profitPercent;
             editingOrder.items[index].total = qty * price;
             
-            let total = 0;
+            let total = 0, totalCost = 0, totalProfit = 0;
             editingOrder.items.forEach(item => {
                 total += item.total;
+                totalCost += (item.cost || 0) * item.quantity;
+                totalProfit += (item.finalPrice - (item.cost || 0)) * item.quantity;
             });
             editingOrder.total = total;
+            editingOrder.totalCost = totalCost;
+            editingOrder.totalProfit = totalProfit;
+            editingOrder.profitMargin = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
+            
             document.getElementById('edit-order-total').textContent = total.toFixed(2);
+            document.getElementById('edit-order-total-cost').textContent = totalCost.toFixed(2);
+            document.getElementById('edit-order-total-profit').textContent = totalProfit.toFixed(2);
+            document.getElementById('edit-order-margin').textContent = editingOrder.profitMargin.toFixed(1) + '%';
         }
 
         function updateEditBudgetItemTotal(index) {
             const qty = parseFloat(document.getElementById('edit-budget-qty-' + index).value) || 1;
             const price = parseFloat(document.getElementById('edit-budget-price-' + index).value) || 0;
             const finalPriceInput = document.getElementById('edit-budget-final-' + index);
+            const obsInput = document.getElementById('edit-budget-obs-' + index);
             
             finalPriceInput.value = price.toFixed(2);
             
@@ -4234,6 +4287,7 @@
             editingBudget.items[index].price = price;
             editingBudget.items[index].finalPrice = price;
             editingBudget.items[index].total = qty * price;
+            editingBudget.items[index].observations = obsInput.value;
             
             let total = 0;
             editingBudget.items.forEach(item => {
@@ -4349,13 +4403,23 @@
                 <p>Status: ${currentOrder.status === 'pendente' ? 'Pendente de retirada' : 'Entregue'}</p>
                 <p>Pagamento: ${paymentText}</p>
                 <p>Disponível para retirada: ${availableText}</p>
+                <p>Custo Total: R$ ${currentOrder.totalCost.toFixed(2)}</p>
+                <p>Lucro Total: R$ ${currentOrder.totalProfit.toFixed(2)}</p>
+                <p>Margem: ${currentOrder.profitMargin.toFixed(1)}%</p>
                 <h4>Itens:</h4>
                 <table style="width: 100%; border-collapse: collapse;">
-                    <thead><tr><th>Item</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead>
+                    <thead><tr><th>Item</th><th>Qtd</th><th>Valor</th><th>Custo</th><th>Lucro</th><th>Total</th></tr></thead>
                     <tbody>
             `;
             currentOrder.items.forEach((item, index) => {
-                html += `<tr><td>${index+1}. ${item.description}</td><td>${item.quantity}x</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`;
+                html += `<tr>
+                    <td>${index+1}. ${item.description}</td>
+                    <td>${item.quantity}x</td>
+                    <td>R$ ${item.finalPrice.toFixed(2)}</td>
+                    <td>R$ ${(item.cost || 0).toFixed(2)}</td>
+                    <td>R$ ${(item.profitValue || 0).toFixed(2)} (${(item.profitPercent || 0).toFixed(1)}%)</td>
+                    <td>R$ ${item.total.toFixed(2)}</td>
+                </tr>`;
             });
             html += `</tbody></table><h4>Total: R$ ${currentOrder.total.toFixed(2)}</h4>`;
             
@@ -4450,10 +4514,17 @@
                     <strong>Pagamento:</strong> ${paymentText}<br>
                     <strong>Disponível para retirada:</strong> ${availableText}</p>
                 </div>
-                <table><thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead><tbody>
+                <table><thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Custo</th><th>Lucro</th><th>Total</th></tr></thead><tbody>
             `);
             currentOrder.items.forEach((item, index) => {
-                printWindow.document.write(`<tr><td>${index+1}. ${item.description}</td><td>${item.quantity}x</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`);
+                printWindow.document.write(`<tr>
+                    <td>${index+1}. ${item.description}</td>
+                    <td>${item.quantity}x</td>
+                    <td>R$ ${item.finalPrice.toFixed(2)}</td>
+                    <td>R$ ${(item.cost || 0).toFixed(2)}</td>
+                    <td>R$ ${(item.profitValue || 0).toFixed(2)}</td>
+                    <td>R$ ${item.total.toFixed(2)}</td>
+                </tr>`);
             });
             printWindow.document.write(`</tbody></table><div class="total">TOTAL: R$ ${currentOrder.total.toFixed(2)}</div>`);
             
@@ -4545,12 +4616,15 @@
                 printWindow.document.write(`
                     <tr><td>${index+1}. ${item.description}</td></tr>
                     <tr><td>${item.quantity}x R$ ${item.finalPrice.toFixed(2)} = R$ ${item.total.toFixed(2)}</td></tr>
+                    <tr><td>Custo: R$ ${(item.cost || 0).toFixed(2)} | Lucro: R$ ${(item.profitValue || 0).toFixed(2)}</td></tr>
                 `);
             });
             printWindow.document.write(`
                 </table>
                 <div class="line"></div>
                 <div class="total">TOTAL: R$ ${currentOrder.total.toFixed(2)}</div>
+                <div class="total">Custo Total: R$ ${currentOrder.totalCost.toFixed(2)}</div>
+                <div class="total">Lucro Total: R$ ${currentOrder.totalProfit.toFixed(2)}</div>
                 <div style="text-align: center; margin-top: 10px;">Obrigado pela preferência!</div>
                 </body></html>
             `);
