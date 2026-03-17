@@ -3935,7 +3935,111 @@
                 document.getElementById('edit-order-content').innerHTML = '<p>Erro ao carregar encomenda.</p>';
                 return;
             }
-            // (código de edição mantido igual ao original)
+            
+            let html = `
+                <div id="edit-order-form">
+                    <h3>Editando Encomenda</h3>
+                    <p><strong>Cliente:</strong> ${editingOrder.clientName}</p>
+                    <p><strong>Data:</strong> ${formatDate(editingOrder.createdAt)}</p>
+                    
+                    <div class="order-items-edit">
+                        <h4>Itens da Encomenda</h4>
+                        <div id="edit-items-list">
+            `;
+            
+            editingOrder.items.forEach((item, index) => {
+                html += `
+                    <div class="order-item" id="edit-item-${index}">
+                        <div class="order-item-header">
+                            <div><strong>${item.description}</strong></div>
+                            <div class="order-item-total">R$ ${(item.quantity * item.finalPrice).toFixed(2)}</div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Quantidade</label>
+                                <input type="number" id="edit-qty-${index}" value="${item.quantity}" min="1" onchange="updateEditItemTotal(${index})">
+                            </div>
+                            <div class="form-group">
+                                <label>Valor Unitário</label>
+                                <input type="number" id="edit-price-${index}" value="${item.price}" step="0.01" onchange="updateEditItemTotal(${index})">
+                            </div>
+                            <div class="form-group">
+                                <label>Valor Final</label>
+                                <input type="number" id="edit-final-${index}" value="${item.finalPrice}" step="0.01" readonly style="background-color: #f8f9fa;">
+                            </div>
+                        </div>
+                        <button class="btn btn-danger btn-sm" onclick="removeEditItem(${index})">Remover Item</button>
+                    </div>
+                `;
+            });
+            
+            html += `
+                        </div>
+                        
+                        <div class="order-item-form" style="margin-top: 20px;">
+                            <h4>Adicionar Novo Item</h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Descrição</label>
+                                    <input type="text" id="edit-new-item-desc" placeholder="Nome do medicamento">
+                                </div>
+                                <div class="form-group">
+                                    <label>Quantidade</label>
+                                    <input type="number" id="edit-new-item-qty" value="1" min="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Valor Unitário</label>
+                                    <input type="number" id="edit-new-item-price" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                            <button class="btn btn-success btn-sm" onclick="addEditOrderItem()">Adicionar Item</button>
+                        </div>
+                        
+                        <div class="order-total" style="margin-top: 20px;">
+                            Total: R$ <span id="edit-order-total">${editingOrder.total.toFixed(2)}</span>
+                        </div>
+                        
+                        <div style="margin-top: 16px;">
+                            <label>Status do Pagamento</label>
+                            <div style="display: flex; gap: 14px; margin-top: 5px;">
+                                <label>
+                                    <input type="radio" name="edit-payment" value="pago" ${editingOrder.payment === 'pago' ? 'checked' : ''}> Pago
+                                </label>
+                                <label>
+                                    <input type="radio" name="edit-payment" value="parcial" ${editingOrder.payment === 'parcial' ? 'checked' : ''}> Parcial
+                                </label>
+                                <label>
+                                    <input type="radio" name="edit-payment" value="pendente" ${editingOrder.payment === 'pendente' ? 'checked' : ''}> Pendente
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 16px;">
+                            <label>Valor de Entrada</label>
+                            <input type="number" id="edit-down-payment" step="0.01" value="${editingOrder.downPayment || 0}" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
+
+                        <div style="margin-top: 16px;">
+                            <label>Produto Disponível para Retirada?</label>
+                            <div style="display: flex; gap: 14px; margin-top: 5px;">
+                                <label>
+                                    <input type="radio" name="edit-available" value="sim" ${editingOrder.available === 'sim' ? 'checked' : ''}> Sim
+                                </label>
+                                <label>
+                                    <input type="radio" name="edit-available" value="nao" ${editingOrder.available === 'nao' ? 'checked' : ''}> Não
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="button-group" style="margin-top: 22px;">
+                            <button class="btn btn-success" onclick="saveEditedOrder()">Salvar Alterações</button>
+                            <button class="btn btn-secondary" onclick="showSection('orders')">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('edit-order-content').innerHTML = html;
         }
 
         function renderEditBudgetForm() {
@@ -3943,7 +4047,240 @@
                 document.getElementById('edit-budget-content').innerHTML = '<p>Erro ao carregar orçamento.</p>';
                 return;
             }
-            // (código de edição mantido igual ao original)
+            
+            let html = `
+                <div id="edit-budget-form">
+                    <h3>Editando Orçamento</h3>
+                    <p><strong>Cliente:</strong> ${editingBudget.clientName}</p>
+                    <p><strong>Data:</strong> ${formatDate(editingBudget.createdAt)}</p>
+                    
+                    <div class="budget-items-edit">
+                        <h4>Itens do Orçamento</h4>
+                        <div id="edit-budget-items-list">
+            `;
+            
+            editingBudget.items.forEach((item, index) => {
+                html += `
+                    <div class="order-item" id="edit-budget-item-${index}">
+                        <div class="order-item-header">
+                            <div><strong>${item.description}</strong></div>
+                            <div class="order-item-total">R$ ${(item.quantity * item.finalPrice).toFixed(2)}</div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Quantidade</label>
+                                <input type="number" id="edit-budget-qty-${index}" value="${item.quantity}" min="1" onchange="updateEditBudgetItemTotal(${index})">
+                            </div>
+                            <div class="form-group">
+                                <label>Valor Unitário</label>
+                                <input type="number" id="edit-budget-price-${index}" value="${item.price}" step="0.01" onchange="updateEditBudgetItemTotal(${index})">
+                            </div>
+                            <div class="form-group">
+                                <label>Valor Final</label>
+                                <input type="number" id="edit-budget-final-${index}" value="${item.finalPrice}" step="0.01" readonly style="background-color: #f8f9fa;">
+                            </div>
+                        </div>
+                        <button class="btn btn-danger btn-sm" onclick="removeEditBudgetItem(${index})">Remover Item</button>
+                    </div>
+                `;
+            });
+            
+            html += `
+                        </div>
+                        
+                        <div class="order-item-form" style="margin-top: 20px;">
+                            <h4>Adicionar Novo Item</h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Descrição</label>
+                                    <input type="text" id="edit-new-budget-desc" placeholder="Nome do medicamento">
+                                </div>
+                                <div class="form-group">
+                                    <label>Quantidade</label>
+                                    <input type="number" id="edit-new-budget-qty" value="1" min="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Valor Unitário</label>
+                                    <input type="number" id="edit-new-budget-price" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Observações</label>
+                                    <input type="text" id="edit-new-budget-obs" placeholder="Observações do item">
+                                </div>
+                            </div>
+                            <button class="btn btn-success btn-sm" onclick="addEditBudgetItem()">Adicionar Item</button>
+                        </div>
+                        
+                        <div class="budget-total" style="margin-top: 20px;">
+                            Total: R$ <span id="edit-budget-total">${editingBudget.total.toFixed(2)}</span>
+                        </div>
+                        
+                        <div style="margin-top: 16px;">
+                            <label>Validade do Orçamento (dias)</label>
+                            <input type="number" id="edit-budget-validity" value="${editingBudget.validity || 7}" min="1" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
+                        
+                        <div style="margin-top: 16px;">
+                            <label>Observações do Orçamento</label>
+                            <textarea id="edit-budget-observations" rows="3" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px;">${editingBudget.observations || ''}</textarea>
+                        </div>
+                        
+                        <div class="button-group" style="margin-top: 22px;">
+                            <button class="btn btn-success" onclick="saveEditedBudget()">Salvar Alterações</button>
+                            <button class="btn btn-secondary" onclick="showSection('budgets')">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('edit-budget-content').innerHTML = html;
+        }
+
+        function addEditOrderItem() {
+            const desc = document.getElementById('edit-new-item-desc').value.trim();
+            const qty = parseInt(document.getElementById('edit-new-item-qty').value) || 1;
+            const price = parseFloat(document.getElementById('edit-new-item-price').value) || 0;
+            
+            if (!desc) {
+                alert('Por favor, informe a descrição do item!');
+                return;
+            }
+            if (price <= 0) {
+                alert('Por favor, informe um valor válido!');
+                return;
+            }
+            
+            editingOrder.items.push({
+                description: desc,
+                quantity: qty,
+                price: price,
+                finalPrice: price,
+                total: qty * price,
+                cost: 0,
+                profitValue: 0,
+                profitPercent: 0
+            });
+            
+            renderEditOrderForm();
+        }
+
+        function addEditBudgetItem() {
+            const desc = document.getElementById('edit-new-budget-desc').value.trim();
+            const qty = parseInt(document.getElementById('edit-new-budget-qty').value) || 1;
+            const price = parseFloat(document.getElementById('edit-new-budget-price').value) || 0;
+            const obs = document.getElementById('edit-new-budget-obs').value.trim();
+            
+            if (!desc) {
+                alert('Por favor, informe a descrição do item!');
+                return;
+            }
+            if (price <= 0) {
+                alert('Por favor, informe um valor válido!');
+                return;
+            }
+            
+            editingBudget.items.push({
+                description: desc,
+                quantity: qty,
+                price: price,
+                finalPrice: price,
+                total: qty * price,
+                observations: obs
+            });
+            
+            renderEditBudgetForm();
+        }
+
+        function removeEditItem(index) {
+            editingOrder.items.splice(index, 1);
+            renderEditOrderForm();
+        }
+
+        function removeEditBudgetItem(index) {
+            editingBudget.items.splice(index, 1);
+            renderEditBudgetForm();
+        }
+
+        function updateEditItemTotal(index) {
+            const qty = parseFloat(document.getElementById('edit-qty-' + index).value) || 1;
+            const price = parseFloat(document.getElementById('edit-price-' + index).value) || 0;
+            const finalPriceInput = document.getElementById('edit-final-' + index);
+            
+            finalPriceInput.value = price.toFixed(2);
+            
+            editingOrder.items[index].quantity = qty;
+            editingOrder.items[index].price = price;
+            editingOrder.items[index].finalPrice = price;
+            editingOrder.items[index].total = qty * price;
+            
+            let total = 0;
+            editingOrder.items.forEach(item => {
+                total += item.total;
+            });
+            editingOrder.total = total;
+            document.getElementById('edit-order-total').textContent = total.toFixed(2);
+        }
+
+        function updateEditBudgetItemTotal(index) {
+            const qty = parseFloat(document.getElementById('edit-budget-qty-' + index).value) || 1;
+            const price = parseFloat(document.getElementById('edit-budget-price-' + index).value) || 0;
+            const finalPriceInput = document.getElementById('edit-budget-final-' + index);
+            
+            finalPriceInput.value = price.toFixed(2);
+            
+            editingBudget.items[index].quantity = qty;
+            editingBudget.items[index].price = price;
+            editingBudget.items[index].finalPrice = price;
+            editingBudget.items[index].total = qty * price;
+            
+            let total = 0;
+            editingBudget.items.forEach(item => {
+                total += item.total;
+            });
+            editingBudget.total = total;
+            document.getElementById('edit-budget-total').textContent = total.toFixed(2);
+        }
+
+        function saveEditedOrder() {
+            const payment = document.querySelector('input[name="edit-payment"]:checked');
+            const downPayment = parseFloat(document.getElementById('edit-down-payment').value) || 0;
+            const available = document.querySelector('input[name="edit-available"]:checked');
+            
+            if (payment) editingOrder.payment = payment.value;
+            if (available) editingOrder.available = available.value;
+            editingOrder.downPayment = downPayment;
+            
+            const clientIndex = clients.findIndex(c => c.id === editingOrderClientId);
+            if (clientIndex !== -1) {
+                const orderIndex = clients[clientIndex].orders.findIndex(o => o.id === editingOrder.id);
+                if (orderIndex !== -1) {
+                    clients[clientIndex].orders[orderIndex] = editingOrder;
+                    saveToFirebase();
+                    alert('Encomenda atualizada com sucesso!');
+                    showSection('orders');
+                }
+            }
+        }
+
+        function saveEditedBudget() {
+            const validity = parseInt(document.getElementById('edit-budget-validity').value) || 7;
+            const observations = document.getElementById('edit-budget-observations').value.trim();
+            
+            editingBudget.validity = validity;
+            editingBudget.observations = observations;
+            
+            const clientIndex = clients.findIndex(c => c.id === editingBudgetClientId);
+            if (clientIndex !== -1) {
+                const budgetIndex = clients[clientIndex].budgets.findIndex(b => b.id === editingBudget.id);
+                if (budgetIndex !== -1) {
+                    clients[clientIndex].budgets[budgetIndex] = editingBudget;
+                    saveToFirebase();
+                    alert('Orçamento atualizado com sucesso!');
+                    showSection('budgets');
+                }
+            }
         }
 
         function deleteOrder(orderId, clientId) {
@@ -4074,12 +4411,16 @@
 
         function printOrder() {
             saveOrder();
-            printCurrentOrder();
+            setTimeout(() => {
+                printCurrentOrder();
+            }, 500);
         }
 
         function printBudget() {
             saveBudget();
-            printCurrentBudget();
+            setTimeout(() => {
+                printCurrentBudget();
+            }, 500);
         }
 
         function printCurrentOrder() {
@@ -4165,13 +4506,109 @@
         }
 
         function printThermalOrder() {
-            if (!currentOrder) return;
-            alert('Impressão térmica será implementada em breve!');
+            if (!currentOrder) {
+                alert('Nenhuma encomenda selecionada!');
+                return;
+            }
+            
+            const paymentText = currentOrder.payment === 'pago' ? 'Pago' : 
+                               currentOrder.payment === 'parcial' ? 'Parcial' : 'Pendente';
+            const availableText = currentOrder.available === 'sim' ? 'Sim' : 'Não';
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html><head><title>Encomenda Térmica</title>
+                <style>
+                    @page { size: 80mm auto; margin: 0; }
+                    body { font-family: 'Courier New', monospace; font-size: 12px; width: 72mm; margin: 0 auto; padding: 5px; }
+                    .header { text-align: center; font-weight: bold; margin-bottom: 10px; }
+                    .line { border-top: 1px dashed #000; margin: 5px 0; }
+                    table { width: 100%; }
+                    td { padding: 2px 0; }
+                    .total { font-weight: bold; margin-top: 10px; }
+                </style>
+                </head><body>
+                <div class="header">${pharmacyName}</div>
+                <div>Av José Sarney n°06 Q03</div>
+                <div>Bom Jesus - São Luís MA</div>
+                <div>Tel: 98-98628-7296</div>
+                <div class="line"></div>
+                <div><strong>Cliente:</strong> ${currentOrder.clientName}</div>
+                <div><strong>Data:</strong> ${formatDate(currentOrder.createdAt)}</div>
+                <div><strong>Status:</strong> ${currentOrder.status === 'pendente' ? 'Pendente' : 'Entregue'}</div>
+                <div><strong>Pagamento:</strong> ${paymentText}</div>
+                <div><strong>Disponível:</strong> ${availableText}</div>
+                <div class="line"></div>
+                <table>
+            `);
+            currentOrder.items.forEach((item, index) => {
+                printWindow.document.write(`
+                    <tr><td>${index+1}. ${item.description}</td></tr>
+                    <tr><td>${item.quantity}x R$ ${item.finalPrice.toFixed(2)} = R$ ${item.total.toFixed(2)}</td></tr>
+                `);
+            });
+            printWindow.document.write(`
+                </table>
+                <div class="line"></div>
+                <div class="total">TOTAL: R$ ${currentOrder.total.toFixed(2)}</div>
+                <div style="text-align: center; margin-top: 10px;">Obrigado pela preferência!</div>
+                </body></html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
         }
 
         function printThermalBudget() {
-            if (!currentBudget) return;
-            alert('Impressão térmica será implementada em breve!');
+            if (!currentBudget) {
+                alert('Nenhum orçamento selecionado!');
+                return;
+            }
+            
+            const validityDate = new Date(currentBudget.createdAt);
+            validityDate.setDate(validityDate.getDate() + (currentBudget.validity || 7));
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html><head><title>Orçamento Térmico</title>
+                <style>
+                    @page { size: 80mm auto; margin: 0; }
+                    body { font-family: 'Courier New', monospace; font-size: 12px; width: 72mm; margin: 0 auto; padding: 5px; }
+                    .header { text-align: center; font-weight: bold; margin-bottom: 10px; }
+                    .line { border-top: 1px dashed #000; margin: 5px 0; }
+                    table { width: 100%; }
+                    td { padding: 2px 0; }
+                    .total { font-weight: bold; margin-top: 10px; }
+                </style>
+                </head><body>
+                <div class="header">${pharmacyName}</div>
+                <div>Av José Sarney n°06 Q03</div>
+                <div>Bom Jesus - São Luís MA</div>
+                <div>Tel: 98-98628-7296</div>
+                <div class="line"></div>
+                <div><strong>Cliente:</strong> ${currentBudget.clientName}</div>
+                <div><strong>Data:</strong> ${formatDate(currentBudget.createdAt)}</div>
+                <div><strong>Validade:</strong> ${formatDate(validityDate)}</div>
+                <div><strong>Status:</strong> ${currentBudget.approvalStatus || 'Pendente'}</div>
+                ${currentBudget.observations ? `<div><strong>Obs:</strong> ${currentBudget.observations}</div>` : ''}
+                <div class="line"></div>
+                <table>
+            `);
+            currentBudget.items.forEach((item, index) => {
+                const obs = item.observations ? ` (${item.observations})` : '';
+                printWindow.document.write(`
+                    <tr><td>${index+1}. ${item.description}${obs}</td></tr>
+                    <tr><td>${item.quantity}x R$ ${item.finalPrice.toFixed(2)} = R$ ${item.total.toFixed(2)}</td></tr>
+                `);
+            });
+            printWindow.document.write(`
+                </table>
+                <div class="line"></div>
+                <div class="total">TOTAL: R$ ${currentBudget.total.toFixed(2)}</div>
+                <div style="text-align: center; margin-top: 10px;">Orçamento válido por ${currentBudget.validity} dias</div>
+                </body></html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
         }
 
         function printThermalCurrentOrder() {
@@ -4964,7 +5401,7 @@
                     
                     data.push({ date: date.toLocaleDateString('pt-BR'), revenue: dayRevenue, profit: dayProfit });
                 }
-            } else {
+            } else if (type === 'monthly') {
                 let currentDate = new Date(start);
                 while (currentDate <= end) {
                     const monthYear = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
