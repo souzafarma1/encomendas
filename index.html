@@ -15,7 +15,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
     <style>
-        /* Mesmo estilo do original - mantido igual */
         * {
             margin: 0;
             padding: 0;
@@ -464,6 +463,15 @@
         
         .btn-convert:hover {
             background-color: #0d47a1;
+        }
+        
+        .btn-backup {
+            background-color: #16a085;
+            color: white;
+        }
+        
+        .btn-backup:hover {
+            background-color: #117a65;
         }
         
         .section {
@@ -955,6 +963,14 @@
             border-radius: 4px;
         }
         
+        .backup-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f7fa;
+            border-radius: 8px;
+            border-left: 4px solid #16a085;
+        }
+        
         @media (max-width: 768px) {
             .form-row, .filter-row, .dashboard-filter {
                 flex-direction: column;
@@ -1028,14 +1044,6 @@
             margin-bottom: 22px;
         }
         
-        .stat-card {
-            background: white;
-            border-radius: 8px;
-            padding: 14px;
-            text-align: center;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-        }
-        
         .stat-value {
             font-size: 1.7rem;
             font-weight: 700;
@@ -1084,7 +1092,7 @@
             border-radius: 5px;
             margin-top: 8px;
             font-size: 0.85rem;
-            display: block !important; /* Força a exibição */
+            display: block !important;
         }
         
         .profit-info-row {
@@ -1109,7 +1117,6 @@
             color: var(--cost);
         }
 
-        /* Relatórios */
         .reports-dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -1320,7 +1327,6 @@
                 <button class="btn btn-pending btn-sm">Acessar</button>
             </div>
 
-            <!-- NOVA ABA: Orçamentos -->
             <div class="card" onclick="showSection('budgets')">
                 <i class="fas fa-file-invoice"></i>
                 <h3>Orçamentos</h3>
@@ -1335,12 +1341,18 @@
                 <button class="btn btn-budget btn-sm">Criar</button>
             </div>
 
-            <!-- NOVA ABA: Relatórios -->
             <div class="card" onclick="showSection('reports')">
                 <i class="fas fa-chart-pie"></i>
                 <h3>Relatórios</h3>
                 <p>Relatórios personalizados e gráficos</p>
                 <button class="btn btn-pdf btn-sm">Acessar</button>
+            </div>
+
+            <div class="card" onclick="showBackupOptions()">
+                <i class="fas fa-database"></i>
+                <h3>Backup</h3>
+                <p>Fazer backup dos dados</p>
+                <button class="btn btn-backup btn-sm">Backup</button>
             </div>
         </div>
         
@@ -1388,7 +1400,7 @@
             </div>
             
             <div class="list-container" id="clients-list">
-                </div>
+            </div>
         </div>
         
         <div class="section" id="new-client-section">
@@ -1499,7 +1511,6 @@
                 <h3 style="margin-bottom: 14px; font-size: 1.05rem;">Itens da Encomenda</h3>
                 
                 <div id="order-items-list">
-                    <!-- Itens adicionados aparecerão aqui -->
                 </div>
                 
                 <div class="order-item-form">
@@ -1562,7 +1573,6 @@
                     Total: R$ <span id="order-total">0.00</span>
                 </div>
                 
-                <!-- Resumo de Lucro - Agora visível mesmo sem itens -->
                 <div class="profit-info" id="order-profit-summary">
                     <div class="profit-info-row">
                         <span class="profit-label">Custo Total:</span>
@@ -1706,7 +1716,7 @@
             </div>
             
             <div class="list-container" id="orders-list">
-                </div>
+            </div>
         </div>
         
         <div class="section" id="pending-orders-section">
@@ -1749,10 +1759,9 @@
             </div>
             
             <div class="list-container" id="pending-orders-list">
-                </div>
+            </div>
         </div>
 
-        <!-- NOVA SEÇÃO: Lista de Orçamentos (MELHORADA) -->
         <div class="section" id="budgets-section">
             <div class="section-header">
                 <h2><i class="fas fa-file-invoice"></i> Lista de Orçamentos</h2>
@@ -1820,10 +1829,9 @@
             </div>
             
             <div class="list-container" id="budgets-list">
-                </div>
+            </div>
         </div>
 
-        <!-- NOVA SEÇÃO: Novo Orçamento -->
         <div class="section" id="new-budget-section">
             <div class="section-header">
                 <h2><i class="fas fa-file-invoice-dollar"></i> Novo Orçamento</h2>
@@ -1863,7 +1871,6 @@
                 <h3 style="margin-bottom: 14px; font-size: 1.05rem;">Itens do Orçamento</h3>
                 
                 <div id="budget-items-list">
-                    <!-- Itens adicionados aparecerão aqui -->
                 </div>
                 
                 <div class="order-item-form">
@@ -1961,10 +1968,9 @@
             </div>
             
             <div id="edit-order-content">
-                </div>
+            </div>
         </div>
 
-        <!-- NOVA SEÇÃO: Editar Orçamento -->
         <div class="section" id="edit-budget-section">
             <div class="section-header">
                 <h2><i class="fas fa-edit"></i> Editar Orçamento</h2>
@@ -1974,10 +1980,9 @@
             </div>
             
             <div id="edit-budget-content">
-                </div>
+            </div>
         </div>
 
-        <!-- NOVA SEÇÃO: Relatórios Avançados -->
         <div class="section" id="reports-section">
             <div class="section-header">
                 <h2><i class="fas fa-chart-pie"></i> Relatórios Avançados</h2>
@@ -1987,7 +1992,6 @@
             </div>
             
             <div class="reports-dashboard">
-                <!-- Relatório por Período -->
                 <div class="report-card">
                     <h3><i class="fas fa-calendar-alt"></i> Relatório por Período</h3>
                     <div class="report-filter">
@@ -2017,7 +2021,6 @@
                     </div>
                 </div>
 
-                <!-- Relatório por Produto -->
                 <div class="report-card">
                     <h3><i class="fas fa-pills"></i> Relatório por Produto</h3>
                     <div class="report-filter">
@@ -2047,7 +2050,6 @@
                     </div>
                 </div>
 
-                <!-- Relatório por Cliente -->
                 <div class="report-card">
                     <h3><i class="fas fa-users"></i> Relatório por Cliente</h3>
                     <div class="report-filter">
@@ -2077,7 +2079,6 @@
                     </div>
                 </div>
 
-                <!-- Relatório de Orçamentos -->
                 <div class="report-card">
                     <h3><i class="fas fa-file-invoice"></i> Relatório de Orçamentos</h3>
                     <div class="report-filter">
@@ -2105,7 +2106,6 @@
                 </div>
             </div>
 
-            <!-- Área de visualização do relatório -->
             <div class="chart-container" style="margin-top: 20px;">
                 <div class="chart-header">
                     <div class="chart-title" id="report-chart-title">Pré-visualização do Relatório</div>
@@ -2114,13 +2114,46 @@
                     <canvas id="reportChart"></canvas>
                 </div>
                 <div class="report-preview" id="report-preview" style="margin-top: 20px;">
-                    <!-- Preview da tabela será inserido aqui -->
                 </div>
+            </div>
+        </div>
+
+        <!-- Nova Seção de Backup -->
+        <div class="section" id="backup-section">
+            <div class="section-header">
+                <h2><i class="fas fa-database"></i> Backup e Restauração</h2>
+                <button class="btn btn-secondary btn-sm" onclick="showDashboard()">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </button>
+            </div>
+            
+            <div class="backup-section">
+                <h3><i class="fas fa-download"></i> Fazer Backup dos Dados</h3>
+                <p>Baixe um arquivo com todos os seus dados para segurança.</p>
+                <button class="btn btn-backup" onclick="backupData()">
+                    <i class="fas fa-download"></i> Baixar Backup
+                </button>
+            </div>
+
+            <div class="backup-section" style="margin-top: 20px;">
+                <h3><i class="fas fa-upload"></i> Restaurar Dados</h3>
+                <p>Selecione um arquivo de backup para restaurar seus dados.</p>
+                <input type="file" id="restore-file" accept=".json" style="margin-bottom: 10px;">
+                <button class="btn btn-warning" onclick="restoreData()">
+                    <i class="fas fa-upload"></i> Restaurar Backup
+                </button>
+            </div>
+
+            <div class="backup-section" style="margin-top: 20px;">
+                <h3><i class="fas fa-cloud-upload-alt"></i> Forçar Sincronização</h3>
+                <p>Sincronize os dados locais com o Firebase.</p>
+                <button class="btn btn-success" onclick="forceSyncToFirebase()">
+                    <i class="fas fa-sync"></i> Sincronizar Agora
+                </button>
             </div>
         </div>
     </div>
     
-    <!-- MODAL: Detalhes da Encomenda -->
     <div class="modal" id="order-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2128,7 +2161,7 @@
                 <button onclick="closeModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer;">×</button>
             </div>
             <div id="order-details">
-                </div>
+            </div>
             <div style="margin-top: 16px; text-align: center;">
                 <button class="btn btn-whatsapp btn-sm" onclick="sendCurrentOrderWhatsApp()">
                     <i class="fab fa-whatsapp"></i> WhatsApp
@@ -2144,7 +2177,6 @@
         </div>
     </div>
 
-    <!-- NOVO MODAL: Detalhes do Orçamento (MELHORADO) -->
     <div class="modal" id="budget-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2152,14 +2184,11 @@
                 <button onclick="closeBudgetModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer;">×</button>
             </div>
             <div id="budget-details">
-                </div>
+            </div>
             
-            <!-- Status de aprovação -->
             <div class="approval-status" id="approval-status" style="display: none;">
-                <!-- Status será inserido via JavaScript -->
             </div>
 
-            <!-- Link de aprovação online -->
             <div class="approval-link" id="approval-link">
                 <span>Link para aprovação:</span>
                 <input type="text" id="approval-url" readonly>
@@ -2186,7 +2215,6 @@
         </div>
     </div>
 
-    <!-- MODAL: Editar Cliente -->
     <div class="modal" id="edit-client-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2257,7 +2285,6 @@
         </div>
     </div>
 
-    <!-- MODAL: Aprovação de Orçamento -->
     <div class="modal" id="budget-approval-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2265,7 +2292,6 @@
                 <button onclick="closeApprovalModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer;">×</button>
             </div>
             <div id="budget-approval-details">
-                <!-- Detalhes serão inseridos via JavaScript -->
             </div>
             <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
                 <button class="btn btn-success" onclick="approveBudgetFromLink()">
@@ -2279,21 +2305,19 @@
     </div>
 
     <script>
-        // Configuração do Firebase
         const firebaseConfig = {
-  apiKey: "AIzaSyCt6E9r8ITIqxChpfKcBc1qC_RL1PCnTPM",
-  authDomain: "souza-farma.firebaseapp.com",
-  databaseURL: "https://souza-farma-default-rtdb.firebaseio.com",
-  projectId: "souza-farma",
-  storageBucket: "souza-farma.firebasestorage.app",
-  messagingSenderId: "938609988830",
-  appId: "1:938609988830:web:16d320ae6a9f3990af9e4f"
-};
+          apiKey: "AIzaSyCb5Dv8ZVBMxHIIhRqLvDmH4w24Fk0NqEU",
+          authDomain: "souza-farma.firebaseapp.com",
+          databaseURL: "https://souza-farma-default-rtdb.firebaseio.com",
+          projectId: "souza-farma",
+          storageBucket: "souza-farma.firebasestorage.app",
+          messagingSenderId: "123456789",
+          appId: "1:123456789:web:abc123def456"
+        };
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Variáveis globais
         let clients = [];
         let selectedClientForOrder = null;
         let selectedClientForBudget = null;
@@ -2334,27 +2358,13 @@
             endDate: null
         };
 
-        // Relatórios
         let currentReportData = [];
         let currentReportType = '';
 
-        // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
             console.log("Sistema Souza Farma conectando ao Firebase...");
             
-            db.ref('clients').on('value', (snapshot) => {
-                const data = snapshot.val();
-                clients = data ? Object.values(data) : [];
-                
-                updateStats();
-                updateDashboard();
-                if (document.getElementById('clients-section').classList.contains('active')) renderClientsList();
-                if (document.getElementById('orders-section').classList.contains('active')) renderOrdersList();
-                if (document.getElementById('pending-orders-section').classList.contains('active')) renderPendingOrdersList();
-                if (document.getElementById('budgets-section').classList.contains('active')) renderBudgetsList();
-                
-                console.log("Dados sincronizados com Firebase");
-            });
+            loadInitialData();
             
             setTimeout(generateQRCode, 100);
             
@@ -2393,28 +2403,139 @@
             
             initializeDashboard();
             
-            // Configurar eventos
             setupBudgetDiscountCalculation();
             setupProfitCalculation();
             
-            // Verificar parâmetros da URL (para aprovação online)
             checkUrlForApproval();
             
-            // Event listeners para busca nas listas
             document.getElementById('search-clients').addEventListener('input', renderClientsList);
             document.getElementById('search-orders').addEventListener('input', renderOrdersList);
             document.getElementById('search-pending-orders').addEventListener('input', renderPendingOrdersList);
             document.getElementById('search-budgets').addEventListener('input', renderBudgetsList);
         });
 
-        // Função para verificar parâmetros da URL (aprovação online)
+        function loadInitialData() {
+            db.ref('clients').once('value').then((snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    clients = Object.values(data);
+                } else {
+                    clients = [];
+                }
+                
+                db.ref('clients').on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    clients = data ? Object.values(data) : [];
+                    
+                    updateStats();
+                    updateDashboard();
+                    if (document.getElementById('clients-section').classList.contains('active')) renderClientsList();
+                    if (document.getElementById('orders-section').classList.contains('active')) renderOrdersList();
+                    if (document.getElementById('pending-orders-section').classList.contains('active')) renderPendingOrdersList();
+                    if (document.getElementById('budgets-section').classList.contains('active')) renderBudgetsList();
+                    
+                    console.log("Dados sincronizados com Firebase");
+                });
+            }).catch(error => {
+                console.error("Erro ao carregar dados:", error);
+                clients = [];
+            });
+        }
+
+        function saveToLocalStorage() {
+            const clientsObj = {};
+            clients.forEach(c => { clientsObj[c.id] = c; });
+            db.ref('clients').set(clientsObj).catch(error => {
+                console.error("Erro ao salvar no Firebase:", error);
+                alert("Erro ao salvar dados. Verifique sua conexão.");
+            });
+        }
+
+        function showBackupOptions() {
+            showSection('backup');
+        }
+
+        function backupData() {
+            try {
+                const backupData = {
+                    clients: clients,
+                    backupDate: new Date().toISOString(),
+                    version: "1.0"
+                };
+                
+                const dataStr = JSON.stringify(backupData, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `souza_farma_backup_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                alert('Backup gerado com sucesso!');
+            } catch (error) {
+                console.error("Erro ao fazer backup:", error);
+                alert("Erro ao gerar backup: " + error.message);
+            }
+        }
+
+        function restoreData() {
+            const fileInput = document.getElementById('restore-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Selecione um arquivo de backup primeiro!');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const backupData = JSON.parse(e.target.result);
+                    
+                    if (!backupData.clients || !Array.isArray(backupData.clients)) {
+                        throw new Error("Arquivo de backup inválido");
+                    }
+                    
+                    if (!confirm('ATENÇÃO: Isso substituirá todos os dados atuais pelos dados do backup. Deseja continuar?')) {
+                        return;
+                    }
+                    
+                    clients = backupData.clients;
+                    saveToLocalStorage();
+                    
+                    updateStats();
+                    updateDashboard();
+                    renderClientsList();
+                    renderOrdersList();
+                    renderPendingOrdersList();
+                    renderBudgetsList();
+                    
+                    alert('Dados restaurados com sucesso!');
+                    showDashboard();
+                    
+                } catch (error) {
+                    console.error("Erro ao restaurar backup:", error);
+                    alert("Erro ao restaurar backup: Arquivo inválido ou corrompido.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function forceSyncToFirebase() {
+            if (confirm('Isso forçará a sincronização de todos os dados com o Firebase. Deseja continuar?')) {
+                saveToLocalStorage();
+                alert('Sincronização concluída!');
+            }
+        }
+
         function checkUrlForApproval() {
             const urlParams = new URLSearchParams(window.location.search);
             const budgetId = urlParams.get('budget');
             const action = urlParams.get('action');
             
             if (budgetId && action === 'approve') {
-                // Esconder a interface principal e mostrar apenas o modal de aprovação
                 document.getElementById('dashboard-container').style.display = 'none';
                 document.getElementById('simple-dashboard').style.display = 'none';
                 document.getElementById('simple-stats').style.display = 'none';
@@ -2423,9 +2544,7 @@
             }
         }
 
-        // Função para mostrar modal de aprovação
         function showBudgetApprovalModal(budgetId) {
-            // Procurar o orçamento
             let foundBudget = null;
             let foundClient = null;
             
@@ -2446,7 +2565,6 @@
                 return;
             }
             
-            // Verificar se já foi aprovado/rejeitado
             if (foundBudget.approvalStatus === 'aprovado') {
                 document.getElementById('budget-approval-details').innerHTML = '<p style="color: green; text-align: center;">Este orçamento já foi aprovado anteriormente!</p>';
                 document.getElementById('budget-approval-modal').style.display = 'flex';
@@ -2507,11 +2625,9 @@
             document.getElementById('budget-approval-modal').style.display = 'flex';
         }
 
-        // Função para aprovar orçamento via link
         function approveBudgetFromLink() {
             if (!currentBudget) return;
             
-            // Atualizar status do orçamento
             for (let client of clients) {
                 if (client.budgets) {
                     const budgetIndex = client.budgets.findIndex(b => b.id === currentBudget.id);
@@ -2525,15 +2641,12 @@
             
             saveToLocalStorage();
             
-            // Mostrar mensagem de agradecimento
             showThankYouMessage('aprovado');
         }
 
-        // Função para rejeitar orçamento via link
         function rejectBudgetFromLink() {
             if (!currentBudget) return;
             
-            // Atualizar status do orçamento
             for (let client of clients) {
                 if (client.budgets) {
                     const budgetIndex = client.budgets.findIndex(b => b.id === currentBudget.id);
@@ -2547,11 +2660,9 @@
             
             saveToLocalStorage();
             
-            // Mostrar mensagem de agradecimento
             showThankYouMessage('rejeitado');
         }
 
-        // Função para mostrar mensagem de agradecimento
         function showThankYouMessage(status) {
             const message = status === 'aprovado' 
                 ? 'Obrigado por aprovar o orçamento! Em breve entraremos em contato.'
@@ -2564,22 +2675,19 @@
                 </div>
             `;
             
-            // Esconder botões de ação
-            const buttons = document.querySelector('#budget-approval-modal .button-group');
+            const buttons = document.querySelector('#budget-approval-modal div[style*="justify-content: center;"]');
             if (buttons) buttons.style.display = 'none';
             
             setTimeout(() => {
                 closeApprovalModal();
-                window.close(); // Fecha a aba se possível
+                window.close();
             }, 3000);
         }
 
-        // Função para fechar modal de aprovação
         function closeApprovalModal() {
             document.getElementById('budget-approval-modal').style.display = 'none';
         }
 
-        // Função para copiar link de aprovação
         function copyApprovalLink() {
             const linkInput = document.getElementById('approval-url');
             linkInput.select();
@@ -2587,23 +2695,20 @@
             alert('Link copiado para a área de transferência!');
         }
 
-        // Função para converter orçamento em venda
         function convertBudgetToOrder() {
             if (!currentBudget) return;
             
-            // Encontrar o cliente
             const client = clients.find(c => c.id === currentBudget.clientId);
             if (!client) {
                 alert('Cliente não encontrado!');
                 return;
             }
             
-            // Criar itens da encomenda baseados no orçamento
             const items = currentBudget.items.map(item => ({
                 quantity: item.quantity,
                 description: item.description,
                 price: item.price,
-                cost: 0, // Custo precisa ser definido
+                cost: 0,
                 discountType: item.discountType,
                 discountValue: item.discountValue,
                 finalPrice: item.finalPrice,
@@ -2632,13 +2737,11 @@
                 convertedFromBudget: currentBudget.id
             };
             
-            // Adicionar a encomenda
             if (!client.orders) {
                 client.orders = [];
             }
             client.orders.push(newOrder);
             
-            // Atualizar status do orçamento
             if (!client.budgets) {
                 client.budgets = [];
             }
@@ -2659,13 +2762,11 @@
             showOrderModal();
         }
 
-        // Função para enviar WhatsApp com link de aprovação
         function sendBudgetWhatsAppWithLink() {
             if (!currentBudget) return;
             
             const phone = currentBudget.clientPhone.replace(/\D/g, '');
             
-            // Gerar link de aprovação
             const baseUrl = window.location.href.split('?')[0];
             const approvalLink = `${baseUrl}?budget=${currentBudget.id}&action=approve`;
             
@@ -2691,7 +2792,6 @@
             window.open(whatsappUrl, '_blank');
         }
 
-        // Funções de relatórios
         function generatePeriodReport() {
             const type = document.getElementById('period-report-type').value;
             const startDate = document.getElementById('period-start').value;
@@ -2709,7 +2809,6 @@
             let labels = [];
             
             if (type === 'daily') {
-                // Agrupar por dia
                 const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
                 for (let i = 0; i <= days; i++) {
                     const date = new Date(start);
@@ -2739,7 +2838,6 @@
                     data.push({ date: date.toLocaleDateString('pt-BR'), revenue: dayRevenue, profit: dayProfit });
                 }
             } else {
-                // Agrupar por mês
                 let currentDate = new Date(start);
                 while (currentDate <= end) {
                     const monthYear = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
@@ -2906,7 +3004,6 @@
             
             let data = Array.from(productMap.values());
             
-            // Ordenar
             if (orderBy === 'quantity') {
                 data.sort((a, b) => b.quantity - a.quantity);
             } else if (orderBy === 'revenue') {
@@ -2915,7 +3012,6 @@
                 data.sort((a, b) => b.profit - a.profit);
             }
             
-            // Limitar a 20 itens
             data = data.slice(0, 20);
             
             currentReportData = data;
@@ -3011,7 +3107,6 @@
                     
                     totalOrders = filteredOrders.length;
                     
-                    // Frequência (dias entre compras)
                     if (filteredOrders.length > 1) {
                         const dates = filteredOrders.map(o => new Date(o.createdAt)).sort((a, b) => a - b);
                         let totalDays = 0;
@@ -3039,7 +3134,6 @@
                 };
             }).filter(c => c.orders > 0);
             
-            // Ordenar
             if (orderBy === 'orders') {
                 clientData.sort((a, b) => b.orders - a.orders);
             } else if (orderBy === 'spent') {
@@ -3169,7 +3263,6 @@
                 reportChart.destroy();
             }
             
-            // Agrupar por status
             const statusCount = {
                 aprovado: budgets.filter(b => b.status === 'aprovado').length,
                 rejeitado: budgets.filter(b => b.status === 'rejeitado').length,
@@ -3257,28 +3350,23 @@
             document.getElementById('report-preview').innerHTML = html;
         }
 
-        // Funções de exportação para PDF
         function exportToPDF(title, data, columns, rows) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Título
             doc.setFontSize(18);
             doc.setTextColor(231, 76, 60);
             doc.text(title, 14, 22);
             
-            // Informações da farmácia
             doc.setFontSize(10);
             doc.setTextColor(0, 0, 0);
             doc.text(pharmacyName, 14, 32);
             doc.text('Av José Sarney n°06 quadra 03 - Bom Jesus - São Luís MA', 14, 37);
             doc.text('Tel: 98-98628-7296', 14, 42);
             
-            // Data do relatório
             const today = new Date().toLocaleDateString('pt-BR');
             doc.text(`Relatório gerado em: ${today}`, 14, 52);
             
-            // Tabela
             doc.autoTable({
                 startY: 60,
                 head: [columns],
@@ -3294,7 +3382,6 @@
                 }
             });
             
-            // Salvar PDF
             doc.save(`${title.replace(/[^a-zA-Z0-9]/g, '_')}_${today.replace(/\//g, '-')}.pdf`);
         }
 
@@ -3371,7 +3458,6 @@
             exportToPDF('Relatório de Orçamentos', currentReportData, columns, rows);
         }
 
-        // Funções de exportação para PDF (listas)
         function exportClientsToPDF() {
             const columns = ['Nome', 'Telefone', 'Tipo', 'Fidelizado', 'Encomendas', 'Orçamentos'];
             const rows = clients.map(client => [
@@ -3468,7 +3554,6 @@
             exportToPDF('Lista de Orçamentos', allBudgets, columns, rows);
         }
 
-        // Configurar cálculo de lucro
         function setupProfitCalculation() {
             const priceInput = document.getElementById('new-item-price');
             const costInput = document.getElementById('new-item-cost');
@@ -3511,7 +3596,6 @@
             }
             document.getElementById('new-item-profit-percent').value = profitPercent.toFixed(2);
             
-            // Atualizar resumo de lucro
             updateOrderProfitSummary();
         }
 
@@ -3529,7 +3613,6 @@
             }
         }
 
-        // Configurar cálculo de desconto para orçamento
         function setupBudgetDiscountCalculation() {
             const discountType = document.getElementById('new-budget-item-discount-type');
             const discountValue = document.getElementById('new-budget-item-discount-value');
@@ -3568,12 +3651,6 @@
                 
                 finalPriceInput.value = finalPrice.toFixed(2);
             }
-        }
-
-        function saveToLocalStorage() {
-            const clientsObj = {};
-            clients.forEach(c => { clientsObj[c.id] = c; });
-            db.ref('clients').set(clientsObj);
         }
 
         function loadPharmacyLogo() {
@@ -3639,6 +3716,7 @@
                 renderEditOrderForm();
             } else if (section === 'edit-budget') {
                 renderEditBudgetForm();
+            } else if (section === 'backup') {
             }
         }
 
@@ -3705,7 +3783,6 @@
             return checkDate >= startDateOnly && checkDate <= endDateOnly;
         }
 
-        // Funções do Dashboard
         function createSalesChart(ctx) {
             let days = 30;
             let labels = [];
@@ -4076,7 +4153,6 @@
             updateDashboard();
         }
 
-        // Funções de Cliente
         function openEditClientModal(clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -4239,7 +4315,6 @@
             document.getElementById('filter-total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
         }
 
-        // Funções de Cliente
         function saveClient() {
             const name = document.getElementById('client-name').value.trim();
             const phone = document.getElementById('client-phone').value.trim();
@@ -4389,7 +4464,6 @@
             orderTotal = 0;
             document.getElementById('order-total').textContent = '0.00';
             
-            // Resetar resumo de lucro
             updateOrderProfitSummary();
         }
 
@@ -4559,7 +4633,6 @@
             
             itemsList.innerHTML += itemHtml;
             
-            // Limpar formulário
             document.getElementById('new-item-desc').value = '';
             document.getElementById('new-item-qty').value = '1';
             document.getElementById('new-item-price').value = '';
@@ -4863,7 +4936,6 @@
             }
         }
 
-        // Funções de edição
         function editOrder(orderId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -5021,7 +5093,6 @@
             
             document.getElementById('edit-order-content').innerHTML = html;
             
-            // Adicionar event listeners para os campos
             document.querySelectorAll('.edit-item-field').forEach(field => {
                 field.addEventListener('change', function() {
                     const index = this.dataset.index;
@@ -5132,7 +5203,6 @@
             
             document.getElementById('edit-budget-content').innerHTML = html;
             
-            // Adicionar event listeners para os campos
             document.querySelectorAll('.edit-budget-field').forEach(field => {
                 field.addEventListener('change', function() {
                     const index = this.dataset.index;
@@ -5217,7 +5287,6 @@
             document.getElementById('edit-profit-percent-' + index).value = profitPercent.toFixed(2);
             document.getElementById('edit-total-' + index).value = total.toFixed(2);
             
-            // Atualizar o item no array
             if (editingOrder && editingOrder.items[index]) {
                 editingOrder.items[index].quantity = qty;
                 editingOrder.items[index].price = price;
@@ -5252,7 +5321,6 @@
             document.getElementById('edit-budget-final-price-' + index).value = finalPrice.toFixed(2);
             document.getElementById('edit-budget-total-' + index).value = total.toFixed(2);
             
-            // Atualizar o item no array
             if (editingBudget && editingBudget.items[index]) {
                 editingBudget.items[index].quantity = qty;
                 editingBudget.items[index].price = price;
@@ -5297,13 +5365,11 @@
         function saveEditedOrder() {
             if (!editingOrder || !editingOrderClientId) return;
             
-            // Atualizar campos adicionais
             editingOrder.payment = document.getElementById('edit-payment').value;
             editingOrder.downPayment = parseFloat(document.getElementById('edit-down-payment').value) || 0;
             editingOrder.available = document.getElementById('edit-available').value;
             editingOrder.status = document.getElementById('edit-status').value;
             
-            // Recalcular totais
             let total = 0, totalCost = 0, totalProfit = 0;
             editingOrder.items.forEach(item => {
                 total += item.total;
@@ -5315,7 +5381,6 @@
             editingOrder.totalProfit = totalProfit;
             editingOrder.profitMargin = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
             
-            // Encontrar e atualizar o cliente
             const clientIndex = clients.findIndex(c => c.id === editingOrderClientId);
             if (clientIndex === -1) {
                 alert('Cliente não encontrado!');
@@ -5341,7 +5406,6 @@
         function saveEditedBudget() {
             if (!editingBudget || !editingBudgetClientId) return;
             
-            // Atualizar campos adicionais
             editingBudget.validity = parseInt(document.getElementById('edit-budget-validity').value) || 7;
             editingBudget.approvalStatus = document.getElementById('edit-budget-approval').value;
             if (editingBudget.approvalStatus === 'pendente') {
@@ -5349,14 +5413,12 @@
             }
             editingBudget.observations = document.getElementById('edit-budget-observations').value.trim();
             
-            // Recalcular total
             let total = 0;
             editingBudget.items.forEach(item => {
                 total += item.total;
             });
             editingBudget.total = total;
             
-            // Encontrar e atualizar o cliente
             const clientIndex = clients.findIndex(c => c.id === editingBudgetClientId);
             if (clientIndex === -1) {
                 alert('Cliente não encontrado!');
@@ -5471,7 +5533,6 @@
             });
             html += `</tbody></table>`;
             
-            // Adicionar resumo de lucro
             html += `
                 <div style="margin-top: 16px; background: #e8f6f3; padding: 10px; border-radius: 5px;">
                     <div style="display: flex; justify-content: space-between;">
@@ -5527,7 +5588,6 @@
             
             document.getElementById('budget-details').innerHTML = html;
             
-            // Gerar link de aprovação
             const baseUrl = window.location.href.split('?')[0];
             const approvalLink = `${baseUrl}?budget=${currentBudget.id}&action=approve`;
             document.getElementById('approval-url').value = approvalLink;
@@ -6202,7 +6262,6 @@
             window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
         }
 
-        // Funções de exportação Excel
         function exportClientsToExcel() {
             if (clients.length === 0) {
                 alert('Não há clientes para exportar!');
