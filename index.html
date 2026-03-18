@@ -1928,15 +1928,15 @@
     </div>
 
     <script>
-        // Configuração do Firebase - CORRIGIDA
+        // Configuração do Firebase - CORRIGIDA COM DADOS REAIS
         const firebaseConfig = {
-            apiKey: "AIzaSyBc4X6JgBQ9F5u3L6n9W2q8R4vZ5xY7pA8",
-            authDomain: "souza-farma.firebaseapp.com",
-            databaseURL: "https://souza-farma-default-rtdb.firebaseio.com",
-            projectId: "souza-farma",
-            storageBucket: "souza-farma.firebasestorage.app",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abc123def456ghi789jkl"
+            apiKey: "AIzaSyCvNUqP52-g3kT10w_3sD7ZzNW5hYYR2V0",
+            authDomain: "souza-farma-69c5b.firebaseapp.com",
+            databaseURL: "https://souza-farma-69c5b-default-rtdb.firebaseio.com/",
+            projectId: "souza-farma-69c5b",
+            storageBucket: "souza-farma-69c5b.firebasestorage.app",
+            messagingSenderId: "194540037345",
+            appId: "1:194540037345:web:8db70ed448d3e91888d1cb"
         };
 
         // Inicializar Firebase
@@ -1982,17 +1982,20 @@
             endDate: null
         };
         let dataLoaded = false;
+        let initialLoadComplete = false;
 
         // Função para salvar no Firebase
         function saveToFirebase() {
-            if (!dataLoaded) return;
+            if (!dataLoaded) {
+                console.log('Aguardando carregamento inicial...');
+                return;
+            }
             
             const clientsObj = {};
             clients.forEach(c => { 
                 clientsObj[c.id] = c; 
             });
             
-            // Usar set com tratamento de erro
             database.ref('clients').set(clientsObj)
                 .then(() => {
                     console.log('Dados salvos com sucesso no Firebase');
@@ -2005,24 +2008,38 @@
 
         // Função para carregar do Firebase
         function loadFromFirebase() {
+            console.log('Carregando dados do Firebase...');
+            
             database.ref('clients').once('value')
                 .then((snapshot) => {
                     const data = snapshot.val();
                     if (data) {
                         clients = Object.values(data);
                         console.log('Dados carregados do Firebase:', clients.length, 'clientes');
+                        
+                        // Mostrar os dados carregados no console para debug
+                        clients.forEach(client => {
+                            console.log('Cliente carregado:', client.name, 'Ordens:', client.orders ? client.orders.length : 0);
+                        });
                     } else {
                         clients = [];
                         console.log('Nenhum dado encontrado no Firebase');
                     }
+                    
                     dataLoaded = true;
+                    initialLoadComplete = true;
                     updateAllUI();
+                    
+                    // Mostrar mensagem de sucesso
+                    alert(`Dados carregados com sucesso! ${clients.length} cliente(s) encontrado(s).`);
                 })
                 .catch((error) => {
                     console.error('Erro ao carregar do Firebase:', error);
                     clients = [];
                     dataLoaded = true;
+                    initialLoadComplete = true;
                     updateAllUI();
+                    alert('Erro ao carregar dados: ' + error.message);
                 });
         }
 
@@ -2037,7 +2054,7 @@
                     clients = [];
                 }
                 
-                if (dataLoaded) {
+                if (initialLoadComplete) {
                     updateAllUI();
                 }
             }, (error) => {
