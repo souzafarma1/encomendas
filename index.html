@@ -15,7 +15,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
     <style>
-        /* Seu CSS existente permanece igual */
+        /* Mesmo estilo do original - mantido igual */
         * {
             margin: 0;
             padding: 0;
@@ -1084,6 +1084,7 @@
             border-radius: 5px;
             margin-top: 8px;
             font-size: 0.85rem;
+            display: block !important; /* Força a exibição */
         }
         
         .profit-info-row {
@@ -1498,7 +1499,8 @@
                 <h3 style="margin-bottom: 14px; font-size: 1.05rem;">Itens da Encomenda</h3>
                 
                 <div id="order-items-list">
-                    </div>
+                    <!-- Itens adicionados aparecerão aqui -->
+                </div>
                 
                 <div class="order-item-form">
                     <h4 style="margin-bottom: 9px; font-size: 0.95rem;">Adicionar Novo Item</h4>
@@ -1524,11 +1526,11 @@
                         </div>
                         <div class="form-group">
                             <label>Lucro (R$)</label>
-                            <input type="number" id="new-item-profit-value" step="0.01" placeholder="0.00" readonly style="background-color: #e8f6f3;">
+                            <input type="number" id="new-item-profit-value" step="0.01" placeholder="0.00" readonly style="background-color: #e8f6f3; color: var(--profit); font-weight: bold;">
                         </div>
                         <div class="form-group">
                             <label>Lucro (%)</label>
-                            <input type="number" id="new-item-profit-percent" step="0.01" placeholder="0.00" readonly style="background-color: #e8f6f3;">
+                            <input type="number" id="new-item-profit-percent" step="0.01" placeholder="0.00" readonly style="background-color: #e8f6f3; color: var(--profit); font-weight: bold;">
                         </div>
                     </div>
                     
@@ -1560,7 +1562,8 @@
                     Total: R$ <span id="order-total">0.00</span>
                 </div>
                 
-                <div class="profit-info" id="order-profit-summary" style="display: none;">
+                <!-- Resumo de Lucro - Agora visível mesmo sem itens -->
+                <div class="profit-info" id="order-profit-summary">
                     <div class="profit-info-row">
                         <span class="profit-label">Custo Total:</span>
                         <span class="profit-value cost-value" id="order-total-cost">R$ 0.00</span>
@@ -2278,13 +2281,13 @@
     <script>
         // Configuração do Firebase
         const firebaseConfig = {
-          apiKey: "SUA_API_KEY",
+          apiKey: "AIzaSyCb5Dv8ZVBMxHIIhRqLvDmH4w24Fk0NqEU",
           authDomain: "souza-farma.firebaseapp.com",
           databaseURL: "https://souza-farma-default-rtdb.firebaseio.com",
           projectId: "souza-farma",
-          storageBucket: "souza-farma.appspot.com",
-          messagingSenderId: "SEU_ID",
-          appId: "SEU_APP_ID"
+          storageBucket: "souza-farma.firebasestorage.app",
+          messagingSenderId: "123456789",
+          appId: "1:123456789:web:abc123def456"
         };
         
         firebase.initializeApp(firebaseConfig);
@@ -2292,9 +2295,6 @@
 
         // Variáveis globais
         let clients = [];
-        let budgets = [];
-        let products = [];
-        let encomendas = [];
         let selectedClientForOrder = null;
         let selectedClientForBudget = null;
         let currentOrder = null;
@@ -2306,7 +2306,7 @@
         let editingBudget = null;
         let editingOrderClientId = null;
         let editingBudgetClientId = null;
-        let dateFilterApplied = false;
+        let dateFilterApplied = true;
         let budgetFilterApplied = false;
         let currentFilter = {
             startDate: null,
@@ -2342,36 +2342,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log("Sistema Souza Farma conectando ao Firebase...");
             
-            // Carregar clientes
             db.ref('clients').on('value', (snapshot) => {
                 const data = snapshot.val();
                 clients = data ? Object.values(data) : [];
-                console.log('Clientes carregados:', clients.length);
-                updateAllData();
-            });
-            
-            // Carregar orçamentos
-            db.ref('budgets').on('value', (snapshot) => {
-                const data = snapshot.val();
-                budgets = data ? Object.values(data) : [];
-                console.log('Orçamentos carregados:', budgets.length);
-                updateAllData();
-            });
-            
-            // Carregar encomendas
-            db.ref('encomendas').on('value', (snapshot) => {
-                const data = snapshot.val();
-                encomendas = data ? Object.values(data) : [];
-                console.log('Encomendas carregadas:', encomendas.length);
-                updateAllData();
-            });
-            
-            // Carregar produtos
-            db.ref('products').on('value', (snapshot) => {
-                const data = snapshot.val();
-                products = data ? Object.values(data) : [];
-                console.log('Produtos carregados:', products.length);
-                updateAllData();
+                
+                updateStats();
+                updateDashboard();
+                if (document.getElementById('clients-section').classList.contains('active')) renderClientsList();
+                if (document.getElementById('orders-section').classList.contains('active')) renderOrdersList();
+                if (document.getElementById('pending-orders-section').classList.contains('active')) renderPendingOrdersList();
+                if (document.getElementById('budgets-section').classList.contains('active')) renderBudgetsList();
+                
+                console.log("Dados sincronizados com Firebase");
             });
             
             setTimeout(generateQRCode, 100);
@@ -2425,15 +2407,6 @@
             document.getElementById('search-budgets').addEventListener('input', renderBudgetsList);
         });
 
-        function updateAllData() {
-            updateStats();
-            updateDashboard();
-            if (document.getElementById('clients-section').classList.contains('active')) renderClientsList();
-            if (document.getElementById('orders-section').classList.contains('active')) renderOrdersList();
-            if (document.getElementById('pending-orders-section').classList.contains('active')) renderPendingOrdersList();
-            if (document.getElementById('budgets-section').classList.contains('active')) renderBudgetsList();
-        }
-
         // Função para verificar parâmetros da URL (aprovação online)
         function checkUrlForApproval() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -2441,25 +2414,62 @@
             const action = urlParams.get('action');
             
             if (budgetId && action === 'approve') {
-                const budget = budgets.find(b => b.id == budgetId);
-                if (budget) {
-                    showBudgetApprovalModal(budget);
-                }
+                // Esconder a interface principal e mostrar apenas o modal de aprovação
+                document.getElementById('dashboard-container').style.display = 'none';
+                document.getElementById('simple-dashboard').style.display = 'none';
+                document.getElementById('simple-stats').style.display = 'none';
+                
+                showBudgetApprovalModal(budgetId);
             }
         }
 
         // Função para mostrar modal de aprovação
-        function showBudgetApprovalModal(budget) {
-            currentBudget = budget;
+        function showBudgetApprovalModal(budgetId) {
+            // Procurar o orçamento
+            let foundBudget = null;
+            let foundClient = null;
             
-            const validityDate = budget.validityDate ? new Date(budget.validityDate) : new Date(budget.createdAt);
+            for (let client of clients) {
+                if (client.budgets) {
+                    const budget = client.budgets.find(b => b.id == budgetId);
+                    if (budget) {
+                        foundBudget = budget;
+                        foundClient = client;
+                        break;
+                    }
+                }
+            }
+            
+            if (!foundBudget) {
+                document.getElementById('budget-approval-details').innerHTML = '<p style="color: red; text-align: center;">Orçamento não encontrado ou já foi processado!</p>';
+                document.getElementById('budget-approval-modal').style.display = 'flex';
+                return;
+            }
+            
+            // Verificar se já foi aprovado/rejeitado
+            if (foundBudget.approvalStatus === 'aprovado') {
+                document.getElementById('budget-approval-details').innerHTML = '<p style="color: green; text-align: center;">Este orçamento já foi aprovado anteriormente!</p>';
+                document.getElementById('budget-approval-modal').style.display = 'flex';
+                return;
+            }
+            
+            if (foundBudget.approvalStatus === 'rejeitado') {
+                document.getElementById('budget-approval-details').innerHTML = '<p style="color: orange; text-align: center;">Este orçamento já foi rejeitado anteriormente!</p>';
+                document.getElementById('budget-approval-modal').style.display = 'flex';
+                return;
+            }
+            
+            currentBudget = foundBudget;
+            
+            const validityDate = new Date(foundBudget.createdAt);
+            validityDate.setDate(validityDate.getDate() + (foundBudget.validity || 7));
             
             let html = `
-                <h4>Cliente: ${budget.clientName}</h4>
-                <p>Telefone: ${budget.clientPhone}</p>
-                <p>Data: ${formatDate(budget.createdAt)}</p>
+                <h4>Cliente: ${foundBudget.clientName}</h4>
+                <p>Telefone: ${foundBudget.clientPhone}</p>
+                <p>Data: ${formatDate(foundBudget.createdAt)}</p>
                 <p>Validade: ${formatDate(validityDate)}</p>
-                <p>Status atual: ${budget.status || 'Pendente'}</p>
+                <p>Status atual: Pendente</p>
                 
                 <h4 style="margin-top: 16px;">Itens:</h4>
                 <table style="width: 100%; border-collapse: collapse;">
@@ -2474,13 +2484,13 @@
                     <tbody>
             `;
             
-            budget.items.forEach(item => {
+            foundBudget.items.forEach(item => {
                 html += `
                     <tr>
                         <td style="padding: 7px;">${item.description}</td>
                         <td style="padding: 7px;">${item.quantity}</td>
-                        <td style="padding: 7px;">R$ ${item.price.toFixed(2)}</td>
-                        <td style="padding: 7px;">R$ ${item.subtotal.toFixed(2)}</td>
+                        <td style="padding: 7px;">R$ ${item.finalPrice.toFixed(2)}</td>
+                        <td style="padding: 7px;">R$ ${item.total.toFixed(2)}</td>
                     </tr>
                 `;
             });
@@ -2489,7 +2499,7 @@
                     </tbody>
                 </table>
                 <h4 style="margin-top: 16px; text-align: right;">
-                    Total: R$ ${budget.total.toFixed(2)}
+                    Total: R$ ${foundBudget.total.toFixed(2)}
                 </h4>
             `;
             
@@ -2502,16 +2512,20 @@
             if (!currentBudget) return;
             
             // Atualizar status do orçamento
-            currentBudget.status = 'aprovado';
-            currentBudget.approvedAt = new Date().toISOString();
+            for (let client of clients) {
+                if (client.budgets) {
+                    const budgetIndex = client.budgets.findIndex(b => b.id === currentBudget.id);
+                    if (budgetIndex !== -1) {
+                        client.budgets[budgetIndex].approvalStatus = 'aprovado';
+                        client.budgets[budgetIndex].approvedAt = new Date().toISOString();
+                        break;
+                    }
+                }
+            }
             
-            // Salvar no Firebase
-            db.ref('budgets/' + currentBudget.id).set(currentBudget);
+            saveToLocalStorage();
             
-            alert('Orçamento aprovado com sucesso!');
-            closeApprovalModal();
-            
-            // Redirecionar para mensagem de agradecimento
+            // Mostrar mensagem de agradecimento
             showThankYouMessage('aprovado');
         }
 
@@ -2520,14 +2534,21 @@
             if (!currentBudget) return;
             
             // Atualizar status do orçamento
-            currentBudget.status = 'rejeitado';
-            currentBudget.rejectedAt = new Date().toISOString();
+            for (let client of clients) {
+                if (client.budgets) {
+                    const budgetIndex = client.budgets.findIndex(b => b.id === currentBudget.id);
+                    if (budgetIndex !== -1) {
+                        client.budgets[budgetIndex].approvalStatus = 'rejeitado';
+                        client.budgets[budgetIndex].rejectedAt = new Date().toISOString();
+                        break;
+                    }
+                }
+            }
             
-            // Salvar no Firebase
-            db.ref('budgets/' + currentBudget.id).set(currentBudget);
+            saveToLocalStorage();
             
-            alert('Orçamento rejeitado.');
-            closeApprovalModal();
+            // Mostrar mensagem de agradecimento
+            showThankYouMessage('rejeitado');
         }
 
         // Função para mostrar mensagem de agradecimento
@@ -2543,8 +2564,13 @@
                 </div>
             `;
             
+            // Esconder botões de ação
+            const buttons = document.querySelector('#budget-approval-modal .button-group');
+            if (buttons) buttons.style.display = 'none';
+            
             setTimeout(() => {
                 closeApprovalModal();
+                window.close(); // Fecha a aba se possível
             }, 3000);
         }
 
@@ -2578,12 +2604,12 @@
                 description: item.description,
                 price: item.price,
                 cost: 0, // Custo precisa ser definido
-                discount: item.discount || 0,
-                discountValue: item.discountValue || 0,
-                finalPrice: item.price - (item.discountValue || 0),
+                discountType: item.discountType,
+                discountValue: item.discountValue,
+                finalPrice: item.finalPrice,
                 profitValue: 0,
                 profitPercent: 0,
-                total: item.subtotal || item.total
+                total: item.total
             }));
             
             const total = currentBudget.total;
@@ -2598,8 +2624,9 @@
                 totalCost: 0,
                 totalProfit: 0,
                 profitMargin: 0,
-                paymentMethod: currentBudget.paymentMethod || 'pendente',
+                payment: 'pendente',
                 downPayment: 0,
+                available: 'nao',
                 status: 'pendente',
                 createdAt: new Date().toISOString(),
                 convertedFromBudget: currentBudget.id
@@ -2612,15 +2639,20 @@
             client.orders.push(newOrder);
             
             // Atualizar status do orçamento
-            currentBudget.convertedToOrder = newOrder.id;
-            currentBudget.convertedAt = new Date().toISOString();
+            if (!client.budgets) {
+                client.budgets = [];
+            }
+            const budgetIndex = client.budgets.findIndex(b => b.id === currentBudget.id);
+            if (budgetIndex !== -1) {
+                client.budgets[budgetIndex].convertedToOrder = newOrder.id;
+                client.budgets[budgetIndex].convertedAt = new Date().toISOString();
+            }
             
-            // Salvar no Firebase
-            db.ref('clients/' + client.id).set(client);
-            db.ref('budgets/' + currentBudget.id).set(currentBudget);
+            saveToLocalStorage();
             
             currentOrder = newOrder;
-            updateAllData();
+            updateStats();
+            updateDashboard();
             
             alert('Orçamento convertido em encomenda com sucesso!');
             closeBudgetModal();
@@ -2639,14 +2671,15 @@
             
             document.getElementById('approval-url').value = approvalLink;
             
-            const validityDate = currentBudget.validityDate ? new Date(currentBudget.validityDate) : new Date(currentBudget.createdAt);
+            const validityDate = new Date(currentBudget.createdAt);
+            validityDate.setDate(validityDate.getDate() + (currentBudget.validity || 7));
             
             const saudacao = `Olá ${currentBudget.clientName}! Tudo bem?%0A%0A`;
             
             const message = `${saudacao}*SOUZA FARMA - FARMÁCIA DO TRABALHADOR - ORÇAMENTO PARA APROVAÇÃO*%0A%0A` +
                            `*Cliente:* ${currentBudget.clientName}%0A` +
                            `*Data:* ${formatDate(currentBudget.createdAt)}%0A` +
-                           `*Validade:* ${formatDate(validityDate)}%0A%0A` +
+                           `*Validade:* ${currentBudget.validity} dias (${formatDate(validityDate)})%0A%0A` +
                            `*Valor Total:* R$ ${currentBudget.total.toFixed(2)}%0A%0A` +
                            `Para aprovar este orçamento, clique no link abaixo:%0A` +
                            `${encodeURIComponent(approvalLink)}%0A%0A` +
@@ -2686,14 +2719,20 @@
                     let dayRevenue = 0;
                     let dayProfit = 0;
                     
-                    encomendas.forEach(order => {
-                        if (order.status === 'recebida' || order.status === 'entregue') {
-                            const orderDate = new Date(order.createdAt);
-                            if (orderDate.toDateString() === date.toDateString()) {
-                                dayRevenue += order.valor || 0;
-                                // Como não temos custo nas encomendas, consideramos lucro como 50% para exemplo
-                                dayProfit += (order.valor || 0) * 0.5;
-                            }
+                    clients.forEach(client => {
+                        if (client.orders) {
+                            client.orders.forEach(order => {
+                                const orderDate = new Date(order.createdAt);
+                                if (orderDate.toDateString() === date.toDateString() && order.status === 'entregue') {
+                                    dayRevenue += order.total;
+                                    let orderProfit = 0;
+                                    order.items.forEach(item => {
+                                        const itemProfit = (item.finalPrice - (item.cost || 0)) * item.quantity;
+                                        orderProfit += itemProfit;
+                                    });
+                                    dayProfit += orderProfit;
+                                }
+                            });
                         }
                     });
                     
@@ -2709,14 +2748,22 @@
                     let monthRevenue = 0;
                     let monthProfit = 0;
                     
-                    encomendas.forEach(order => {
-                        if (order.status === 'recebida' || order.status === 'entregue') {
-                            const orderDate = new Date(order.createdAt);
-                            if (orderDate.getMonth() === currentDate.getMonth() && 
-                                orderDate.getFullYear() === currentDate.getFullYear()) {
-                                monthRevenue += order.valor || 0;
-                                monthProfit += (order.valor || 0) * 0.5;
-                            }
+                    clients.forEach(client => {
+                        if (client.orders) {
+                            client.orders.forEach(order => {
+                                const orderDate = new Date(order.createdAt);
+                                if (orderDate.getMonth() === currentDate.getMonth() && 
+                                    orderDate.getFullYear() === currentDate.getFullYear() && 
+                                    order.status === 'entregue') {
+                                    monthRevenue += order.total;
+                                    let orderProfit = 0;
+                                    order.items.forEach(item => {
+                                        const itemProfit = (item.finalPrice - (item.cost || 0)) * item.quantity;
+                                        orderProfit += itemProfit;
+                                    });
+                                    monthProfit += orderProfit;
+                                }
+                            });
                         }
                     });
                     
@@ -2830,20 +2877,30 @@
             
             const productMap = new Map();
             
-            encomendas.forEach(order => {
-                const orderDate = new Date(order.createdAt);
-                if (orderDate >= startDate && (order.status === 'recebida' || order.status === 'entregue')) {
-                    const key = order.product;
-                    if (!productMap.has(key)) {
-                        productMap.set(key, {
-                            name: order.product,
-                            quantity: 0,
-                            revenue: 0
-                        });
-                    }
-                    const product = productMap.get(key);
-                    product.quantity += order.quantidade || 1;
-                    product.revenue += order.valor || 0;
+            clients.forEach(client => {
+                if (client.orders) {
+                    client.orders.forEach(order => {
+                        const orderDate = new Date(order.createdAt);
+                        if (orderDate >= startDate && order.status === 'entregue') {
+                            order.items.forEach(item => {
+                                const key = item.description;
+                                if (!productMap.has(key)) {
+                                    productMap.set(key, {
+                                        name: item.description,
+                                        quantity: 0,
+                                        revenue: 0,
+                                        cost: 0,
+                                        profit: 0
+                                    });
+                                }
+                                const product = productMap.get(key);
+                                product.quantity += item.quantity;
+                                product.revenue += item.finalPrice * item.quantity;
+                                product.cost += (item.cost || 0) * item.quantity;
+                                product.profit += (item.finalPrice - (item.cost || 0)) * item.quantity;
+                            });
+                        }
+                    });
                 }
             });
             
@@ -2855,7 +2912,7 @@
             } else if (orderBy === 'revenue') {
                 data.sort((a, b) => b.revenue - a.revenue);
             } else if (orderBy === 'profit') {
-                data.sort((a, b) => (b.revenue * 0.5) - (a.revenue * 0.5));
+                data.sort((a, b) => b.profit - a.profit);
             }
             
             // Limitar a 20 itens
@@ -2903,17 +2960,22 @@
                             <th>Produto</th>
                             <th>Quantidade</th>
                             <th>Receita (R$)</th>
+                            <th>Lucro (R$)</th>
+                            <th>Margem (%)</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
             
             data.forEach(item => {
+                const margin = item.revenue > 0 ? (item.profit / item.revenue * 100).toFixed(1) : 0;
                 html += `
                     <tr>
                         <td>${item.name}</td>
                         <td>${item.quantity}</td>
                         <td>R$ ${item.revenue.toFixed(2)}</td>
+                        <td>R$ ${item.profit.toFixed(2)}</td>
+                        <td>${margin}%</td>
                     </tr>
                 `;
             });
@@ -2936,23 +2998,35 @@
             const clientData = clients.map(client => {
                 let totalOrders = 0;
                 let totalSpent = 0;
+                let totalProfit = 0;
                 let frequency = 0;
+                const lastYear = new Date();
+                lastYear.setFullYear(lastYear.getFullYear() - 1);
                 
-                const clientOrders = encomendas.filter(o => o.clientId === client.id && 
-                    new Date(o.createdAt) >= startDate && 
-                    (o.status === 'recebida' || o.status === 'entregue'));
-                
-                totalOrders = clientOrders.length;
-                totalSpent = clientOrders.reduce((sum, o) => sum + (o.valor || 0), 0);
-                
-                // Frequência (dias entre compras)
-                if (clientOrders.length > 1) {
-                    const dates = clientOrders.map(o => new Date(o.createdAt)).sort((a, b) => a - b);
-                    let totalDays = 0;
-                    for (let i = 1; i < dates.length; i++) {
-                        totalDays += (dates[i] - dates[i-1]) / (1000 * 60 * 60 * 24);
+                if (client.orders) {
+                    const filteredOrders = client.orders.filter(o => {
+                        const orderDate = new Date(o.createdAt);
+                        return orderDate >= startDate && o.status === 'entregue';
+                    });
+                    
+                    totalOrders = filteredOrders.length;
+                    
+                    // Frequência (dias entre compras)
+                    if (filteredOrders.length > 1) {
+                        const dates = filteredOrders.map(o => new Date(o.createdAt)).sort((a, b) => a - b);
+                        let totalDays = 0;
+                        for (let i = 1; i < dates.length; i++) {
+                            totalDays += (dates[i] - dates[i-1]) / (1000 * 60 * 60 * 24);
+                        }
+                        frequency = totalDays / (dates.length - 1);
                     }
-                    frequency = totalDays / (dates.length - 1);
+                    
+                    filteredOrders.forEach(order => {
+                        totalSpent += order.total;
+                        order.items.forEach(item => {
+                            totalProfit += (item.finalPrice - (item.cost || 0)) * item.quantity;
+                        });
+                    });
                 }
                 
                 return {
@@ -2960,6 +3034,7 @@
                     phone: client.phone,
                     orders: totalOrders,
                     spent: totalSpent,
+                    profit: totalProfit,
                     frequency: frequency.toFixed(1)
                 };
             }).filter(c => c.orders > 0);
@@ -3016,6 +3091,7 @@
                             <th>Telefone</th>
                             <th>Compras</th>
                             <th>Total Gasto (R$)</th>
+                            <th>Lucro (R$)</th>
                             <th>Frequência (dias)</th>
                         </tr>
                     </thead>
@@ -3029,6 +3105,7 @@
                         <td>${item.phone}</td>
                         <td>${item.orders}</td>
                         <td>R$ ${item.spent.toFixed(2)}</td>
+                        <td>R$ ${item.profit.toFixed(2)}</td>
                         <td>${item.frequency}</td>
                     </tr>
                 `;
@@ -3047,39 +3124,43 @@
             const startDate = document.getElementById('budget-report-start').value;
             const endDate = document.getElementById('budget-report-end').value;
             
-            let filteredBudgets = [...budgets];
+            let budgets = [];
             
-            if (startDate && endDate) {
-                const start = new Date(startDate + 'T00:00:00');
-                const end = new Date(endDate + 'T23:59:59');
-                filteredBudgets = filteredBudgets.filter(b => {
-                    const budgetDate = new Date(b.createdAt);
-                    return budgetDate >= start && budgetDate <= end;
-                });
-            }
-            
-            if (status !== 'all') {
-                filteredBudgets = filteredBudgets.filter(b => b.status === status);
-            }
-            
-            const reportData = filteredBudgets.map(budget => {
-                const client = clients.find(c => c.id === budget.clientId);
-                return {
-                    client: client ? client.name : budget.clientName,
-                    date: formatDate(budget.createdAt),
-                    total: budget.total,
-                    items: budget.items.length,
-                    status: budget.status || 'pendente',
-                    converted: budget.convertedToOrder ? 'Sim' : 'Não'
-                };
+            clients.forEach(client => {
+                if (client.budgets) {
+                    client.budgets.forEach(budget => {
+                        const budgetDate = new Date(budget.createdAt);
+                        
+                        if (startDate && endDate) {
+                            const start = new Date(startDate + 'T00:00:00');
+                            const end = new Date(endDate + 'T23:59:59');
+                            if (budgetDate < start || budgetDate > end) return;
+                        }
+                        
+                        if (status !== 'all') {
+                            if ((status === 'aprovado' && budget.approvalStatus !== 'aprovado') ||
+                                (status === 'rejeitado' && budget.approvalStatus !== 'rejeitado') ||
+                                (status === 'pendente' && budget.approvalStatus)) return;
+                        }
+                        
+                        budgets.push({
+                            client: client.name,
+                            date: formatDate(budget.createdAt),
+                            total: budget.total,
+                            items: budget.items.length,
+                            status: budget.approvalStatus || 'pendente',
+                            converted: budget.convertedToOrder ? 'Sim' : 'Não'
+                        });
+                    });
+                }
             });
             
-            reportData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            budgets.sort((a, b) => new Date(b.date) - new Date(a.date));
             
-            currentReportData = reportData;
+            currentReportData = budgets;
             currentReportType = 'budget';
-            renderBudgetReportChart(reportData);
-            renderBudgetReportPreview(reportData);
+            renderBudgetReportChart(budgets);
+            renderBudgetReportPreview(budgets);
         }
 
         function renderBudgetReportChart(budgets) {
@@ -3092,7 +3173,7 @@
             const statusCount = {
                 aprovado: budgets.filter(b => b.status === 'aprovado').length,
                 rejeitado: budgets.filter(b => b.status === 'rejeitado').length,
-                pendente: budgets.filter(b => b.status === 'pendente' || !b.status).length
+                pendente: budgets.filter(b => b.status === 'pendente').length
             };
             
             reportChart = new Chart(ctx, {
@@ -3240,11 +3321,13 @@
                 return;
             }
             
-            const columns = ['Produto', 'Quantidade', 'Receita (R$)'];
+            const columns = ['Produto', 'Quantidade', 'Receita (R$)', 'Lucro (R$)', 'Margem (%)'];
             const rows = currentReportData.map(item => [
                 item.name,
                 item.quantity.toString(),
-                `R$ ${item.revenue.toFixed(2)}`
+                `R$ ${item.revenue.toFixed(2)}`,
+                `R$ ${item.profit.toFixed(2)}`,
+                item.revenue > 0 ? ((item.profit / item.revenue) * 100).toFixed(1) + '%' : '0%'
             ]);
             
             exportToPDF('Relatório de Produtos', currentReportData, columns, rows);
@@ -3256,12 +3339,13 @@
                 return;
             }
             
-            const columns = ['Cliente', 'Telefone', 'Compras', 'Total Gasto (R$)', 'Frequência (dias)'];
+            const columns = ['Cliente', 'Telefone', 'Compras', 'Total Gasto (R$)', 'Lucro (R$)', 'Frequência (dias)'];
             const rows = currentReportData.map(item => [
                 item.name,
                 item.phone,
                 item.orders.toString(),
                 `R$ ${item.spent.toFixed(2)}`,
+                `R$ ${item.profit.toFixed(2)}`,
                 item.frequency
             ]);
             
@@ -3289,61 +3373,99 @@
 
         // Funções de exportação para PDF (listas)
         function exportClientsToPDF() {
-            const columns = ['Nome', 'Telefone', 'Tipo', 'Fidelizado'];
+            const columns = ['Nome', 'Telefone', 'Tipo', 'Fidelizado', 'Encomendas', 'Orçamentos'];
             const rows = clients.map(client => [
                 client.name,
                 client.phone,
-                client.type || 'regular',
-                client.loyal === 'sim' ? 'Sim' : 'Não'
+                client.type,
+                client.loyal === 'sim' ? 'Sim' : 'Não',
+                (client.orders ? client.orders.length : 0).toString(),
+                (client.budgets ? client.budgets.length : 0).toString()
             ]);
             
             exportToPDF('Lista de Clientes', clients, columns, rows);
         }
 
         function exportOrdersToPDF() {
-            const columns = ['Cliente', 'Data', 'Total (R$)', 'Status'];
-            const rows = encomendas.map(order => {
-                const client = clients.find(c => c.id === order.clientId);
-                return [
-                    client ? client.name : order.clientName,
-                    formatDate(order.createdAt),
-                    `R$ ${(order.valor || 0).toFixed(2)}`,
-                    order.status === 'recebida' ? 'Recebida' : 'Pendente'
-                ];
+            let allOrders = [];
+            clients.forEach(client => {
+                if (client.orders) {
+                    client.orders.forEach(order => {
+                        allOrders.push({
+                            client: client.name,
+                            date: formatDate(order.createdAt),
+                            total: order.total,
+                            status: order.status,
+                            payment: order.payment
+                        });
+                    });
+                }
             });
             
-            exportToPDF('Lista de Encomendas', encomendas, columns, rows);
+            const columns = ['Cliente', 'Data', 'Total (R$)', 'Status', 'Pagamento'];
+            const rows = allOrders.map(order => [
+                order.client,
+                order.date,
+                `R$ ${order.total.toFixed(2)}`,
+                order.status === 'pendente' ? 'Pendente' : 'Entregue',
+                order.payment === 'pago' ? 'Pago' : order.payment === 'parcial' ? 'Parcial' : 'Pendente'
+            ]);
+            
+            exportToPDF('Lista de Encomendas', allOrders, columns, rows);
         }
 
         function exportPendingOrdersToPDF() {
-            const pendingEncomendas = encomendas.filter(o => o.status === 'pendente');
-            
-            const columns = ['Cliente', 'Data', 'Total (R$)'];
-            const rows = pendingEncomendas.map(order => {
-                const client = clients.find(c => c.id === order.clientId);
-                return [
-                    client ? client.name : order.clientName,
-                    formatDate(order.createdAt),
-                    `R$ ${(order.valor || 0).toFixed(2)}`
-                ];
+            let pendingOrders = [];
+            clients.forEach(client => {
+                if (client.orders) {
+                    client.orders.forEach(order => {
+                        if (order.status === 'pendente') {
+                            pendingOrders.push({
+                                client: client.name,
+                                date: formatDate(order.createdAt),
+                                total: order.total,
+                                payment: order.payment
+                            });
+                        }
+                    });
+                }
             });
             
-            exportToPDF('Encomendas Pendentes', pendingEncomendas, columns, rows);
+            const columns = ['Cliente', 'Data', 'Total (R$)', 'Pagamento'];
+            const rows = pendingOrders.map(order => [
+                order.client,
+                order.date,
+                `R$ ${order.total.toFixed(2)}`,
+                order.payment === 'pago' ? 'Pago' : order.payment === 'parcial' ? 'Parcial' : 'Pendente'
+            ]);
+            
+            exportToPDF('Encomendas Pendentes', pendingOrders, columns, rows);
         }
 
         function exportBudgetsToPDF() {
-            const columns = ['Cliente', 'Data', 'Total (R$)', 'Status'];
-            const rows = budgets.map(budget => {
-                const client = clients.find(c => c.id === budget.clientId);
-                return [
-                    client ? client.name : budget.clientName,
-                    formatDate(budget.createdAt),
-                    `R$ ${budget.total.toFixed(2)}`,
-                    budget.status || 'pendente'
-                ];
+            let allBudgets = [];
+            clients.forEach(client => {
+                if (client.budgets) {
+                    client.budgets.forEach(budget => {
+                        allBudgets.push({
+                            client: client.name,
+                            date: formatDate(budget.createdAt),
+                            total: budget.total,
+                            status: budget.approvalStatus || 'pendente'
+                        });
+                    });
+                }
             });
             
-            exportToPDF('Lista de Orçamentos', budgets, columns, rows);
+            const columns = ['Cliente', 'Data', 'Total (R$)', 'Status'];
+            const rows = allBudgets.map(budget => [
+                budget.client,
+                budget.date,
+                `R$ ${budget.total.toFixed(2)}`,
+                budget.status
+            ]);
+            
+            exportToPDF('Lista de Orçamentos', allBudgets, columns, rows);
         }
 
         // Configurar cálculo de lucro
@@ -3388,6 +3510,9 @@
                 profitPercent = (profitValue / cost) * 100;
             }
             document.getElementById('new-item-profit-percent').value = profitPercent.toFixed(2);
+            
+            // Atualizar resumo de lucro
+            updateOrderProfitSummary();
         }
 
         function toggleDiscountField() {
@@ -3446,7 +3571,9 @@
         }
 
         function saveToLocalStorage() {
-            // Não é mais necessário pois estamos usando Firebase diretamente
+            const clientsObj = {};
+            clients.forEach(c => { clientsObj[c.id] = c; });
+            db.ref('clients').set(clientsObj);
         }
 
         function loadPharmacyLogo() {
@@ -3607,16 +3734,18 @@
                 labels.push(dateStr);
                 
                 let daySales = 0;
-                encomendas.forEach(order => {
-                    if (order.status === 'recebida' || order.status === 'entregue') {
-                        const orderDate = new Date(order.createdAt);
-                        if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate)) {
-                            if (orderDate.getDate() === date.getDate() &&
-                                orderDate.getMonth() === date.getMonth() &&
-                                orderDate.getFullYear() === date.getFullYear()) {
-                                daySales += order.valor || 0;
+                clients.forEach(client => {
+                    if (client.orders) {
+                        client.orders.forEach(order => {
+                            const orderDate = new Date(order.createdAt);
+                            if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate) && order.status === 'entregue') {
+                                if (orderDate.getDate() === date.getDate() &&
+                                    orderDate.getMonth() === date.getMonth() &&
+                                    orderDate.getFullYear() === date.getFullYear()) {
+                                    daySales += order.total;
+                                }
                             }
-                        }
+                        });
                     }
                 });
                 salesData.push(daySales);
@@ -3725,15 +3854,14 @@
         function createRevenueChart(ctx) {
             const revenueByType = { 'regular': 0, 'premium': 0, 'vip': 0 };
             
-            encomendas.forEach(order => {
-                if (order.status === 'recebida' || order.status === 'entregue') {
-                    const client = clients.find(c => c.id === order.clientId);
-                    if (client) {
+            clients.forEach(client => {
+                if (client.orders) {
+                    client.orders.forEach(order => {
                         const orderDate = new Date(order.createdAt);
-                        if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate)) {
-                            revenueByType[client.type || 'regular'] += order.valor || 0;
+                        if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate) && order.status === 'entregue') {
+                            revenueByType[client.type] += order.total;
                         }
-                    }
+                    });
                 }
             });
             
@@ -3763,6 +3891,7 @@
             let days = 30;
             let labels = [];
             let profitData = [];
+            let costData = [];
             let revenueData = [];
             
             if (dashboardFilter.startDate && dashboardFilter.endDate) {
@@ -3786,23 +3915,35 @@
                 const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
                 labels.push(dateStr);
                 
-                let dayProfit = 0, dayRevenue = 0;
-                encomendas.forEach(order => {
-                    if (order.status === 'recebida' || order.status === 'entregue') {
-                        const orderDate = new Date(order.createdAt);
-                        if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate)) {
-                            if (orderDate.getDate() === date.getDate() &&
-                                orderDate.getMonth() === date.getMonth() &&
-                                orderDate.getFullYear() === date.getFullYear()) {
-                                
-                                dayRevenue += order.valor || 0;
-                                // Como não temos custo, consideramos lucro como 50% para exemplo
-                                dayProfit += (order.valor || 0) * 0.5;
+                let dayProfit = 0, dayCost = 0, dayRevenue = 0;
+                clients.forEach(client => {
+                    if (client.orders) {
+                        client.orders.forEach(order => {
+                            const orderDate = new Date(order.createdAt);
+                            if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate) && order.status === 'entregue') {
+                                if (orderDate.getDate() === date.getDate() &&
+                                    orderDate.getMonth() === date.getMonth() &&
+                                    orderDate.getFullYear() === date.getFullYear()) {
+                                    
+                                    let orderCost = 0, orderProfit = 0, orderRevenue = 0;
+                                    order.items.forEach(item => {
+                                        const itemCost = (item.cost || 0) * item.quantity;
+                                        const itemRevenue = item.finalPrice * item.quantity;
+                                        const itemProfit = itemRevenue - itemCost;
+                                        orderCost += itemCost;
+                                        orderRevenue += itemRevenue;
+                                        orderProfit += itemProfit;
+                                    });
+                                    dayCost += orderCost;
+                                    dayProfit += orderProfit;
+                                    dayRevenue += orderRevenue;
+                                }
                             }
-                        }
+                        });
                     }
                 });
                 profitData.push(dayProfit);
+                costData.push(dayCost);
                 revenueData.push(dayRevenue);
             }
             
@@ -3814,6 +3955,7 @@
                     labels: labels,
                     datasets: [
                         { label: 'Lucro (R$)', data: profitData, backgroundColor: 'rgba(39, 174, 96, 0.8)' },
+                        { label: 'Custo (R$)', data: costData, backgroundColor: 'rgba(230, 126, 34, 0.8)' },
                         { label: 'Receita (R$)', data: revenueData, backgroundColor: 'rgba(52, 152, 219, 0.8)' }
                     ]
                 },
@@ -3855,28 +3997,40 @@
         }
 
         function updateDashboardStats() {
-            let totalRevenue = 0, totalProfit = 0, totalOrders = 0;
+            let totalRevenue = 0, totalCost = 0, totalProfit = 0, totalOrders = 0;
             let activeClients = new Set();
             
-            encomendas.forEach(order => {
-                if (order.status === 'recebida' || order.status === 'entregue') {
-                    const orderDate = new Date(order.createdAt);
-                    if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate)) {
-                        totalRevenue += order.valor || 0;
-                        totalOrders++;
-                        activeClients.add(order.clientId);
-                        // Considerando lucro como 50% para exemplo
-                        totalProfit += (order.valor || 0) * 0.5;
-                    }
+            clients.forEach(client => {
+                if (client.orders) {
+                    client.orders.forEach(order => {
+                        const orderDate = new Date(order.createdAt);
+                        if (isDateBetween(orderDate, dashboardFilter.startDate, dashboardFilter.endDate) && order.status === 'entregue') {
+                            totalRevenue += order.total;
+                            totalOrders++;
+                            activeClients.add(client.id);
+                            
+                            let orderCost = 0, orderProfit = 0;
+                            if (order.items) {
+                                order.items.forEach(item => {
+                                    const itemCost = (item.cost || 0) * item.quantity;
+                                    const itemRevenue = item.finalPrice * item.quantity;
+                                    orderCost += itemCost;
+                                    orderProfit += itemRevenue - itemCost;
+                                });
+                            }
+                            totalCost += orderCost;
+                            totalProfit += orderProfit;
+                        }
+                    });
                 }
             });
             
-            const avgMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+            const avgMargin = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
             
             document.getElementById('active-clients').textContent = activeClients.size;
             document.getElementById('orders-today').textContent = totalOrders;
             document.getElementById('total-revenue').textContent = `R$ ${totalRevenue.toFixed(2).replace('.', ',')}`;
-            document.getElementById('total-cost').textContent = `R$ 0,00`;
+            document.getElementById('total-cost').textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
             document.getElementById('total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
             document.getElementById('avg-margin').textContent = `${avgMargin.toFixed(1)}%`;
         }
@@ -3934,7 +4088,7 @@
             document.getElementById('edit-client-email').value = client.email || '';
             document.getElementById('edit-client-cpf').value = client.cpf || '';
             document.getElementById('edit-client-address').value = client.address || '';
-            document.getElementById('edit-client-type').value = client.type || 'regular';
+            document.getElementById('edit-client-type').value = client.type;
             
             if (client.loyal === 'sim') {
                 document.querySelector('input[name="edit-loyal"][value="sim"]').checked = true;
@@ -3980,10 +4134,24 @@
             clients[clientIndex].type = type;
             clients[clientIndex].loyal = loyal;
 
-            // Salvar no Firebase
-            db.ref('clients/' + id).set(clients[clientIndex]);
+            if (clients[clientIndex].orders) {
+                clients[clientIndex].orders.forEach(order => {
+                    order.clientName = name;
+                    order.clientPhone = phone;
+                });
+            }
+            
+            if (clients[clientIndex].budgets) {
+                clients[clientIndex].budgets.forEach(budget => {
+                    budget.clientName = name;
+                    budget.clientPhone = phone;
+                });
+            }
 
-            updateAllData();
+            saveToLocalStorage();
+            updateStats();
+            renderClientsList();
+            updateDashboard();
             closeEditClientModal();
             alert('Cliente atualizado com sucesso!');
         }
@@ -4046,18 +4214,29 @@
             return orders.filter(order => {
                 const orderDate = new Date(order.createdAt);
                 return isDateBetween(orderDate, currentFilter.startDate, currentFilter.endDate) &&
-                       (currentFilter.status === 'todos' || order.status === currentFilter.status);
+                       (currentFilter.status === 'todos' || order.status === currentFilter.status) &&
+                       (currentFilter.payment === 'todos' || order.payment === currentFilter.payment);
             });
         }
 
         function updateFilterStats(filteredOrders) {
             const totalOrders = filteredOrders.length;
-            const totalValue = filteredOrders.reduce((sum, order) => sum + (order.valor || 0), 0);
+            const totalValue = filteredOrders.reduce((sum, order) => sum + order.total, 0);
+            const totalCost = filteredOrders.reduce((sum, order) => {
+                let orderCost = 0;
+                if (order.items) {
+                    order.items.forEach(item => {
+                        orderCost += (item.cost || 0) * item.quantity;
+                    });
+                }
+                return sum + orderCost;
+            }, 0);
+            const totalProfit = totalValue - totalCost;
             
             document.getElementById('filter-total-orders').textContent = totalOrders;
             document.getElementById('filter-total-value').textContent = `R$ ${totalValue.toFixed(2).replace('.', ',')}`;
-            document.getElementById('filter-total-cost').textContent = `R$ 0,00`;
-            document.getElementById('filter-total-profit').textContent = `R$ ${(totalValue * 0.5).toFixed(2).replace('.', ',')}`;
+            document.getElementById('filter-total-cost').textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
+            document.getElementById('filter-total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
         }
 
         // Funções de Cliente
@@ -4084,13 +4263,14 @@
                 address: address,
                 type: type,
                 loyal: loyal,
+                orders: [],
+                budgets: [],
                 createdAt: new Date().toISOString()
             };
             
             clients.push(newClient);
-            db.ref('clients/' + newClient.id).set(newClient);
-            
-            updateAllData();
+            saveToLocalStorage();
+            updateStats();
             alert('Cliente salvo com sucesso!');
             clearClientForm();
             
@@ -4142,22 +4322,20 @@
             const client = clients.find(c => c.id === id);
             if (!client) return;
             
-            const hasOrders = encomendas.some(o => o.clientId === id);
+            const hasOrders = client.orders && client.orders.length > 0;
+            const hasBudgets = client.budgets && client.budgets.length > 0;
             let confirmationMessage = `Tem certeza que deseja excluir o cliente "${client.name}"?`;
             
-            if (hasOrders) {
-                confirmationMessage += `\n\nATENÇÃO: Este cliente possui encomendas que também serão excluídas!`;
+            if (hasOrders || hasBudgets) {
+                confirmationMessage += `\n\nATENÇÃO: Este cliente possui ${client.orders ? client.orders.length : 0} encomenda(s) e ${client.budgets ? client.budgets.length : 0} orçamento(s) que também serão excluídos!`;
             }
             
             if (!confirm(confirmationMessage)) return;
             
-            // Remover do Firebase
-            db.ref('clients/' + id).remove();
-            
-            // Remover do array local
             clients = clients.filter(client => client.id !== id);
-            
-            updateAllData();
+            saveToLocalStorage();
+            updateStats();
+            if (document.getElementById('clients-section').classList.contains('active')) renderClientsList();
             alert('Cliente excluído com sucesso!');
             updateDashboard();
         }
@@ -4210,6 +4388,9 @@
             document.getElementById('order-items-list').innerHTML = '';
             orderTotal = 0;
             document.getElementById('order-total').textContent = '0.00';
+            
+            // Resetar resumo de lucro
+            updateOrderProfitSummary();
         }
 
         function showSelectedClientInfo() {
@@ -4292,8 +4473,11 @@
         function updateOrderProfitSummary() {
             let totalCost = 0, totalProfit = 0;
             const itemDivs = document.querySelectorAll('[id^="item-"]');
+            
             if (itemDivs.length === 0) {
-                document.getElementById('order-profit-summary').style.display = 'none';
+                document.getElementById('order-total-cost').textContent = 'R$ 0.00';
+                document.getElementById('order-total-profit').textContent = 'R$ 0.00';
+                document.getElementById('order-profit-margin').textContent = '0%';
                 return;
             }
             
@@ -4310,7 +4494,6 @@
             document.getElementById('order-total-cost').textContent = `R$ ${totalCost.toFixed(2)}`;
             document.getElementById('order-total-profit').textContent = `R$ ${totalProfit.toFixed(2)}`;
             document.getElementById('order-profit-margin').textContent = `${profitMargin.toFixed(1)}%`;
-            document.getElementById('order-profit-summary').style.display = 'block';
         }
 
         function addOrderItemFromForm() {
@@ -4376,6 +4559,7 @@
             
             itemsList.innerHTML += itemHtml;
             
+            // Limpar formulário
             document.getElementById('new-item-desc').value = '';
             document.getElementById('new-item-qty').value = '1';
             document.getElementById('new-item-price').value = '';
@@ -4604,20 +4788,26 @@
                 totalCost: totalCost,
                 totalProfit: totalProfit,
                 profitMargin: totalCost > 0 ? (totalProfit / totalCost) * 100 : 0,
-                paymentMethod: payment,
+                payment: payment,
                 downPayment: downPayment,
+                available: available,
                 status: 'pendente',
                 createdAt: new Date().toISOString()
             };
             
-            // Salvar no Firebase na coleção 'encomendas'
-            db.ref('encomendas/' + newOrder.id).set(newOrder);
-            encomendas.push(newOrder);
-            
-            currentOrder = newOrder;
-            updateAllData();
-            alert('Encomenda salva com sucesso!');
-            showOrderModal();
+            const clientIndex = clients.findIndex(c => c.id === selectedClientForOrder.id);
+            if (clientIndex !== -1) {
+                if (!clients[clientIndex].orders) clients[clientIndex].orders = [];
+                clients[clientIndex].orders.push(newOrder);
+                saveToLocalStorage();
+                currentOrder = newOrder;
+                updateStats();
+                updateDashboard();
+                alert('Encomenda salva com sucesso!');
+                showOrderModal();
+            } else {
+                alert('Erro: Cliente não encontrado!');
+            }
         }
 
         function saveBudget() {
@@ -4634,18 +4824,16 @@
                 quantity: item.quantity,
                 description: item.description,
                 price: item.price,
-                discount: 0,
-                discountValue: item.discountValue || 0,
-                subtotal: item.total,
-                total: item.total,
-                notes: item.observations || ''
+                discountType: item.discountType,
+                discountValue: item.discountValue,
+                finalPrice: item.finalPrice,
+                observations: item.observations,
+                total: item.total
             }));
             
             const total = budgetTotal;
-            const validityDays = parseInt(document.getElementById('budget-validity').value) || 7;
-            
-            const validityDate = new Date();
-            validityDate.setDate(validityDate.getDate() + validityDays);
+            const validity = parseInt(document.getElementById('budget-validity').value) || 7;
+            const observations = document.getElementById('budget-observations').value.trim();
             
             const newBudget = {
                 id: Date.now(),
@@ -4653,41 +4841,48 @@
                 clientName: selectedClientForBudget.name,
                 clientPhone: selectedClientForBudget.phone,
                 items: items,
-                subtotal: total,
                 total: total,
-                totalDiscounts: 0,
-                generalDiscount: 0,
-                paymentMethod: "dinheiro",
-                status: "pendente",
-                notes: document.getElementById('budget-observations').value.trim() || '',
-                conditions: '',
-                createdAt: new Date().toISOString(),
-                validityDate: validityDate.toISOString()
+                validity: validity,
+                observations: observations,
+                approvalStatus: 'pendente',
+                createdAt: new Date().toISOString()
             };
             
-            // Salvar no Firebase na coleção 'budgets'
-            db.ref('budgets/' + newBudget.id).set(newBudget);
-            budgets.push(newBudget);
-            
-            currentBudget = newBudget;
-            updateAllData();
-            alert('Orçamento salvo com sucesso!');
-            showBudgetModal();
+            const clientIndex = clients.findIndex(c => c.id === selectedClientForBudget.id);
+            if (clientIndex !== -1) {
+                if (!clients[clientIndex].budgets) clients[clientIndex].budgets = [];
+                clients[clientIndex].budgets.push(newBudget);
+                saveToLocalStorage();
+                currentBudget = newBudget;
+                updateStats();
+                updateDashboard();
+                alert('Orçamento salvo com sucesso!');
+                showBudgetModal();
+            } else {
+                alert('Erro: Cliente não encontrado!');
+            }
         }
 
+        // Funções de edição
         function editOrder(orderId, clientId) {
-            const order = encomendas.find(o => o.id === orderId);
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            const order = client.orders.find(o => o.id === orderId);
             if (!order) return;
             editingOrder = JSON.parse(JSON.stringify(order));
             editingOrderClientId = clientId;
+            renderEditOrderForm();
             showSection('edit-order');
         }
 
         function editBudget(budgetId, clientId) {
-            const budget = budgets.find(b => b.id === budgetId);
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            const budget = client.budgets.find(b => b.id === budgetId);
             if (!budget) return;
             editingBudget = JSON.parse(JSON.stringify(budget));
             editingBudgetClientId = clientId;
+            renderEditBudgetForm();
             showSection('edit-budget');
         }
 
@@ -4696,7 +4891,147 @@
                 document.getElementById('edit-order-content').innerHTML = '<p>Erro ao carregar encomenda.</p>';
                 return;
             }
-            // Implementar edição se necessário
+            
+            let html = `
+                <div id="edit-order-items-list">
+            `;
+            
+            editingOrder.items.forEach((item, index) => {
+                html += `
+                    <div class="order-item" id="edit-item-${index}">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Descrição</label>
+                                <input type="text" id="edit-desc-${index}" value="${item.description}" class="edit-item-field" data-index="${index}">
+                            </div>
+                            <div class="form-group">
+                                <label>Quantidade</label>
+                                <input type="number" id="edit-qty-${index}" value="${item.quantity}" min="1" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
+                            </div>
+                            <div class="form-group">
+                                <label>Valor Unitário</label>
+                                <input type="number" id="edit-price-${index}" value="${item.price}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Custo</label>
+                                <input type="number" id="edit-cost-${index}" value="${item.cost || 0}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
+                            </div>
+                            <div class="form-group">
+                                <label>Desconto</label>
+                                <select id="edit-discount-type-${index}" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
+                                    <option value="none" ${item.discountType === 'none' ? 'selected' : ''}>Sem desconto</option>
+                                    <option value="percent" ${item.discountType === 'percent' ? 'selected' : ''}>%</option>
+                                    <option value="fixed" ${item.discountType === 'fixed' ? 'selected' : ''}>R$</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Valor Desconto</label>
+                                <input type="number" id="edit-discount-value-${index}" value="${item.discountValue || 0}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Preço Final</label>
+                                <input type="number" id="edit-final-price-${index}" value="${item.finalPrice}" step="0.01" readonly style="background-color: #f8f9fa;">
+                            </div>
+                            <div class="form-group">
+                                <label>Lucro (R$)</label>
+                                <input type="number" id="edit-profit-value-${index}" value="${item.profitValue}" step="0.01" readonly style="background-color: #e8f6f3; color: var(--profit);">
+                            </div>
+                            <div class="form-group">
+                                <label>Lucro (%)</label>
+                                <input type="number" id="edit-profit-percent-${index}" value="${item.profitPercent}" step="0.01" readonly style="background-color: #e8f6f3; color: var(--profit);">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Total</label>
+                                <input type="number" id="edit-total-${index}" value="${item.total}" step="0.01" readonly style="background-color: #f8f9fa;">
+                            </div>
+                            <div class="form-group">
+                                <button onclick="removeEditItem(${index})" class="btn btn-danger btn-sm" style="margin-top: 24px;">Remover</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                </div>
+                <button onclick="addEditOrderItem()" class="btn btn-success btn-sm">Adicionar Item</button>
+                
+                <div class="order-total" style="margin-top: 20px;">
+                    Total: R$ <span id="edit-order-total">${editingOrder.total.toFixed(2)}</span>
+                </div>
+                
+                <div class="profit-info" style="margin-top: 10px;">
+                    <div class="profit-info-row">
+                        <span class="profit-label">Custo Total:</span>
+                        <span class="profit-value cost-value" id="edit-order-total-cost">R$ ${(editingOrder.totalCost || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="profit-info-row">
+                        <span class="profit-label">Lucro Total:</span>
+                        <span class="profit-value profit-positive" id="edit-order-total-profit">R$ ${(editingOrder.totalProfit || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="profit-info-row">
+                        <span class="profit-label">Margem:</span>
+                        <span class="profit-value profit-positive" id="edit-order-profit-margin">${(editingOrder.profitMargin || 0).toFixed(1)}%</span>
+                    </div>
+                </div>
+                
+                <div class="form-row" style="margin-top: 20px;">
+                    <div class="form-group">
+                        <label>Status do Pagamento</label>
+                        <select id="edit-payment">
+                            <option value="pago" ${editingOrder.payment === 'pago' ? 'selected' : ''}>Pago</option>
+                            <option value="parcial" ${editingOrder.payment === 'parcial' ? 'selected' : ''}>Parcial</option>
+                            <option value="pendente" ${editingOrder.payment === 'pendente' ? 'selected' : ''}>Pendente</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Entrada</label>
+                        <input type="number" id="edit-down-payment" value="${editingOrder.downPayment || 0}" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Disponível</label>
+                        <select id="edit-available">
+                            <option value="sim" ${editingOrder.available === 'sim' ? 'selected' : ''}>Sim</option>
+                            <option value="nao" ${editingOrder.available === 'nao' ? 'selected' : ''}>Não</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="edit-status">
+                            <option value="pendente" ${editingOrder.status === 'pendente' ? 'selected' : ''}>Pendente</option>
+                            <option value="entregue" ${editingOrder.status === 'entregue' ? 'selected' : ''}>Entregue</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="button-group" style="margin-top: 20px;">
+                    <button onclick="saveEditedOrder()" class="btn btn-success">Salvar Alterações</button>
+                    <button onclick="showSection('orders')" class="btn btn-secondary">Cancelar</button>
+                </div>
+            `;
+            
+            document.getElementById('edit-order-content').innerHTML = html;
+            
+            // Adicionar event listeners para os campos
+            document.querySelectorAll('.edit-item-field').forEach(field => {
+                field.addEventListener('change', function() {
+                    const index = this.dataset.index;
+                    updateEditItemTotal(parseInt(index));
+                });
+                field.addEventListener('input', function() {
+                    const index = this.dataset.index;
+                    updateEditItemTotal(parseInt(index));
+                });
+            });
         }
 
         function renderEditBudgetForm() {
@@ -4704,19 +5039,359 @@
                 document.getElementById('edit-budget-content').innerHTML = '<p>Erro ao carregar orçamento.</p>';
                 return;
             }
-            // Implementar edição se necessário
+            
+            let html = `
+                <div id="edit-budget-items-list">
+            `;
+            
+            editingBudget.items.forEach((item, index) => {
+                html += `
+                    <div class="order-item" id="edit-budget-item-${index}">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Descrição</label>
+                                <input type="text" id="edit-budget-desc-${index}" value="${item.description}" class="edit-budget-field" data-index="${index}">
+                            </div>
+                            <div class="form-group">
+                                <label>Quantidade</label>
+                                <input type="number" id="edit-budget-qty-${index}" value="${item.quantity}" min="1" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})">
+                            </div>
+                            <div class="form-group">
+                                <label>Valor Unitário</label>
+                                <input type="number" id="edit-budget-price-${index}" value="${item.price}" step="0.01" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Desconto</label>
+                                <select id="edit-budget-discount-type-${index}" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})">
+                                    <option value="none" ${item.discountType === 'none' ? 'selected' : ''}>Sem desconto</option>
+                                    <option value="percent" ${item.discountType === 'percent' ? 'selected' : ''}>%</option>
+                                    <option value="fixed" ${item.discountType === 'fixed' ? 'selected' : ''}>R$</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Valor Desconto</label>
+                                <input type="number" id="edit-budget-discount-value-${index}" value="${item.discountValue || 0}" step="0.01" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})">
+                            </div>
+                            <div class="form-group">
+                                <label>Observações</label>
+                                <input type="text" id="edit-budget-obs-${index}" value="${item.observations || ''}" class="edit-budget-field" data-index="${index}">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Preço Final</label>
+                                <input type="number" id="edit-budget-final-price-${index}" value="${item.finalPrice}" step="0.01" readonly style="background-color: #f8f9fa;">
+                            </div>
+                            <div class="form-group">
+                                <label>Total</label>
+                                <input type="number" id="edit-budget-total-${index}" value="${item.total}" step="0.01" readonly style="background-color: #f8f9fa;">
+                            </div>
+                            <div class="form-group">
+                                <button onclick="removeEditBudgetItem(${index})" class="btn btn-danger btn-sm" style="margin-top: 24px;">Remover</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                </div>
+                <button onclick="addEditBudgetItem()" class="btn btn-success btn-sm">Adicionar Item</button>
+                
+                <div class="budget-total" style="margin-top: 20px;">
+                    Total: R$ <span id="edit-budget-total">${editingBudget.total.toFixed(2)}</span>
+                </div>
+                
+                <div class="form-row" style="margin-top: 20px;">
+                    <div class="form-group">
+                        <label>Validade (dias)</label>
+                        <input type="number" id="edit-budget-validity" value="${editingBudget.validity || 7}" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="edit-budget-approval">
+                            <option value="pendente" ${!editingBudget.approvalStatus || editingBudget.approvalStatus === 'pendente' ? 'selected' : ''}>Pendente</option>
+                            <option value="aprovado" ${editingBudget.approvalStatus === 'aprovado' ? 'selected' : ''}>Aprovado</option>
+                            <option value="rejeitado" ${editingBudget.approvalStatus === 'rejeitado' ? 'selected' : ''}>Rejeitado</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Observações</label>
+                    <textarea id="edit-budget-observations" rows="3">${editingBudget.observations || ''}</textarea>
+                </div>
+                
+                <div class="button-group" style="margin-top: 20px;">
+                    <button onclick="saveEditedBudget()" class="btn btn-success">Salvar Alterações</button>
+                    <button onclick="showSection('budgets')" class="btn btn-secondary">Cancelar</button>
+                </div>
+            `;
+            
+            document.getElementById('edit-budget-content').innerHTML = html;
+            
+            // Adicionar event listeners para os campos
+            document.querySelectorAll('.edit-budget-field').forEach(field => {
+                field.addEventListener('change', function() {
+                    const index = this.dataset.index;
+                    updateEditBudgetItemTotal(parseInt(index));
+                });
+                field.addEventListener('input', function() {
+                    const index = this.dataset.index;
+                    updateEditBudgetItemTotal(parseInt(index));
+                });
+            });
+        }
+
+        function addEditOrderItem() {
+            if (!editingOrder) return;
+            
+            editingOrder.items.push({
+                description: 'Novo Item',
+                quantity: 1,
+                price: 0,
+                cost: 0,
+                discountType: 'none',
+                discountValue: 0,
+                finalPrice: 0,
+                profitValue: 0,
+                profitPercent: 0,
+                total: 0
+            });
+            
+            renderEditOrderForm();
+        }
+
+        function addEditBudgetItem() {
+            if (!editingBudget) return;
+            
+            editingBudget.items.push({
+                description: 'Novo Item',
+                quantity: 1,
+                price: 0,
+                discountType: 'none',
+                discountValue: 0,
+                finalPrice: 0,
+                observations: '',
+                total: 0
+            });
+            
+            renderEditBudgetForm();
+        }
+
+        function removeEditItem(index) {
+            if (!editingOrder) return;
+            editingOrder.items.splice(index, 1);
+            renderEditOrderForm();
+        }
+
+        function removeEditBudgetItem(index) {
+            if (!editingBudget) return;
+            editingBudget.items.splice(index, 1);
+            renderEditBudgetForm();
+        }
+
+        function updateEditItemTotal(index) {
+            const qty = parseFloat(document.getElementById('edit-qty-' + index).value) || 1;
+            const price = parseFloat(document.getElementById('edit-price-' + index).value) || 0;
+            const discountType = document.getElementById('edit-discount-type-' + index).value;
+            const discountValue = parseFloat(document.getElementById('edit-discount-value-' + index).value) || 0;
+            const cost = parseFloat(document.getElementById('edit-cost-' + index).value) || 0;
+            
+            let finalPrice = price;
+            if (discountType === 'percent' && discountValue > 0) {
+                finalPrice = price - (price * discountValue / 100);
+            } else if (discountType === 'fixed' && discountValue > 0) {
+                finalPrice = price - discountValue;
+                if (finalPrice < 0) finalPrice = 0;
+            }
+            
+            const total = qty * finalPrice;
+            const profitValue = finalPrice - cost;
+            const profitPercent = cost > 0 ? (profitValue / cost) * 100 : 0;
+            
+            document.getElementById('edit-final-price-' + index).value = finalPrice.toFixed(2);
+            document.getElementById('edit-profit-value-' + index).value = profitValue.toFixed(2);
+            document.getElementById('edit-profit-percent-' + index).value = profitPercent.toFixed(2);
+            document.getElementById('edit-total-' + index).value = total.toFixed(2);
+            
+            // Atualizar o item no array
+            if (editingOrder && editingOrder.items[index]) {
+                editingOrder.items[index].quantity = qty;
+                editingOrder.items[index].price = price;
+                editingOrder.items[index].cost = cost;
+                editingOrder.items[index].discountType = discountType;
+                editingOrder.items[index].discountValue = discountValue;
+                editingOrder.items[index].finalPrice = finalPrice;
+                editingOrder.items[index].profitValue = profitValue;
+                editingOrder.items[index].profitPercent = profitPercent;
+                editingOrder.items[index].total = total;
+            }
+            
+            updateEditOrderTotal();
+        }
+
+        function updateEditBudgetItemTotal(index) {
+            const qty = parseFloat(document.getElementById('edit-budget-qty-' + index).value) || 1;
+            const price = parseFloat(document.getElementById('edit-budget-price-' + index).value) || 0;
+            const discountType = document.getElementById('edit-budget-discount-type-' + index).value;
+            const discountValue = parseFloat(document.getElementById('edit-budget-discount-value-' + index).value) || 0;
+            
+            let finalPrice = price;
+            if (discountType === 'percent' && discountValue > 0) {
+                finalPrice = price - (price * discountValue / 100);
+            } else if (discountType === 'fixed' && discountValue > 0) {
+                finalPrice = price - discountValue;
+                if (finalPrice < 0) finalPrice = 0;
+            }
+            
+            const total = qty * finalPrice;
+            
+            document.getElementById('edit-budget-final-price-' + index).value = finalPrice.toFixed(2);
+            document.getElementById('edit-budget-total-' + index).value = total.toFixed(2);
+            
+            // Atualizar o item no array
+            if (editingBudget && editingBudget.items[index]) {
+                editingBudget.items[index].quantity = qty;
+                editingBudget.items[index].price = price;
+                editingBudget.items[index].discountType = discountType;
+                editingBudget.items[index].discountValue = discountValue;
+                editingBudget.items[index].finalPrice = finalPrice;
+                editingBudget.items[index].total = total;
+            }
+            
+            updateEditBudgetTotal();
+        }
+
+        function updateEditOrderTotal() {
+            let total = 0, totalCost = 0, totalProfit = 0;
+            if (editingOrder && editingOrder.items) {
+                editingOrder.items.forEach(item => {
+                    total += item.total;
+                    totalCost += (item.cost || 0) * item.quantity;
+                    totalProfit += (item.profitValue || 0) * item.quantity;
+                });
+            }
+            editingOrder.total = total;
+            editingOrder.totalCost = totalCost;
+            editingOrder.totalProfit = totalProfit;
+            editingOrder.profitMargin = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
+            
+            document.getElementById('edit-order-total').textContent = total.toFixed(2);
+            document.getElementById('edit-order-total-cost').textContent = `R$ ${totalCost.toFixed(2)}`;
+            document.getElementById('edit-order-total-profit').textContent = `R$ ${totalProfit.toFixed(2)}`;
+            document.getElementById('edit-order-profit-margin').textContent = `${editingOrder.profitMargin.toFixed(1)}%`;
+        }
+
+        function updateEditBudgetTotal() {
+            let total = 0;
+            if (editingBudget && editingBudget.items) {
+                total = editingBudget.items.reduce((sum, item) => sum + item.total, 0);
+            }
+            editingBudget.total = total;
+            document.getElementById('edit-budget-total').textContent = total.toFixed(2);
+        }
+
+        function saveEditedOrder() {
+            if (!editingOrder || !editingOrderClientId) return;
+            
+            // Atualizar campos adicionais
+            editingOrder.payment = document.getElementById('edit-payment').value;
+            editingOrder.downPayment = parseFloat(document.getElementById('edit-down-payment').value) || 0;
+            editingOrder.available = document.getElementById('edit-available').value;
+            editingOrder.status = document.getElementById('edit-status').value;
+            
+            // Recalcular totais
+            let total = 0, totalCost = 0, totalProfit = 0;
+            editingOrder.items.forEach(item => {
+                total += item.total;
+                totalCost += (item.cost || 0) * item.quantity;
+                totalProfit += (item.profitValue || 0) * item.quantity;
+            });
+            editingOrder.total = total;
+            editingOrder.totalCost = totalCost;
+            editingOrder.totalProfit = totalProfit;
+            editingOrder.profitMargin = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
+            
+            // Encontrar e atualizar o cliente
+            const clientIndex = clients.findIndex(c => c.id === editingOrderClientId);
+            if (clientIndex === -1) {
+                alert('Cliente não encontrado!');
+                return;
+            }
+            
+            const orderIndex = clients[clientIndex].orders.findIndex(o => o.id === editingOrder.id);
+            if (orderIndex === -1) {
+                alert('Encomenda não encontrada!');
+                return;
+            }
+            
+            clients[clientIndex].orders[orderIndex] = editingOrder;
+            saveToLocalStorage();
+            updateStats();
+            renderOrdersList();
+            renderPendingOrdersList();
+            alert('Encomenda atualizada com sucesso!');
+            showSection('orders');
+            updateDashboard();
+        }
+
+        function saveEditedBudget() {
+            if (!editingBudget || !editingBudgetClientId) return;
+            
+            // Atualizar campos adicionais
+            editingBudget.validity = parseInt(document.getElementById('edit-budget-validity').value) || 7;
+            editingBudget.approvalStatus = document.getElementById('edit-budget-approval').value;
+            if (editingBudget.approvalStatus === 'pendente') {
+                editingBudget.approvalStatus = null;
+            }
+            editingBudget.observations = document.getElementById('edit-budget-observations').value.trim();
+            
+            // Recalcular total
+            let total = 0;
+            editingBudget.items.forEach(item => {
+                total += item.total;
+            });
+            editingBudget.total = total;
+            
+            // Encontrar e atualizar o cliente
+            const clientIndex = clients.findIndex(c => c.id === editingBudgetClientId);
+            if (clientIndex === -1) {
+                alert('Cliente não encontrado!');
+                return;
+            }
+            
+            const budgetIndex = clients[clientIndex].budgets.findIndex(b => b.id === editingBudget.id);
+            if (budgetIndex === -1) {
+                alert('Orçamento não encontrado!');
+                return;
+            }
+            
+            clients[clientIndex].budgets[budgetIndex] = editingBudget;
+            saveToLocalStorage();
+            updateStats();
+            renderBudgetsList();
+            alert('Orçamento atualizado com sucesso!');
+            showSection('budgets');
+            updateDashboard();
         }
 
         function deleteOrder(orderId, clientId) {
             if (!confirm('Tem certeza que deseja excluir esta encomenda?')) return;
             
-            // Remover do Firebase
-            db.ref('encomendas/' + orderId).remove();
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
             
-            // Remover do array local
-            encomendas = encomendas.filter(o => o.id !== orderId);
+            const orderIndex = client.orders.findIndex(o => o.id === orderId);
+            if (orderIndex === -1) return;
             
-            updateAllData();
+            client.orders.splice(orderIndex, 1);
+            saveToLocalStorage();
+            updateStats();
+            renderOrdersList();
+            renderPendingOrdersList();
             alert('Encomenda excluída com sucesso!');
             updateDashboard();
         }
@@ -4724,28 +5399,33 @@
         function deleteBudget(budgetId, clientId) {
             if (!confirm('Tem certeza que deseja excluir este orçamento?')) return;
             
-            // Remover do Firebase
-            db.ref('budgets/' + budgetId).remove();
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
             
-            // Remover do array local
-            budgets = budgets.filter(b => b.id !== budgetId);
+            const budgetIndex = client.budgets.findIndex(b => b.id === budgetId);
+            if (budgetIndex === -1) return;
             
-            updateAllData();
+            client.budgets.splice(budgetIndex, 1);
+            saveToLocalStorage();
+            updateStats();
+            renderBudgetsList();
             alert('Orçamento excluído com sucesso!');
             updateDashboard();
         }
 
         function markAsDelivered(orderId, clientId) {
-            const orderIndex = encomendas.findIndex(o => o.id === orderId);
+            const clientIndex = clients.findIndex(c => c.id === clientId);
+            if (clientIndex === -1) return;
+            const orderIndex = clients[clientIndex].orders.findIndex(o => o.id === orderId);
             if (orderIndex === -1) return;
             
-            encomendas[orderIndex].status = 'recebida';
-            encomendas[orderIndex].deliveredAt = new Date().toISOString();
+            clients[clientIndex].orders[orderIndex].status = 'entregue';
+            clients[clientIndex].orders[orderIndex].deliveredAt = new Date().toISOString();
             
-            // Salvar no Firebase
-            db.ref('encomendas/' + orderId).set(encomendas[orderIndex]);
-            
-            updateAllData();
+            saveToLocalStorage();
+            updateStats();
+            renderOrdersList();
+            renderPendingOrdersList();
             alert('Encomenda marcada como entregue!');
             updateDashboard();
         }
@@ -4753,8 +5433,8 @@
         function showOrderModal() {
             if (!currentOrder) return;
             
-            let paymentText = currentOrder.paymentMethod === 'pago' ? 'Pago' : 
-                             currentOrder.paymentMethod === 'parcial' ? 'Parcial' : 'Pendente';
+            let paymentText = currentOrder.payment === 'pago' ? 'Pago' : 
+                             currentOrder.payment === 'parcial' ? 'Parcial' : 'Pendente';
             
             let html = `
                 <h4>Cliente: ${currentOrder.clientName}</h4>
@@ -4763,15 +5443,52 @@
                 <p>Status: ${currentOrder.status === 'pendente' ? 'Pendente' : 'Entregue'}</p>
                 <p>Pagamento: ${paymentText}</p>
                 <p>Entrada: R$ ${(currentOrder.downPayment || 0).toFixed(2)}</p>
+                <p>Disponível: ${currentOrder.available === 'sim' ? 'Sim' : 'Não'}</p>
                 <h4>Itens:</h4>
                 <table style="width: 100%; border-collapse: collapse;">
-                    <thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th style="padding: 7px; text-align: left;">Descrição</th>
+                            <th style="padding: 7px; text-align: left;">Qtd</th>
+                            <th style="padding: 7px; text-align: left;">Valor</th>
+                            <th style="padding: 7px; text-align: left;">Total</th>
+                            <th style="padding: 7px; text-align: left;">Lucro</th>
+                        </tr>
+                    </thead>
                     <tbody>
             `;
             currentOrder.items.forEach(item => {
-                html += `<tr><td>${item.description}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`;
+                const profitText = item.cost > 0 ? `R$ ${((item.finalPrice - item.cost) * item.quantity).toFixed(2)}` : '-';
+                html += `
+                    <tr>
+                        <td style="padding: 7px;">${item.description}</td>
+                        <td style="padding: 7px;">${item.quantity}</td>
+                        <td style="padding: 7px;">R$ ${item.finalPrice.toFixed(2)}</td>
+                        <td style="padding: 7px;">R$ ${item.total.toFixed(2)}</td>
+                        <td style="padding: 7px; color: var(--profit);">${profitText}</td>
+                    </tr>
+                `;
             });
-            html += `</tbody></table><h4>Total: R$ ${currentOrder.total.toFixed(2)}</h4>`;
+            html += `</tbody></table>`;
+            
+            // Adicionar resumo de lucro
+            html += `
+                <div style="margin-top: 16px; background: #e8f6f3; padding: 10px; border-radius: 5px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Custo Total:</span>
+                        <span style="color: var(--cost);">R$ ${(currentOrder.totalCost || 0).toFixed(2)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Lucro Total:</span>
+                        <span style="color: var(--profit);">R$ ${(currentOrder.totalProfit || 0).toFixed(2)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Margem:</span>
+                        <span style="color: var(--profit);">${(currentOrder.profitMargin || 0).toFixed(1)}%</span>
+                    </div>
+                </div>
+                <h4 style="margin-top: 16px; text-align: right;">Total: R$ ${currentOrder.total.toFixed(2)}</h4>
+            `;
             
             document.getElementById('order-details').innerHTML = html;
             document.getElementById('order-modal').style.display = 'flex';
@@ -4780,29 +5497,31 @@
         function showBudgetModal() {
             if (!currentBudget) return;
             
-            const validityDate = currentBudget.validityDate ? new Date(currentBudget.validityDate) : new Date(currentBudget.createdAt);
+            const validityDate = new Date(currentBudget.createdAt);
+            validityDate.setDate(validityDate.getDate() + (currentBudget.validity || 7));
             
             let statusHtml = '';
-            if (currentBudget.status) {
-                const statusColor = currentBudget.status === 'aprovado' ? '#27ae60' : 
-                                   currentBudget.status === 'rejeitado' ? '#e74c3c' : '#f39c12';
-                statusHtml = `<p style="color: ${statusColor}; font-weight: bold;">Status: ${currentBudget.status}</p>`;
+            if (currentBudget.approvalStatus) {
+                const statusColor = currentBudget.approvalStatus === 'aprovado' ? '#27ae60' : 
+                                   currentBudget.approvalStatus === 'rejeitado' ? '#e74c3c' : '#f39c12';
+                statusHtml = `<p style="color: ${statusColor}; font-weight: bold;">Status: ${currentBudget.approvalStatus}</p>`;
             }
             
             let html = `
                 <h4>Cliente: ${currentBudget.clientName}</h4>
                 <p>Telefone: ${currentBudget.clientPhone}</p>
                 <p>Data: ${formatDate(currentBudget.createdAt)}</p>
-                <p>Validade: ${formatDate(validityDate)}</p>
+                <p>Validade: ${currentBudget.validity} dias (${formatDate(validityDate)})</p>
                 ${statusHtml}
-                ${currentBudget.notes ? `<p>Obs: ${currentBudget.notes}</p>` : ''}
+                ${currentBudget.observations ? `<p>Obs: ${currentBudget.observations}</p>` : ''}
                 <h4>Itens:</h4>
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead>
                     <tbody>
             `;
             currentBudget.items.forEach(item => {
-                html += `<tr><td>${item.description}</td><td>${item.quantity}</td><td>R$ ${item.price.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`;
+                const obs = item.observations ? ` (${item.observations})` : '';
+                html += `<tr><td>${item.description}${obs}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`;
             });
             html += `</tbody></table><h4>Total: R$ ${currentBudget.total.toFixed(2)}</h4>`;
             
@@ -4855,7 +5574,7 @@
             message += `*SOUZA FARMA - ENCOMENDA*%0A`;
             message += `Data: ${formatDate(currentOrder.createdAt)}%0A`;
             message += `Status: ${currentOrder.status === 'pendente' ? 'Pendente' : 'Entregue'}%0A`;
-            message += `Pagamento: ${currentOrder.paymentMethod || 'pendente'}%0A`;
+            message += `Pagamento: ${currentOrder.payment}%0A`;
             message += `Total: R$ ${currentOrder.total.toFixed(2)}%0A%0A`;
             message += `*Itens:*%0A`;
             currentOrder.items.forEach(item => {
@@ -4873,11 +5592,12 @@
             let message = `Olá ${currentBudget.clientName}!%0A%0A`;
             message += `*SOUZA FARMA - ORÇAMENTO*%0A`;
             message += `Data: ${formatDate(currentBudget.createdAt)}%0A`;
-            message += `Validade: ${formatDate(currentBudget.validityDate)}%0A`;
+            message += `Validade: ${currentBudget.validity} dias%0A`;
             message += `Total: R$ ${currentBudget.total.toFixed(2)}%0A%0A`;
             message += `*Itens:*%0A`;
             currentBudget.items.forEach(item => {
-                message += `${item.quantity}x ${item.description} - R$ ${item.price.toFixed(2)}%0A`;
+                const obs = item.observations ? ` (${item.observations})` : '';
+                message += `${item.quantity}x ${item.description}${obs} - R$ ${item.finalPrice.toFixed(2)}%0A`;
             });
             
             window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
@@ -4895,8 +5615,8 @@
 
         function printCurrentOrder() {
             if (!currentOrder) return;
-            const paymentStatus = currentOrder.paymentMethod === 'pago' ? 'Pago' : 
-                                currentOrder.paymentMethod === 'parcial' ? 'Parcial' : 'Pendente';
+            const paymentStatus = currentOrder.payment === 'pago' ? 'Pago' : 
+                                currentOrder.payment === 'parcial' ? 'Parcial' : 'Pendente';
             
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
@@ -4923,11 +5643,12 @@
                 <style>body{font-family:Arial;padding:20px;}.header{text-align:center;margin-bottom:20px;border-bottom:2px solid #9b59b6;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:left;}.total{text-align:right;font-weight:bold;margin-top:20px;}</style>
                 </head><body>
                 <div class="header"><h2>${pharmacyName}</h2><p>Av José Sarney n°06 Q03 - Bom Jesus - São Luís MA<br>Tel: 98-98628-7296</p></div>
-                <p><strong>Cliente:</strong> ${currentBudget.clientName}<br><strong>Data:</strong> ${formatDate(currentBudget.createdAt)}<br><strong>Validade:</strong> ${formatDate(currentBudget.validityDate)}</p>
+                <p><strong>Cliente:</strong> ${currentBudget.clientName}<br><strong>Data:</strong> ${formatDate(currentBudget.createdAt)}<br><strong>Validade:</strong> ${currentBudget.validity} dias</p>
                 <table><thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead><tbody>
             `);
             currentBudget.items.forEach(item => {
-                printWindow.document.write(`<tr><td>${item.description}</td><td>${item.quantity}</td><td>R$ ${item.price.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`);
+                const obs = item.observations ? ` (${item.observations})` : '';
+                printWindow.document.write(`<tr><td>${item.description}${obs}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`);
             });
             printWindow.document.write(`</tbody></table><div class="total">TOTAL: R$ ${currentBudget.total.toFixed(2)}</div></body></html>`);
             printWindow.document.close();
@@ -4946,14 +5667,102 @@
 
         function printThermalCurrentOrder() {
             if (!currentOrder) return;
-            // Implementar impressão térmica se necessário
-            printCurrentOrder();
+            
+            const paymentStatus = currentOrder.payment === 'pago' ? 'Pago' : 
+                                currentOrder.payment === 'parcial' ? 'Parcial' : 'Pendente';
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html><head><title>Encomenda</title>
+                <style>
+                    @page { size: 80mm auto; margin: 0; }
+                    body { font-family: 'Courier New', monospace; font-size: 12px; width: 72mm; margin: 2mm; }
+                    .header { text-align: center; margin-bottom: 3mm; }
+                    .title { font-size: 14px; font-weight: bold; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { padding: 2px 0; text-align: left; }
+                    .total { text-align: right; font-weight: bold; margin-top: 3mm; border-top: 1px dashed #000; padding-top: 2mm; }
+                    hr { border: none; border-top: 1px dashed #000; margin: 2mm 0; }
+                </style>
+                </head><body>
+                <div class="header">
+                    <div class="title">${pharmacyName}</div>
+                    <div>Av José Sarney n°06 Q03</div>
+                    <div>Bom Jesus - São Luís MA</div>
+                    <div>Tel: 98-98628-7296</div>
+                    <hr>
+                </div>
+                <div><strong>ENCOMENDA</strong></div>
+                <div>Cliente: ${currentOrder.clientName}</div>
+                <div>Data: ${formatDate(currentOrder.createdAt)}</div>
+                <div>Status: ${currentOrder.status}</div>
+                <div>Pagamento: ${paymentStatus}</div>
+                <hr>
+                <table>
+                    <thead><tr><th>Item</th><th>Qtd</th><th>Valor</th></tr></thead>
+                    <tbody>
+            `);
+            currentOrder.items.forEach(item => {
+                printWindow.document.write(`<tr><td>${item.description}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td></tr>`);
+            });
+            printWindow.document.write(`</tbody></table>
+                <div class="total">TOTAL: R$ ${currentOrder.total.toFixed(2)}</div>
+                <hr>
+                <div style="text-align: center;">Obrigado pela preferência!</div>
+                </body></html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
         }
 
         function printThermalCurrentBudget() {
             if (!currentBudget) return;
-            // Implementar impressão térmica se necessário
-            printCurrentBudget();
+            
+            const validityDate = new Date(currentBudget.createdAt);
+            validityDate.setDate(validityDate.getDate() + (currentBudget.validity || 7));
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html><head><title>Orçamento</title>
+                <style>
+                    @page { size: 80mm auto; margin: 0; }
+                    body { font-family: 'Courier New', monospace; font-size: 12px; width: 72mm; margin: 2mm; }
+                    .header { text-align: center; margin-bottom: 3mm; }
+                    .title { font-size: 14px; font-weight: bold; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { padding: 2px 0; text-align: left; }
+                    .total { text-align: right; font-weight: bold; margin-top: 3mm; border-top: 1px dashed #000; padding-top: 2mm; }
+                    hr { border: none; border-top: 1px dashed #000; margin: 2mm 0; }
+                </style>
+                </head><body>
+                <div class="header">
+                    <div class="title">${pharmacyName}</div>
+                    <div>Av José Sarney n°06 Q03</div>
+                    <div>Bom Jesus - São Luís MA</div>
+                    <div>Tel: 98-98628-7296</div>
+                    <hr>
+                </div>
+                <div><strong>ORÇAMENTO</strong></div>
+                <div>Cliente: ${currentBudget.clientName}</div>
+                <div>Data: ${formatDate(currentBudget.createdAt)}</div>
+                <div>Validade: ${formatDate(validityDate)}</div>
+                <hr>
+                <table>
+                    <thead><tr><th>Item</th><th>Qtd</th><th>Valor</th></tr></thead>
+                    <tbody>
+            `);
+            currentBudget.items.forEach(item => {
+                const obs = item.observations ? ` (${item.observations})` : '';
+                printWindow.document.write(`<tr><td>${item.description}${obs}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td></tr>`);
+            });
+            printWindow.document.write(`</tbody></table>
+                <div class="total">TOTAL: R$ ${currentBudget.total.toFixed(2)}</div>
+                <hr>
+                <div style="text-align: center;">Orçamento sujeito a alterações sem aviso prévio.</div>
+                </body></html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
         }
 
         function resetOrderForm() {
@@ -4973,12 +5782,14 @@
             document.getElementById('new-item-final-price').value = '';
             document.getElementById('new-item-profit-value').value = '';
             document.getElementById('new-item-profit-percent').value = '';
-            document.getElementById('order-profit-summary').style.display = 'none';
             document.getElementById('down-payment').value = '';
             document.querySelector('input[name="available"][value="sim"]').checked = true;
             selectedClientForOrder = null;
             orderTotal = 0;
             document.getElementById('order-total').textContent = '0.00';
+            document.getElementById('order-total-cost').textContent = 'R$ 0.00';
+            document.getElementById('order-total-profit').textContent = 'R$ 0.00';
+            document.getElementById('order-profit-margin').textContent = '0%';
         }
 
         function resetBudgetForm() {
@@ -5025,11 +5836,9 @@
             
             let html = '';
             filteredClients.forEach(client => {
-                const clientOrders = encomendas.filter(o => o.clientId === client.id);
-                const clientBudgets = budgets.filter(b => b.clientId === client.id);
-                const hasOrders = clientOrders.length > 0;
-                const hasBudgets = clientBudgets.length > 0;
-                const pendingOrders = clientOrders.filter(o => o.status === 'pendente').length;
+                const hasOrders = client.orders && client.orders.length > 0;
+                const hasBudgets = client.budgets && client.budgets.length > 0;
+                const pendingOrders = hasOrders ? client.orders.filter(o => o.status === 'pendente').length : 0;
                 
                 html += `
                     <div class="item-card">
@@ -5037,13 +5846,13 @@
                             <div class="item-name">${client.name}</div>
                             <div>
                                 ${client.loyal === 'sim' ? '<span class="badge badge-success">Fidelizado</span>' : ''}
-                                ${hasOrders ? `<span class="badge">${clientOrders.length} enc</span>` : ''}
-                                ${hasBudgets ? `<span class="badge badge-budget">${clientBudgets.length} orç</span>` : ''}
+                                ${hasOrders ? `<span class="badge">${client.orders.length} enc</span>` : ''}
+                                ${hasBudgets ? `<span class="badge badge-budget">${client.budgets.length} orç</span>` : ''}
                             </div>
                         </div>
                         <div class="item-contact">📞 ${client.phone}</div>
                         <div class="compact-info">
-                            Tipo: ${client.type || 'regular'} | Cadastro: ${formatDate(client.createdAt)} | Pendentes: ${pendingOrders}
+                            Tipo: ${client.type} | Cadastro: ${formatDate(client.createdAt)} | Pendentes: ${pendingOrders}
                         </div>
                         <div class="item-actions">
                             <button class="btn btn-whatsapp btn-sm" onclick="sendClientWhatsApp('${client.phone}', '${client.name}')">📱 WhatsApp</button>
@@ -5062,7 +5871,14 @@
             const searchTerm = document.getElementById('search-orders').value.toLowerCase();
             const container = document.getElementById('orders-list');
             
-            let allOrders = [...encomendas];
+            let allOrders = [];
+            clients.forEach(client => {
+                if (client.orders) {
+                    client.orders.forEach(order => {
+                        allOrders.push({ ...order, client });
+                    });
+                }
+            });
             
             if (dateFilterApplied) {
                 allOrders = filterOrdersByDate(allOrders);
@@ -5070,8 +5886,8 @@
             
             if (searchTerm) {
                 allOrders = allOrders.filter(order =>
-                    (order.clientName && order.clientName.toLowerCase().includes(searchTerm)) ||
-                    (order.product && order.product.toLowerCase().includes(searchTerm))
+                    order.clientName.toLowerCase().includes(searchTerm) ||
+                    order.items.some(item => item.description.toLowerCase().includes(searchTerm))
                 );
             }
             
@@ -5087,28 +5903,25 @@
             let html = '';
             allOrders.forEach(order => {
                 const isPending = order.status === 'pendente';
-                const client = clients.find(c => c.id === order.clientId);
-                const clientName = client ? client.name : order.clientName;
-                
                 html += `
                     <div class="item-card ${isPending ? 'pending' : 'delivered'}">
                         <div class="item-header">
-                            <div class="item-name">${clientName}</div>
+                            <div class="item-name">${order.clientName}</div>
                             <div>
                                 <span class="badge ${isPending ? 'badge-warning' : 'badge-success'}">
-                                    ${isPending ? 'Pendente' : 'Recebida'}
+                                    ${isPending ? 'Pendente' : 'Entregue'}
                                 </span>
-                                <span class="badge">R$ ${(order.valor || order.total || 0).toFixed(2)}</span>
+                                <span class="badge">R$ ${order.total.toFixed(2)}</span>
                             </div>
                         </div>
                         <div class="item-contact">📞 ${order.clientPhone}</div>
                         <div class="compact-info">
-                            ${formatDate(order.createdAt)} | ${order.items ? order.items.length : 1} itens
+                            ${formatDate(order.createdAt)} | ${order.items.length} itens | Pgto: ${order.payment} | Lucro: R$ ${(order.totalProfit || 0).toFixed(2)}
                         </div>
                         <div class="item-actions">
-                            <button class="btn btn-sm" onclick="viewOrder(${order.id}, ${order.clientId})">👁️ Ver</button>
-                            ${isPending ? `<button class="btn btn-success btn-sm" onclick="markAsDelivered(${order.id}, ${order.clientId})">✅ Entregue</button>` : ''}
-                            <button class="btn btn-danger btn-sm" onclick="deleteOrder(${order.id}, ${order.clientId})">🗑️ Excluir</button>
+                            <button class="btn btn-sm" onclick="viewOrder(${order.id}, ${order.client.id})">👁️ Ver</button>
+                            <button class="btn btn-warning btn-sm" onclick="editOrder(${order.id}, ${order.client.id})">✏️ Editar</button>
+                            ${isPending ? `<button class="btn btn-success btn-sm" onclick="markAsDelivered(${order.id}, ${order.client.id})">✅ Entregue</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -5120,12 +5933,21 @@
             const searchTerm = document.getElementById('search-pending-orders').value.toLowerCase();
             const container = document.getElementById('pending-orders-list');
             
-            let pendingOrders = encomendas.filter(o => o.status === 'pendente');
+            let pendingOrders = [];
+            clients.forEach(client => {
+                if (client.orders) {
+                    client.orders.forEach(order => {
+                        if (order.status === 'pendente') {
+                            pendingOrders.push({ ...order, client });
+                        }
+                    });
+                }
+            });
             
             if (searchTerm) {
                 pendingOrders = pendingOrders.filter(order =>
-                    (order.clientName && order.clientName.toLowerCase().includes(searchTerm)) ||
-                    (order.product && order.product.toLowerCase().includes(searchTerm))
+                    order.clientName.toLowerCase().includes(searchTerm) ||
+                    order.items.some(item => item.description.toLowerCase().includes(searchTerm))
                 );
             }
             
@@ -5140,26 +5962,23 @@
             
             let html = '';
             pendingOrders.forEach(order => {
-                const client = clients.find(c => c.id === order.clientId);
-                const clientName = client ? client.name : order.clientName;
-                
                 html += `
                     <div class="item-card pending">
                         <div class="item-header">
-                            <div class="item-name">${clientName}</div>
+                            <div class="item-name">${order.clientName}</div>
                             <div>
                                 <span class="badge badge-warning">Pendente</span>
-                                <span class="badge">R$ ${(order.valor || order.total || 0).toFixed(2)}</span>
+                                <span class="badge">R$ ${order.total.toFixed(2)}</span>
                             </div>
                         </div>
                         <div class="item-contact">📞 ${order.clientPhone}</div>
                         <div class="compact-info">
-                            ${formatDate(order.createdAt)} | ${order.items ? order.items.length : 1} itens
+                            ${formatDate(order.createdAt)} | ${order.items.length} itens | Pgto: ${order.payment} | Lucro: R$ ${(order.totalProfit || 0).toFixed(2)}
                         </div>
                         <div class="item-actions">
-                            <button class="btn btn-sm" onclick="viewOrder(${order.id}, ${order.clientId})">👁️ Ver</button>
-                            <button class="btn btn-success btn-sm" onclick="markAsDelivered(${order.id}, ${order.clientId})">✅ Entregue</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteOrder(${order.id}, ${order.clientId})">🗑️ Excluir</button>
+                            <button class="btn btn-sm" onclick="viewOrder(${order.id}, ${order.client.id})">👁️ Ver</button>
+                            <button class="btn btn-warning btn-sm" onclick="editOrder(${order.id}, ${order.client.id})">✏️ Editar</button>
+                            <button class="btn btn-success btn-sm" onclick="markAsDelivered(${order.id}, ${order.client.id})">✅ Entregue</button>
                         </div>
                     </div>
                 `;
@@ -5171,7 +5990,14 @@
             const searchTerm = document.getElementById('search-budgets').value.toLowerCase();
             const container = document.getElementById('budgets-list');
             
-            let allBudgets = [...budgets];
+            let allBudgets = [];
+            clients.forEach(client => {
+                if (client.budgets) {
+                    client.budgets.forEach(budget => {
+                        allBudgets.push({ ...budget, client });
+                    });
+                }
+            });
             
             if (budgetFilterApplied) {
                 allBudgets = filterBudgetsByDate(allBudgets);
@@ -5179,8 +6005,8 @@
             
             if (searchTerm) {
                 allBudgets = allBudgets.filter(budget =>
-                    (budget.clientName && budget.clientName.toLowerCase().includes(searchTerm)) ||
-                    (budget.items && budget.items.some(item => item.description.toLowerCase().includes(searchTerm)))
+                    budget.clientName.toLowerCase().includes(searchTerm) ||
+                    budget.items.some(item => item.description.toLowerCase().includes(searchTerm))
                 );
             }
             
@@ -5195,13 +6021,14 @@
             
             let html = '';
             allBudgets.forEach(budget => {
-                const validityDate = budget.validityDate ? new Date(budget.validityDate) : new Date(budget.createdAt);
+                const validityDate = new Date(budget.createdAt);
+                validityDate.setDate(validityDate.getDate() + (budget.validity || 7));
                 const isValid = validityDate >= new Date();
                 
                 let statusBadge = '';
-                if (budget.status === 'aprovado') {
+                if (budget.approvalStatus === 'aprovado') {
                     statusBadge = '<span class="badge badge-success">Aprovado</span>';
-                } else if (budget.status === 'rejeitado') {
+                } else if (budget.approvalStatus === 'rejeitado') {
                     statusBadge = '<span class="badge badge-warning">Rejeitado</span>';
                 }
                 
@@ -5222,10 +6049,10 @@
                             ${formatDate(budget.createdAt)} | Val: ${formatDate(validityDate)} | ${budget.items.length} itens
                         </div>
                         <div class="item-actions">
-                            <button class="btn btn-sm" onclick="viewBudget(${budget.id}, ${budget.clientId})">👁️ Ver</button>
-                            ${!budget.convertedToOrder && budget.status === 'aprovado' ? 
-                                `<button class="btn btn-convert btn-sm" onclick="convertBudgetToOrderFromList(${budget.id}, ${budget.clientId})">🔄 Converter</button>` : ''}
-                            <button class="btn btn-danger btn-sm" onclick="deleteBudget(${budget.id}, ${budget.clientId})">🗑️ Excluir</button>
+                            <button class="btn btn-sm" onclick="viewBudget(${budget.id}, ${budget.client.id})">👁️ Ver</button>
+                            <button class="btn btn-warning btn-sm" onclick="editBudget(${budget.id}, ${budget.client.id})">✏️ Editar</button>
+                            ${!budget.convertedToOrder && budget.approvalStatus === 'aprovado' ? 
+                                `<button class="btn btn-convert btn-sm" onclick="convertBudgetToOrderFromList(${budget.id}, ${budget.client.id})">🔄 Converter</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -5234,7 +6061,10 @@
         }
 
         function convertBudgetToOrderFromList(budgetId, clientId) {
-            const budget = budgets.find(b => b.id === budgetId);
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            
+            const budget = client.budgets.find(b => b.id === budgetId);
             if (!budget) return;
             
             currentBudget = budget;
@@ -5243,12 +6073,20 @@
 
         function updatePendingSummary(pendingOrders) {
             const totalOrders = pendingOrders.length;
-            const totalValue = pendingOrders.reduce((sum, order) => sum + (order.valor || order.total || 0), 0);
+            const totalValue = pendingOrders.reduce((sum, order) => sum + order.total, 0);
+            const totalCost = pendingOrders.reduce((sum, order) => {
+                let cost = 0;
+                if (order.items) {
+                    order.items.forEach(item => cost += (item.cost || 0) * item.quantity);
+                }
+                return sum + cost;
+            }, 0);
+            const totalProfit = totalValue - totalCost;
             
             document.getElementById('pending-count').textContent = totalOrders;
             document.getElementById('pending-total-value').textContent = `R$ ${totalValue.toFixed(2).replace('.', ',')}`;
-            document.getElementById('pending-total-cost').textContent = `R$ 0,00`;
-            document.getElementById('pending-total-profit').textContent = `R$ ${(totalValue * 0.5).toFixed(2).replace('.', ',')}`;
+            document.getElementById('pending-total-cost').textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
+            document.getElementById('pending-total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
         }
 
         function updateBudgetSummary(budgets) {
@@ -5262,38 +6100,18 @@
         }
 
         function viewOrder(orderId, clientId) {
-            const order = encomendas.find(o => o.id === orderId);
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            const order = client.orders.find(o => o.id === orderId);
             if (!order) return;
-            
-            // Converter formato antigo para novo se necessário
-            if (order.items) {
-                currentOrder = order;
-            } else {
-                // Criar estrutura compatível
-                currentOrder = {
-                    id: order.id,
-                    clientId: order.clientId,
-                    clientName: order.clientName,
-                    clientPhone: order.clientPhone,
-                    items: [{
-                        description: order.product || 'Produto',
-                        quantity: order.quantidade || 1,
-                        price: order.valor || 0,
-                        finalPrice: order.valor || 0,
-                        total: order.valor || 0
-                    }],
-                    total: order.valor || 0,
-                    paymentMethod: 'pendente',
-                    downPayment: 0,
-                    status: order.status,
-                    createdAt: order.createdAt
-                };
-            }
+            currentOrder = order;
             showOrderModal();
         }
 
         function viewBudget(budgetId, clientId) {
-            const budget = budgets.find(b => b.id === budgetId);
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            const budget = client.budgets.find(b => b.id === budgetId);
             if (!budget) return;
             currentBudget = budget;
             showBudgetModal();
@@ -5303,9 +6121,17 @@
             const totalClients = clients.length;
             const loyalClients = clients.filter(c => c.loyal === 'sim').length;
             
-            const pendingOrders = encomendas.filter(o => o.status === 'pendente').length;
-            const deliveredOrders = encomendas.filter(o => o.status === 'recebida').length;
-            const totalBudgets = budgets.length;
+            let pendingOrders = 0, deliveredOrders = 0, totalBudgets = 0;
+            
+            clients.forEach(client => {
+                if (client.orders) {
+                    client.orders.forEach(order => {
+                        if (order.status === 'pendente') pendingOrders++;
+                        else deliveredOrders++;
+                    });
+                }
+                if (client.budgets) totalBudgets += client.budgets.length;
+            });
             
             document.getElementById('total-clients').textContent = totalClients;
             document.getElementById('loyal-clients').textContent = loyalClients;
@@ -5359,9 +6185,15 @@
                 const budgetDate = new Date(budget.createdAt);
                 return isDateBetween(budgetDate, currentBudgetFilter.startDate, currentBudgetFilter.endDate) &&
                        (currentBudgetFilter.status === 'todos' || 
-                        (currentBudgetFilter.status === 'pendente' && !budget.status) ||
-                        budget.status === currentBudgetFilter.status);
+                        (currentBudgetFilter.status === 'pendente' && !budget.approvalStatus) ||
+                        budget.approvalStatus === currentBudgetFilter.status);
             });
+        }
+
+        function formatValidityDate(createdAt, validity) {
+            const date = new Date(createdAt);
+            date.setDate(date.getDate() + (validity || 7));
+            return date.toLocaleDateString('pt-BR');
         }
 
         function sendClientWhatsApp(phone, name) {
@@ -5383,10 +6215,10 @@
                 'E-mail': client.email || '',
                 'CPF': client.cpf || '',
                 'Endereço': client.address || '',
-                'Tipo': client.type || 'regular',
+                'Tipo': client.type,
                 'Fidelizado': client.loyal === 'sim' ? 'Sim' : 'Não',
-                'Total Encomendas': encomendas.filter(o => o.clientId === client.id).length,
-                'Total Orçamentos': budgets.filter(b => b.clientId === client.id).length,
+                'Total Encomendas': client.orders ? client.orders.length : 0,
+                'Total Orçamentos': client.budgets ? client.budgets.length : 0,
                 'Data Cadastro': formatDate(client.createdAt)
             }));
             
@@ -5397,87 +6229,128 @@
         }
 
         function exportOrdersToExcel() {
-            if (encomendas.length === 0) {
+            let allOrders = [];
+            clients.forEach(client => {
+                if (client.orders) {
+                    client.orders.forEach(order => {
+                        let orderCost = 0, orderProfit = 0;
+                        if (order.items) {
+                            order.items.forEach(item => {
+                                const itemCost = (item.cost || 0) * item.quantity;
+                                const itemRevenue = item.finalPrice * item.quantity;
+                                orderCost += itemCost;
+                                orderProfit += itemRevenue - itemCost;
+                            });
+                        }
+                        
+                        allOrders.push({
+                            'ID': order.id,
+                            'Cliente': order.clientName,
+                            'Telefone': order.clientPhone,
+                            'Data': formatDate(order.createdAt),
+                            'Status': order.status === 'pendente' ? 'Pendente' : 'Entregue',
+                            'Pagamento': order.payment,
+                            'Total Venda': order.total,
+                            'Custo Total': orderCost,
+                            'Lucro Total': orderProfit,
+                            'Margem (%)': orderCost > 0 ? ((orderProfit / orderCost) * 100).toFixed(2) : '0.00',
+                            'Quantidade de Itens': order.items.length,
+                            'Itens': order.items.map(item => `${item.quantity}x ${item.description}`).join('; ')
+                        });
+                    });
+                }
+            });
+            
+            if (dateFilterApplied) {
+                allOrders = filterOrdersByDate(allOrders);
+            }
+            
+            if (allOrders.length === 0) {
                 alert('Não há encomendas para exportar!');
                 return;
             }
             
-            const data = encomendas.map(order => {
-                const client = clients.find(c => c.id === order.clientId);
-                return {
-                    'ID': order.id,
-                    'Cliente': client ? client.name : order.clientName,
-                    'Telefone': order.clientPhone,
-                    'Data': formatDate(order.createdAt),
-                    'Status': order.status === 'pendente' ? 'Pendente' : 'Recebida',
-                    'Total': (order.valor || order.total || 0).toFixed(2),
-                    'Produto': order.product || (order.items ? order.items.map(i => i.description).join('; ') : ''),
-                    'Quantidade': order.quantidade || (order.items ? order.items.length : 1)
-                };
-            });
-            
-            if (dateFilterApplied) {
-                // Filtro já aplicado
-            }
-            
-            const ws = XLSX.utils.json_to_sheet(data);
+            const ws = XLSX.utils.json_to_sheet(allOrders);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Encomendas");
             XLSX.writeFile(wb, `Encomendas_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
         }
 
         function exportPendingOrdersToExcel() {
-            const pendingEncomendas = encomendas.filter(o => o.status === 'pendente');
+            let pendingOrders = [];
+            clients.forEach(client => {
+                if (client.orders) {
+                    client.orders.forEach(order => {
+                        if (order.status === 'pendente') {
+                            let orderCost = 0, orderProfit = 0;
+                            if (order.items) {
+                                order.items.forEach(item => {
+                                    const itemCost = (item.cost || 0) * item.quantity;
+                                    const itemRevenue = item.finalPrice * item.quantity;
+                                    orderCost += itemCost;
+                                    orderProfit += itemRevenue - itemCost;
+                                });
+                            }
+                            
+                            pendingOrders.push({
+                                'ID': order.id,
+                                'Cliente': order.clientName,
+                                'Telefone': order.clientPhone,
+                                'Data': formatDate(order.createdAt),
+                                'Pagamento': order.payment,
+                                'Total Venda': order.total,
+                                'Custo Total': orderCost,
+                                'Lucro Projetado': orderProfit,
+                                'Margem (%)': orderCost > 0 ? ((orderProfit / orderCost) * 100).toFixed(2) : '0.00',
+                                'Itens': order.items.map(item => `${item.quantity}x ${item.description}`).join('; ')
+                            });
+                        }
+                    });
+                }
+            });
             
-            if (pendingEncomendas.length === 0) {
+            if (pendingOrders.length === 0) {
                 alert('Não há encomendas pendentes para exportar!');
                 return;
             }
             
-            const data = pendingEncomendas.map(order => {
-                const client = clients.find(c => c.id === order.clientId);
-                return {
-                    'ID': order.id,
-                    'Cliente': client ? client.name : order.clientName,
-                    'Telefone': order.clientPhone,
-                    'Data': formatDate(order.createdAt),
-                    'Total': (order.valor || order.total || 0).toFixed(2),
-                    'Produto': order.product || (order.items ? order.items.map(i => i.description).join('; ') : '')
-                };
-            });
-            
-            const ws = XLSX.utils.json_to_sheet(data);
+            const ws = XLSX.utils.json_to_sheet(pendingOrders);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Encomendas Pendentes");
             XLSX.writeFile(wb, `Pendentes_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
         }
 
         function exportBudgetsToExcel() {
-            if (budgets.length === 0) {
+            let allBudgets = [];
+            clients.forEach(client => {
+                if (client.budgets) {
+                    client.budgets.forEach(budget => {
+                        allBudgets.push({
+                            'ID': budget.id,
+                            'Cliente': budget.clientName,
+                            'Telefone': budget.clientPhone,
+                            'Data': formatDate(budget.createdAt),
+                            'Validade (dias)': budget.validity,
+                            'Data Validade': formatValidityDate(budget.createdAt, budget.validity),
+                            'Total': budget.total,
+                            'Status': budget.approvalStatus || 'pendente',
+                            'Observações': budget.observations || '',
+                            'Itens': budget.items.map(item => `${item.quantity}x ${item.description}${item.observations ? ` (${item.observations})` : ''}`).join('; ')
+                        });
+                    });
+                }
+            });
+            
+            if (budgetFilterApplied) {
+                allBudgets = filterBudgetsByDate(allBudgets);
+            }
+            
+            if (allBudgets.length === 0) {
                 alert('Não há orçamentos para exportar!');
                 return;
             }
             
-            const data = budgets.map(budget => {
-                const client = clients.find(c => c.id === budget.clientId);
-                return {
-                    'ID': budget.id,
-                    'Cliente': client ? client.name : budget.clientName,
-                    'Telefone': budget.clientPhone,
-                    'Data': formatDate(budget.createdAt),
-                    'Validade': formatDate(budget.validityDate || budget.createdAt),
-                    'Total': budget.total.toFixed(2),
-                    'Status': budget.status || 'pendente',
-                    'Observações': budget.notes || '',
-                    'Itens': budget.items.map(i => `${i.quantity}x ${i.description}`).join('; ')
-                };
-            });
-            
-            if (budgetFilterApplied) {
-                // Filtro já aplicado
-            }
-            
-            const ws = XLSX.utils.json_to_sheet(data);
+            const ws = XLSX.utils.json_to_sheet(allBudgets);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Orçamentos");
             XLSX.writeFile(wb, `Orcamentos_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
