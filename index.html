@@ -970,6 +970,43 @@
             border-radius: 8px;
             border-left: 4px solid #16a085;
         }
+
+        /* Estilo para opção de data manual */
+        .date-manual-toggle {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .date-manual-toggle label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .date-manual-toggle input[type="checkbox"] {
+            width: auto;
+            margin-right: 5px;
+        }
+
+        .date-manual-fields {
+            display: none;
+            margin-top: 10px;
+            padding: 15px;
+            background: #f0f7fa;
+            border-radius: 6px;
+            border-left: 4px solid var(--souza-red);
+        }
+
+        .date-manual-fields.active {
+            display: block;
+        }
         
         @media (max-width: 768px) {
             .form-row, .filter-row, .dashboard-filter {
@@ -1309,7 +1346,7 @@
             <div class="card" onclick="showSection('new-order')">
                 <i class="fas fa-clipboard-list"></i>
                 <h3>Nova Encomenda</h3>
-                <p>Criar nova encomenda</p>
+                <p>Criar nova encomenda (com data manual)</p>
                 <button class="btn btn-warning btn-sm">Criar</button>
             </div>
             
@@ -1337,7 +1374,7 @@
             <div class="card" onclick="showSection('new-budget')">
                 <i class="fas fa-file-invoice-dollar"></i>
                 <h3>Novo Orçamento</h3>
-                <p>Criar novo orçamento</p>
+                <p>Criar novo orçamento (com data manual)</p>
                 <button class="btn btn-budget btn-sm">Criar</button>
             </div>
 
@@ -1348,7 +1385,7 @@
                 <button class="btn btn-pdf btn-sm">Acessar</button>
             </div>
 
-            <div class="card" onclick="showBackupOptions()">
+            <div class="card" onclick="showSection('backup')">
                 <i class="fas fa-database"></i>
                 <h3>Backup</h3>
                 <p>Fazer backup dos dados</p>
@@ -1478,6 +1515,30 @@
                 <button class="btn btn-secondary btn-sm" onclick="showDashboard()">
                     <i class="fas fa-arrow-left"></i> Voltar
                 </button>
+            </div>
+            
+            <!-- NOVA OPÇÃO: Data manual para encomenda -->
+            <div class="date-manual-toggle">
+                <label>
+                    <input type="checkbox" id="order-manual-date-toggle" onchange="toggleOrderManualDate()">
+                    <i class="fas fa-calendar-alt"></i> Definir data manualmente (para encomendas antigas)
+                </label>
+            </div>
+            
+            <div class="date-manual-fields" id="order-manual-date-fields">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="order-manual-date">Data da Encomenda</label>
+                        <input type="date" id="order-manual-date" value="">
+                    </div>
+                    <div class="form-group">
+                        <label for="order-manual-time">Hora (opcional)</label>
+                        <input type="time" id="order-manual-time" value="12:00">
+                    </div>
+                </div>
+                <p style="font-size: 0.85rem; color: #666;">
+                    <i class="fas fa-info-circle"></i> Se não marcar, será usada a data/hora atual
+                </p>
             </div>
             
             <div class="search-container">
@@ -1840,6 +1901,30 @@
                 </button>
             </div>
             
+            <!-- NOVA OPÇÃO: Data manual para orçamento -->
+            <div class="date-manual-toggle">
+                <label>
+                    <input type="checkbox" id="budget-manual-date-toggle" onchange="toggleBudgetManualDate()">
+                    <i class="fas fa-calendar-alt"></i> Definir data manualmente (para orçamentos antigos)
+                </label>
+            </div>
+            
+            <div class="date-manual-fields" id="budget-manual-date-fields">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="budget-manual-date">Data do Orçamento</label>
+                        <input type="date" id="budget-manual-date" value="">
+                    </div>
+                    <div class="form-group">
+                        <label for="budget-manual-time">Hora (opcional)</label>
+                        <input type="time" id="budget-manual-time" value="12:00">
+                    </div>
+                </div>
+                <p style="font-size: 0.85rem; color: #666;">
+                    <i class="fas fa-info-circle"></i> Se não marcar, será usada a data/hora atual
+                </p>
+            </div>
+            
             <div class="search-container">
                 <input type="text" id="search-client-budget" placeholder="Buscar cliente para orçamento..." oninput="searchClientForBudget()">
                 <div id="client-budget-search-results" style="margin-top: 9px; display: none;"></div>
@@ -2118,7 +2203,6 @@
             </div>
         </div>
 
-        <!-- Nova Seção de Backup -->
         <div class="section" id="backup-section">
             <div class="section-header">
                 <h2><i class="fas fa-database"></i> Backup e Restauração</h2>
@@ -2413,6 +2497,61 @@
             document.getElementById('search-pending-orders').addEventListener('input', renderPendingOrdersList);
             document.getElementById('search-budgets').addEventListener('input', renderBudgetsList);
         });
+
+        // NOVAS FUNÇÕES: Toggle da data manual
+        function toggleOrderManualDate() {
+            const checkbox = document.getElementById('order-manual-date-toggle');
+            const fields = document.getElementById('order-manual-date-fields');
+            
+            if (checkbox.checked) {
+                fields.classList.add('active');
+                // Preencher com data de hoje como sugestão
+                const today = new Date();
+                document.getElementById('order-manual-date').value = today.toISOString().split('T')[0];
+            } else {
+                fields.classList.remove('active');
+            }
+        }
+
+        function toggleBudgetManualDate() {
+            const checkbox = document.getElementById('budget-manual-date-toggle');
+            const fields = document.getElementById('budget-manual-date-fields');
+            
+            if (checkbox.checked) {
+                fields.classList.add('active');
+                const today = new Date();
+                document.getElementById('budget-manual-date').value = today.toISOString().split('T')[0];
+            } else {
+                fields.classList.remove('active');
+            }
+        }
+
+        // Função para obter a data personalizada
+        function getCustomOrderDate() {
+            const checkbox = document.getElementById('order-manual-date-toggle');
+            if (checkbox && checkbox.checked) {
+                const dateInput = document.getElementById('order-manual-date').value;
+                const timeInput = document.getElementById('order-manual-time').value || '12:00';
+                
+                if (dateInput) {
+                    return new Date(dateInput + 'T' + timeInput + ':00').toISOString();
+                }
+            }
+            return new Date().toISOString();
+        }
+
+        function getCustomBudgetDate() {
+            const checkbox = document.getElementById('budget-manual-date-toggle');
+            if (checkbox && checkbox.checked) {
+                const dateInput = document.getElementById('budget-manual-date').value;
+                const timeInput = document.getElementById('budget-manual-time').value || '12:00';
+                
+                if (dateInput) {
+                    return new Date(dateInput + 'T' + timeInput + ':00').toISOString();
+                }
+            }
+            return new Date().toISOString();
+        }
 
         function loadInitialData() {
             db.ref('clients').once('value').then((snapshot) => {
@@ -4851,6 +4990,9 @@
                 return;
             }
             
+            // NOVO: Usar data personalizada se marcado
+            const createdAt = getCustomOrderDate();
+            
             const newOrder = {
                 id: Date.now(),
                 clientId: selectedClientForOrder.id,
@@ -4865,7 +5007,7 @@
                 downPayment: downPayment,
                 available: available,
                 status: 'pendente',
-                createdAt: new Date().toISOString()
+                createdAt: createdAt
             };
             
             const clientIndex = clients.findIndex(c => c.id === selectedClientForOrder.id);
@@ -4908,6 +5050,9 @@
             const validity = parseInt(document.getElementById('budget-validity').value) || 7;
             const observations = document.getElementById('budget-observations').value.trim();
             
+            // NOVO: Usar data personalizada se marcado
+            const createdAt = getCustomBudgetDate();
+            
             const newBudget = {
                 id: Date.now(),
                 clientId: selectedClientForBudget.id,
@@ -4918,7 +5063,7 @@
                 validity: validity,
                 observations: observations,
                 approvalStatus: 'pendente',
-                createdAt: new Date().toISOString()
+                createdAt: createdAt
             };
             
             const clientIndex = clients.findIndex(c => c.id === selectedClientForBudget.id);
@@ -5850,6 +5995,10 @@
             document.getElementById('order-total-cost').textContent = 'R$ 0.00';
             document.getElementById('order-total-profit').textContent = 'R$ 0.00';
             document.getElementById('order-profit-margin').textContent = '0%';
+            
+            // Resetar data manual
+            document.getElementById('order-manual-date-toggle').checked = false;
+            document.getElementById('order-manual-date-fields').classList.remove('active');
         }
 
         function resetBudgetForm() {
@@ -5874,6 +6023,10 @@
             budgetItems = [];
             budgetTotal = 0;
             document.getElementById('budget-total').textContent = '0.00';
+            
+            // Resetar data manual
+            document.getElementById('budget-manual-date-toggle').checked = false;
+            document.getElementById('budget-manual-date-fields').classList.remove('active');
         }
 
         function renderClientsList() {
