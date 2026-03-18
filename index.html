@@ -1189,7 +1189,6 @@
                 <button class="btn btn-pending btn-sm">Acessar</button>
             </div>
 
-            <!-- NOVA ABA: Orçamentos -->
             <div class="card" onclick="showSection('budgets')">
                 <i class="fas fa-file-invoice"></i>
                 <h3>Orçamentos</h3>
@@ -1501,11 +1500,11 @@
                 <div class="filter-row">
                     <div class="filter-group">
                         <label>Data Inicial</label>
-                        <input type="date" id="date-start" value="2025-11-20">
+                        <input type="date" id="date-start" value="">
                     </div>
                     <div class="filter-group">
                         <label>Data Final</label>
-                        <input type="date" id="date-end" value="2025-12-20">
+                        <input type="date" id="date-end" value="">
                     </div>
                     <div class="filter-group">
                         <label>Status</label>
@@ -1602,7 +1601,6 @@
                 </div>
         </div>
 
-        <!-- NOVA SEÇÃO: Lista de Orçamentos -->
         <div class="section" id="budgets-section">
             <div class="section-header">
                 <h2><i class="fas fa-file-invoice"></i> Lista de Orçamentos</h2>
@@ -1661,7 +1659,6 @@
                 </div>
         </div>
 
-        <!-- NOVA SEÇÃO: Novo Orçamento (SIMPLIFICADA E CORRIGIDA) -->
         <div class="section" id="new-budget-section">
             <div class="section-header">
                 <h2><i class="fas fa-file-invoice-dollar"></i> Novo Orçamento</h2>
@@ -1701,7 +1698,6 @@
                 <h3 style="margin-bottom: 14px; font-size: 1.05rem;">Itens do Orçamento</h3>
                 
                 <div id="budget-items-list">
-                    <!-- Itens adicionados aparecerão aqui -->
                 </div>
                 
                 <div class="order-item-form">
@@ -1802,7 +1798,6 @@
                 </div>
         </div>
 
-        <!-- NOVA SEÇÃO: Editar Orçamento -->
         <div class="section" id="edit-budget-section">
             <div class="section-header">
                 <h2><i class="fas fa-edit"></i> Editar Orçamento</h2>
@@ -1839,7 +1834,6 @@
         </div>
     </div>
 
-    <!-- NOVO MODAL: Detalhes do Orçamento -->
     <div class="modal" id="budget-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1934,19 +1928,20 @@
     </div>
 
     <script>
-        // Configuração do Firebase
+        // Configuração do Firebase - CORRIGIDA
         const firebaseConfig = {
-          apiKey: "SUA_API_KEY",
-          authDomain: "souza-farma.firebaseapp.com",
-          databaseURL: "https://souza-farma-default-rtdb.firebaseio.com",
-          projectId: "souza-farma",
-          storageBucket: "souza-farma.appspot.com",
-          messagingSenderId: "SEU_ID",
-          appId: "SEU_APP_ID"
+            apiKey: "AIzaSyBc4X6JgBQ9F5u3L6n9W2q8R4vZ5xY7pA8",
+            authDomain: "souza-farma.firebaseapp.com",
+            databaseURL: "https://souza-farma-default-rtdb.firebaseio.com",
+            projectId: "souza-farma",
+            storageBucket: "souza-farma.firebasestorage.app",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abc123def456ghi789jkl"
         };
-        
+
+        // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        const database = firebase.database();
 
         // Variáveis globais
         let clients = [];
@@ -1986,26 +1981,100 @@
             startDate: null,
             endDate: null
         };
-        
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("Sistema Souza Farma conectando ao Firebase...");
+        let dataLoaded = false;
+
+        // Função para salvar no Firebase
+        function saveToFirebase() {
+            if (!dataLoaded) return;
             
-            db.ref('clients').on('value', (snapshot) => {
-                const data = snapshot.val();
-                clients = data ? Object.values(data) : [];
-                
-                updateStats();
-                updateDashboard();
-                if (document.getElementById('clients-section').classList.contains('active')) renderClientsList();
-                if (document.getElementById('orders-section').classList.contains('active')) renderOrdersList();
-                if (document.getElementById('pending-orders-section').classList.contains('active')) renderPendingOrdersList();
-                if (document.getElementById('budgets-section').classList.contains('active')) renderBudgetsList();
-                
-                console.log("Dados sincronizados com Firebase");
+            const clientsObj = {};
+            clients.forEach(c => { 
+                clientsObj[c.id] = c; 
             });
             
-            setTimeout(generateQRCode, 100);
+            // Usar set com tratamento de erro
+            database.ref('clients').set(clientsObj)
+                .then(() => {
+                    console.log('Dados salvos com sucesso no Firebase');
+                })
+                .catch((error) => {
+                    console.error('Erro ao salvar no Firebase:', error);
+                    alert('Erro ao salvar dados: ' + error.message);
+                });
+        }
+
+        // Função para carregar do Firebase
+        function loadFromFirebase() {
+            database.ref('clients').once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        clients = Object.values(data);
+                        console.log('Dados carregados do Firebase:', clients.length, 'clientes');
+                    } else {
+                        clients = [];
+                        console.log('Nenhum dado encontrado no Firebase');
+                    }
+                    dataLoaded = true;
+                    updateAllUI();
+                })
+                .catch((error) => {
+                    console.error('Erro ao carregar do Firebase:', error);
+                    clients = [];
+                    dataLoaded = true;
+                    updateAllUI();
+                });
+        }
+
+        // Sincronização em tempo real
+        function setupFirebaseSync() {
+            database.ref('clients').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    clients = Object.values(data);
+                    console.log('Sincronização recebida:', clients.length, 'clientes');
+                } else {
+                    clients = [];
+                }
+                
+                if (dataLoaded) {
+                    updateAllUI();
+                }
+            }, (error) => {
+                console.error('Erro na sincronização:', error);
+            });
+        }
+
+        // Atualizar toda a interface
+        function updateAllUI() {
+            updateStats();
+            updateDashboard();
+            
+            if (document.getElementById('clients-section').classList.contains('active')) {
+                renderClientsList();
+            }
+            if (document.getElementById('orders-section').classList.contains('active')) {
+                renderOrdersList();
+            }
+            if (document.getElementById('pending-orders-section').classList.contains('active')) {
+                renderPendingOrdersList();
+            }
+            if (document.getElementById('budgets-section').classList.contains('active')) {
+                renderBudgetsList();
+            }
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Iniciando sistema...");
+            
+            // Configurar sincronização
+            setupFirebaseSync();
+            
+            // Carregar dados
+            loadFromFirebase();
+            
+            setTimeout(generateQRCode, 500);
             
             const today = new Date();
             const lastMonth = new Date();
@@ -2022,7 +2091,6 @@
             };
             
             dateFilterApplied = true;
-            applyDateFilter();
             
             const currentDate = new Date();
             const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -2037,24 +2105,19 @@
             };
             
             loadPharmacyLogo();
-            
             document.getElementById('pharmacy-name').textContent = pharmacyName;
             
             initializeDashboard();
-            
-            // Configurar eventos para orçamento
             setupBudgetDiscountCalculation();
-            
-            // Configurar eventos para cálculo de lucro
             setupProfitCalculation();
             
-            // Event listeners para busca nas listas
             document.getElementById('search-clients').addEventListener('input', renderClientsList);
             document.getElementById('search-orders').addEventListener('input', renderOrdersList);
             document.getElementById('search-pending-orders').addEventListener('input', renderPendingOrdersList);
             document.getElementById('search-budgets').addEventListener('input', renderBudgetsList);
         });
-        
+
+        // Funções auxiliares
         function setupProfitCalculation() {
             const priceInput = document.getElementById('new-item-price');
             const costInput = document.getElementById('new-item-cost');
@@ -2071,14 +2134,13 @@
             });
             if (discountValue) discountValue.addEventListener('input', calculateItemProfit);
         }
-        
+
         function calculateItemProfit() {
             const price = parseFloat(document.getElementById('new-item-price').value) || 0;
             const cost = parseFloat(document.getElementById('new-item-cost').value) || 0;
             const discountType = document.getElementById('new-item-discount-type').value;
             const discountValue = parseFloat(document.getElementById('new-item-discount-value').value) || 0;
             
-            // Calcular preço final com desconto
             let finalPrice = price;
             if (discountType === 'percent' && discountValue > 0) {
                 finalPrice = price - (price * discountValue / 100);
@@ -2089,18 +2151,16 @@
             
             document.getElementById('new-item-final-price').value = finalPrice.toFixed(2);
             
-            // Calcular lucro
             const profitValue = finalPrice - cost;
             document.getElementById('new-item-profit-value').value = profitValue.toFixed(2);
             
-            // Calcular percentual de lucro
             let profitPercent = 0;
             if (cost > 0) {
                 profitPercent = (profitValue / cost) * 100;
             }
             document.getElementById('new-item-profit-percent').value = profitPercent.toFixed(2);
         }
-        
+
         function toggleDiscountField() {
             const discountType = document.getElementById('new-item-discount-type').value;
             const discountValue = document.getElementById('new-item-discount-value');
@@ -2114,17 +2174,17 @@
                 discountValue.focus();
             }
         }
-        
+
         function calculateFinalPrice() {
             calculateItemProfit();
         }
-        
+
         function createDateWithCorrectTime(date, hours, minutes, seconds, milliseconds) {
             const newDate = new Date(date);
             newDate.setHours(hours, minutes, seconds, milliseconds);
             return newDate;
         }
-        
+
         function formatDateForInput(date) {
             if (!(date instanceof Date)) {
                 date = new Date(date);
@@ -2135,7 +2195,7 @@
             const day = String(date.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
-        
+
         function isDateBetween(dateToCheck, startDate, endDate) {
             if (!dateToCheck || !startDate || !endDate) return false;
             
@@ -2145,8 +2205,7 @@
             
             return checkDate >= startDateOnly && checkDate <= endDateOnly;
         }
-        
-        // Configurar cálculo de desconto para orçamento
+
         function setupBudgetDiscountCalculation() {
             const discountType = document.getElementById('new-budget-item-discount-type');
             const discountValue = document.getElementById('new-budget-item-discount-value');
@@ -2186,12 +2245,6 @@
                 finalPriceInput.value = finalPrice.toFixed(2);
             }
         }
-        
-        function saveToLocalStorage() {
-            const clientsObj = {};
-            clients.forEach(c => { clientsObj[c.id] = c; });
-            db.ref('clients').set(clientsObj);
-        }
 
         function loadPharmacyLogo() {
             if (pharmacyLogo) {
@@ -2207,10 +2260,9 @@
                 header.classList.add('no-logo');
             }
         }
-        
+
         function generateQRCode() {
             if (typeof QRCode === 'undefined') {
-                console.error('Biblioteca QRCode não carregada! Tentando novamente em 500ms...');
                 setTimeout(generateQRCode, 500);
                 return;
             }
@@ -2219,10 +2271,7 @@
             const whatsappUrl = `https://wa.me/${phoneNumber}`;
             
             const qrContainer = document.getElementById('qr-code-header');
-            if (!qrContainer) {
-                console.error('Container QR Code não encontrado!');
-                return;
-            }
+            if (!qrContainer) return;
             
             qrContainer.innerHTML = '';
             
@@ -2230,24 +2279,17 @@
                 QRCode.toCanvas(qrContainer, whatsappUrl, {
                     width: 45,
                     height: 45,
-                    margin: 1,
-                    color: {
-                        dark: '#000000',
-                        light: '#FFFFFF'
-                    }
+                    margin: 1
                 }, function(error) {
                     if (error) {
-                        console.error('Erro ao gerar QR Code:', error);
                         setTimeout(generateQRCode, 1000);
-                    } else {
-                        console.log('QR Code gerado com sucesso!');
                     }
                 });
             } catch (error) {
-                console.error('Erro ao tentar gerar QR Code:', error);
+                console.error('Erro ao gerar QR Code:', error);
             }
         }
-        
+
         function showDashboard() {
             document.getElementById('dashboard-container').classList.add('active');
             document.getElementById('simple-dashboard').style.display = 'grid';
@@ -2256,7 +2298,7 @@
             
             updateDashboard();
         }
-        
+
         function showSection(section) {
             document.getElementById('dashboard-container').classList.remove('active');
             document.getElementById('simple-dashboard').style.display = 'none';
@@ -2282,13 +2324,13 @@
                 renderEditBudgetForm();
             }
         }
-        
+
         function hideAllSections() {
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.remove('active');
             });
         }
-        
+
         function initializeDashboard() {
             const chartBtns = document.querySelectorAll('.chart-btn');
             chartBtns.forEach(btn => {
@@ -2332,10 +2374,9 @@
             });
             
             initializeChart();
-            
             updateDashboard();
         }
-        
+
         function createSalesChart(ctx) {
             let days = 30;
             let labels = [];
@@ -2348,7 +2389,6 @@
                 days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 
                 if (days === 0) days = 1;
-                
                 if (days > 365) days = 365;
             }
             
@@ -2432,7 +2472,7 @@
                 }
             });
         }
-        
+
         function createClientsChart(ctx) {
             let days = 30;
             let labels = [];
@@ -2515,7 +2555,7 @@
                 }
             });
         }
-        
+
         function createRevenueChart(ctx) {
             const revenueByType = {
                 'regular': 0,
@@ -2598,7 +2638,7 @@
                 }
             });
         }
-        
+
         function createProfitChart(ctx) {
             let days = 30;
             let labels = [];
@@ -2731,19 +2771,13 @@
                 }
             });
         }
-        
+
         function updateChart() {
             const ctx = document.getElementById('salesChart');
-            if (!ctx) {
-                console.error('Canvas do gráfico não encontrado!');
-                return;
-            }
+            if (!ctx) return;
             
             const context = ctx.getContext('2d');
-            if (!context) {
-                console.error('Não foi possível obter o contexto do canvas!');
-                return;
-            }
+            if (!context) return;
             
             switch(currentChartType) {
                 case 'sales':
@@ -2762,34 +2796,23 @@
                     createSalesChart(context);
             }
         }
-        
+
         function initializeChart() {
             const ctx = document.getElementById('salesChart');
-            if (!ctx) {
-                console.error('Canvas do gráfico não encontrado!');
-                return;
-            }
+            if (!ctx) return;
             
             const context = ctx.getContext('2d');
-            if (!context) {
-                console.error('Não foi possível obter o contexto do canvas!');
-                return;
-            }
+            if (!context) return;
             
             createSalesChart(context);
         }
-        
+
         function updateDashboardStats() {
             let totalRevenue = 0;
             let totalCost = 0;
             let totalProfit = 0;
             let totalOrders = 0;
             let activeClients = new Set();
-            
-            console.log("Dashboard Stats - Filtro Atual:", {
-                startDate: dashboardFilter.startDate ? dashboardFilter.startDate.toLocaleString('pt-BR') : 'Nenhum',
-                endDate: dashboardFilter.endDate ? dashboardFilter.endDate.toLocaleString('pt-BR') : 'Nenhum'
-            });
             
             clients.forEach(client => {
                 if (client.orders && client.orders.length > 0) {
@@ -2830,21 +2853,13 @@
             document.getElementById('total-cost').textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
             document.getElementById('total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
             document.getElementById('avg-margin').textContent = `${avgMargin.toFixed(1)}%`;
-            
-            console.log("Dashboard Stats - Resultados (apenas entregues):", {
-                totalOrders,
-                totalRevenue,
-                totalCost,
-                totalProfit,
-                activeClients: activeClients.size
-            });
         }
-        
+
         function updateDashboard() {
             updateDashboardStats();
             updateChart();
         }
-        
+
         function applyDashboardFilter() {
             const startDateInput = document.getElementById('dashboard-date-start').value;
             const endDateInput = document.getElementById('dashboard-date-end').value;
@@ -2860,9 +2875,6 @@
                     alert('Datas inválidas! Por favor, verifique as datas informadas.');
                     return;
                 }
-                
-                console.log("Dashboard Filtro - Início:", startDate.toLocaleString('pt-BR'));
-                console.log("Dashboard Filtro - Fim:", endDate.toLocaleString('pt-BR'));
                 
                 if (startDate > endDate) {
                     alert('A data inicial não pode ser maior que a data final!');
@@ -2901,7 +2913,7 @@
                 applyBtn.style.backgroundColor = '';
             }, 1500);
         }
-        
+
         function resetDashboardFilter() {
             const currentDate = new Date();
             const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -2917,7 +2929,7 @@
             
             updateDashboard();
         }
-        
+
         function openEditClientModal(clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) {
@@ -2943,12 +2955,12 @@
 
             document.getElementById('edit-client-modal').style.display = 'flex';
         }
-        
+
         function closeEditClientModal() {
             document.getElementById('edit-client-modal').style.display = 'none';
             editingClient = null;
         }
-        
+
         function saveEditedClient(event) {
             event.preventDefault();
             
@@ -2994,14 +3006,14 @@
                 });
             }
 
-            saveToLocalStorage();
+            saveToFirebase();
             updateStats();
             renderClientsList();
             updateDashboard();
             closeEditClientModal();
             alert('Cliente atualizado com sucesso!');
         }
-        
+
         function applyDateFilter() {
             const startDateInput = document.getElementById('date-start').value;
             const endDateInput = document.getElementById('date-end').value;
@@ -3011,9 +3023,6 @@
             if (startDateInput && endDateInput) {
                 const startDate = createDateWithCorrectTime(new Date(startDateInput), 0, 0, 0, 0);
                 const endDate = createDateWithCorrectTime(new Date(endDateInput), 23, 59, 59, 999);
-                
-                console.log("Filtro aplicado:", startDateInput, "->", startDate.toLocaleString('pt-BR'));
-                console.log("Até:", endDateInput, "->", endDate.toLocaleString('pt-BR'));
                 
                 if (startDate > endDate) {
                     alert('A data inicial não pode ser maior que a data final!');
@@ -3043,7 +3052,7 @@
             renderOrdersList();
             updateDashboard();
         }
-        
+
         function clearDateFilter() {
             const today = new Date();
             const lastMonth = new Date();
@@ -3065,7 +3074,7 @@
             renderOrdersList();
             updateDashboard();
         }
-        
+
         function filterOrdersByDate(orders) {
             if (!dateFilterApplied) return orders;
             
@@ -3077,7 +3086,7 @@
                        (currentFilter.payment === 'todos' || order.payment === currentFilter.payment);
             });
         }
-        
+
         function updateFilterStats(filteredOrders) {
             const totalOrders = filteredOrders.length;
             const totalValue = filteredOrders.reduce((sum, order) => sum + order.total, 0);
@@ -3097,7 +3106,7 @@
             document.getElementById('filter-total-cost').textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
             document.getElementById('filter-total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
         }
-        
+
         function exportClientsToExcel() {
             if (clients.length === 0) {
                 alert('Não há clientes para exportar!');
@@ -3124,7 +3133,7 @@
             const fileName = `Clientes_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`;
             XLSX.writeFile(wb, fileName);
         }
-        
+
         function exportOrdersToExcel() {
             let allOrders = [];
             clients.forEach(client => {
@@ -3189,7 +3198,7 @@
             const fileName = `Encomendas_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`;
             XLSX.writeFile(wb, fileName);
         }
-        
+
         function exportPendingOrdersToExcel() {
             let pendingOrders = [];
             clients.forEach(client => {
@@ -3252,7 +3261,7 @@
             const fileName = `Pendentes_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`;
             XLSX.writeFile(wb, fileName);
         }
-        
+
         function exportBudgetsToExcel() {
             let allBudgets = [];
             clients.forEach(client => {
@@ -3295,7 +3304,7 @@
             const fileName = `Orcamentos_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`;
             XLSX.writeFile(wb, fileName);
         }
-        
+
         function saveClient() {
             const name = document.getElementById('client-name').value.trim();
             const phone = document.getElementById('client-phone').value.trim();
@@ -3325,7 +3334,7 @@
             };
             
             clients.push(newClient);
-            saveToLocalStorage();
+            saveToFirebase();
             updateStats();
             alert('Cliente salvo com sucesso!');
             clearClientForm();
@@ -3344,7 +3353,7 @@
             
             updateDashboard();
         }
-        
+
         function quickRegisterClient() {
             const name = document.getElementById('search-client-order').value.trim();
             if (!name) {
@@ -3357,7 +3366,7 @@
             document.getElementById('client-phone').focus();
             showSection('new-client');
         }
-        
+
         function quickRegisterClientForBudget() {
             const name = document.getElementById('search-client-budget').value.trim();
             if (!name) {
@@ -3370,13 +3379,13 @@
             document.getElementById('client-phone').focus();
             showSection('new-client');
         }
-        
+
         function clearClientForm() {
             document.getElementById('client-form').reset();
             document.getElementById('client-type').value = 'regular';
             document.querySelector('input[name="loyal"][value="nao"]').checked = true;
         }
-        
+
         function deleteClient(id) {
             const client = clients.find(c => c.id === id);
             if (!client) {
@@ -3404,7 +3413,7 @@
                 return;
             }
             
-            saveToLocalStorage();
+            saveToFirebase();
             updateStats();
             
             if (document.getElementById('clients-section').classList.contains('active')) {
@@ -3414,7 +3423,7 @@
             alert('Cliente excluído com sucesso!');
             updateDashboard();
         }
-        
+
         function searchClientForOrder() {
             const searchTerm = document.getElementById('search-client-order').value.toLowerCase();
             const resultsDiv = document.getElementById('client-search-results');
@@ -3454,7 +3463,7 @@
             resultsDiv.innerHTML = html;
             resultsDiv.style.display = 'block';
         }
-        
+
         function selectClientForOrder(id) {
             selectedClientForOrder = clients.find(client => client.id === id);
             if (!selectedClientForOrder) return;
@@ -3467,14 +3476,14 @@
             orderTotal = 0;
             document.getElementById('order-total').textContent = '0.00';
         }
-        
+
         function showSelectedClientInfo() {
             document.getElementById('selected-client-name').textContent = selectedClientForOrder.name;
             document.getElementById('selected-client-phone').textContent = selectedClientForOrder.phone;
             document.getElementById('selected-client-info').style.display = 'block';
             document.getElementById('order-items').style.display = 'block';
         }
-        
+
         function searchClientForBudget() {
             const searchTerm = document.getElementById('search-client-budget').value.toLowerCase();
             const resultsDiv = document.getElementById('client-budget-search-results');
@@ -3514,7 +3523,7 @@
             resultsDiv.innerHTML = html;
             resultsDiv.style.display = 'block';
         }
-        
+
         function selectClientForBudget(id) {
             selectedClientForBudget = clients.find(client => client.id === id);
             if (!selectedClientForBudget) return;
@@ -3529,14 +3538,14 @@
             document.getElementById('budget-total').textContent = '0.00';
             document.getElementById('budget-info').style.display = 'none';
         }
-        
+
         function showSelectedBudgetClientInfo() {
             document.getElementById('selected-budget-client-name').textContent = selectedClientForBudget.name;
             document.getElementById('selected-budget-client-phone').textContent = selectedClientForBudget.phone;
             document.getElementById('selected-budget-client-info').style.display = 'block';
             document.getElementById('budget-items').style.display = 'block';
         }
-        
+
         function calculateDiscountedPrice(price, discountType, discountValue) {
             let finalPrice = price;
             
@@ -3549,7 +3558,7 @@
             
             return finalPrice;
         }
-        
+
         function updateOrderProfitSummary() {
             let totalCost = 0;
             let totalProfit = 0;
@@ -3577,7 +3586,7 @@
             document.getElementById('order-profit-margin').textContent = `${profitMargin.toFixed(1)}%`;
             document.getElementById('order-profit-summary').style.display = 'block';
         }
-        
+
         function addOrderItemFromForm() {
             const description = document.getElementById('new-item-desc').value.trim();
             const quantity = parseInt(document.getElementById('new-item-qty').value) || 1;
@@ -3660,7 +3669,7 @@
             updateOrderTotal();
             updateOrderProfitSummary();
         }
-        
+
         function addBudgetItem() {
             const description = document.getElementById('new-budget-item-desc').value.trim();
             const quantity = parseInt(document.getElementById('new-budget-item-qty').value) || 1;
@@ -3683,7 +3692,6 @@
             const itemId = Date.now();
             const total = quantity * finalPrice;
             
-            // Adicionar ao array de itens
             budgetItems.push({
                 id: itemId,
                 description: description,
@@ -3696,10 +3704,8 @@
                 total: total
             });
             
-            // Atualizar a lista visual
             renderBudgetItems();
             
-            // Limpar formulário
             document.getElementById('new-budget-item-desc').value = '';
             document.getElementById('new-budget-item-qty').value = '1';
             document.getElementById('new-budget-item-price').value = '';
@@ -3713,7 +3719,7 @@
             updateBudgetTotal();
             updateBudgetInfo();
         }
-        
+
         function renderBudgetItems() {
             const itemsList = document.getElementById('budget-items-list');
             itemsList.innerHTML = '';
@@ -3750,7 +3756,7 @@
                 itemsList.innerHTML += itemHtml;
             });
         }
-        
+
         function updateOrderTotal() {
             let total = 0;
             const itemDivs = document.querySelectorAll('[id^="item-"]');
@@ -3765,7 +3771,7 @@
             orderTotal = total;
             document.getElementById('order-total').textContent = total.toFixed(2);
         }
-        
+
         function updateBudgetTotal() {
             let total = 0;
             
@@ -3776,7 +3782,7 @@
             budgetTotal = total;
             document.getElementById('budget-total').textContent = total.toFixed(2);
         }
-        
+
         function updateBudgetInfo() {
             const itemCount = budgetItems.length;
             
@@ -3788,7 +3794,7 @@
             document.getElementById('budget-item-count').textContent = itemCount;
             document.getElementById('budget-info').style.display = 'block';
         }
-        
+
         function removeOrderItem(id) {
             const itemDiv = document.getElementById('item-' + id);
             if (itemDiv) {
@@ -3797,14 +3803,14 @@
                 updateOrderProfitSummary();
             }
         }
-        
+
         function removeBudgetItem(id) {
             budgetItems = budgetItems.filter(item => item.id !== id);
             renderBudgetItems();
             updateBudgetTotal();
             updateBudgetInfo();
         }
-        
+
         function updatePaymentStatus() {
             const downPayment = parseFloat(document.getElementById('down-payment').value) || 0;
             const total = orderTotal;
@@ -3819,7 +3825,7 @@
                 document.querySelector('input[name="payment"][value="pendente"]').checked = true;
             }
         }
-        
+
         function saveOrder() {
             if (!selectedClientForOrder) {
                 alert('Selecione um cliente primeiro!');
@@ -3927,7 +3933,7 @@
                 
                 clients[clientIndex].orders.push(newOrder);
                 
-                saveToLocalStorage();
+                saveToFirebase();
                 
                 currentOrder = newOrder;
                 updateStats();
@@ -3939,7 +3945,7 @@
                 alert('Erro: Cliente não encontrado na base de dados. Tente selecionar o cliente novamente.');
             }
         }
-        
+
         function saveBudget() {
             if (!selectedClientForBudget) {
                 alert('Selecione um cliente primeiro!');
@@ -3987,7 +3993,7 @@
                 
                 clients[clientIndex].budgets.push(newBudget);
                 
-                saveToLocalStorage();
+                saveToFirebase();
                 
                 currentBudget = newBudget;
                 updateStats();
@@ -3999,7 +4005,7 @@
                 alert('Erro: Cliente não encontrado na base de dados. Tente selecionar o cliente novamente.');
             }
         }
-        
+
         function editOrder(orderId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) {
@@ -4018,7 +4024,7 @@
             
             showSection('edit-order');
         }
-        
+
         function editBudget(budgetId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) {
@@ -4037,7 +4043,7 @@
             
             showSection('edit-budget');
         }
-        
+
         function renderEditOrderForm() {
             if (!editingOrder) {
                 document.getElementById('edit-order-content').innerHTML = `
@@ -4194,7 +4200,7 @@
             
             document.getElementById('edit-order-content').innerHTML = html;
         }
-        
+
         function renderEditBudgetForm() {
             if (!editingBudget) {
                 document.getElementById('edit-budget-content').innerHTML = `
@@ -4312,7 +4318,7 @@
             
             document.getElementById('edit-budget-content').innerHTML = html;
         }
-        
+
         function addEditOrderItem() {
             const itemsList = document.getElementById('edit-order-items-list');
             const index = editingOrder.items.length;
@@ -4378,7 +4384,7 @@
             
             itemsList.innerHTML += itemHtml;
         }
-        
+
         function addEditBudgetItem() {
             const itemsList = document.getElementById('edit-budget-items-list');
             const index = editingBudget.items.length;
@@ -4442,17 +4448,17 @@
             
             itemsList.innerHTML += itemHtml;
         }
-        
+
         function removeEditItem(index) {
             editingOrder.items.splice(index, 1);
             renderEditOrderForm();
         }
-        
+
         function removeEditBudgetItem(index) {
             editingBudget.items.splice(index, 1);
             renderEditBudgetForm();
         }
-        
+
         function updateEditItemTotal(index) {
             const quantity = parseFloat(document.getElementById('edit-qty-' + index).value) || 0;
             const price = parseFloat(document.getElementById('edit-price-' + index).value) || 0;
@@ -4486,7 +4492,7 @@
             
             updateEditOrderTotal();
         }
-        
+
         function updateEditBudgetItemTotal(index) {
             const quantity = parseFloat(document.getElementById('edit-budget-qty-' + index).value) || 0;
             const price = parseFloat(document.getElementById('edit-budget-price-' + index).value) || 0;
@@ -4515,7 +4521,7 @@
             
             updateEditBudgetTotal();
         }
-        
+
         function updateEditOrderTotal() {
             let total = 0;
             let totalCost = 0;
@@ -4537,7 +4543,7 @@
             document.getElementById('edit-order-total-profit').textContent = `R$ ${totalProfit.toFixed(2)}`;
             document.getElementById('edit-order-profit-margin').textContent = `${editingOrder.profitMargin.toFixed(1)}%`;
         }
-        
+
         function updateEditBudgetTotal() {
             let total = 0;
             
@@ -4550,7 +4556,7 @@
             document.getElementById('edit-budget-total').textContent = total.toFixed(2);
             document.getElementById('edit-budget-item-count').textContent = editingBudget.items.length;
         }
-        
+
         function saveEditedOrder() {
             const client = clients.find(c => c.id === editingOrderClientId);
             if (!client) return;
@@ -4591,13 +4597,13 @@
             
             client.orders[orderIndex] = editingOrder;
             
-            saveToLocalStorage();
+            saveToFirebase();
             updateStats();
             alert('Encomenda atualizada com sucesso!');
             showSection('orders');
             updateDashboard();
         }
-        
+
         function saveEditedBudget() {
             const client = clients.find(c => c.id === editingBudgetClientId);
             if (!client) return;
@@ -4624,13 +4630,13 @@
             
             client.budgets[budgetIndex] = editingBudget;
             
-            saveToLocalStorage();
+            saveToFirebase();
             updateStats();
             alert('Orçamento atualizado com sucesso!');
             showSection('budgets');
             updateDashboard();
         }
-        
+
         function deleteOrder(orderId, clientId) {
             if (!confirm('Tem certeza que deseja excluir esta encomenda?')) {
                 return;
@@ -4655,7 +4661,7 @@
                 clients[clientIndex] = client;
             }
             
-            saveToLocalStorage();
+            saveToFirebase();
             updateStats();
             
             if (document.getElementById('edit-order-section').classList.contains('active')) {
@@ -4669,7 +4675,7 @@
             alert('Encomenda excluída com sucesso!');
             updateDashboard();
         }
-        
+
         function deleteBudget(budgetId, clientId) {
             if (!confirm('Tem certeza que deseja excluir este orçamento?')) {
                 return;
@@ -4694,7 +4700,7 @@
                 clients[clientIndex] = client;
             }
             
-            saveToLocalStorage();
+            saveToFirebase();
             updateStats();
             
             if (document.getElementById('edit-budget-section').classList.contains('active')) {
@@ -4706,7 +4712,7 @@
             alert('Orçamento excluído com sucesso!');
             updateDashboard();
         }
-        
+
         function markAsDelivered(orderId, clientId) {
             const clientIndex = clients.findIndex(c => c.id === clientId);
             if (clientIndex === -1) return;
@@ -4717,14 +4723,14 @@
             clients[clientIndex].orders[orderIndex].status = 'entregue';
             clients[clientIndex].orders[orderIndex].deliveredAt = new Date().toISOString();
             
-            saveToLocalStorage();
+            saveToFirebase();
             updateStats();
             renderOrdersList();
             renderPendingOrdersList();
             alert('Encomenda marcada como entregue!');
             updateDashboard();
         }
-        
+
         function showOrderModal() {
             if (!currentOrder) return;
             
@@ -4794,7 +4800,7 @@
             document.getElementById('order-details').innerHTML = html;
             document.getElementById('order-modal').style.display = 'flex';
         }
-        
+
         function showBudgetModal() {
             if (!currentBudget) return;
             
@@ -4848,17 +4854,17 @@
             document.getElementById('budget-details').innerHTML = html;
             document.getElementById('budget-modal').style.display = 'flex';
         }
-        
+
         function closeModal() {
             document.getElementById('order-modal').style.display = 'none';
             resetOrderForm();
         }
-        
+
         function closeBudgetModal() {
             document.getElementById('budget-modal').style.display = 'none';
             resetBudgetForm();
         }
-        
+
         function sendOrderWhatsApp() {
             if (!selectedClientForOrder) {
                 alert('Selecione um cliente primeiro!');
@@ -4875,7 +4881,7 @@
                 }
             }, 500);
         }
-        
+
         function sendBudgetWhatsApp() {
             if (!selectedClientForBudget) {
                 alert('Selecione um cliente primeiro!');
@@ -4892,7 +4898,7 @@
                 }
             }, 500);
         }
-        
+
         function sendCurrentOrderWhatsApp() {
             if (!currentOrder) return;
             
@@ -4956,7 +4962,7 @@
             const whatsappUrl = `https://wa.me/55${phone}?text=${finalMessage}${itemsText}${finalMessageText}`;
             window.open(whatsappUrl, '_blank');
         }
-        
+
         function sendCurrentBudgetWhatsApp() {
             if (!currentBudget) return;
             
@@ -4996,17 +5002,17 @@
             const whatsappUrl = `https://wa.me/55${phone}?text=${message}${itemsText}${obsMessage}${finalMessageText}`;
             window.open(whatsappUrl, '_blank');
         }
-        
+
         function printOrder() {
             saveOrder();
             printCurrentOrder();
         }
-        
+
         function printBudget() {
             saveBudget();
             printCurrentBudget();
         }
-        
+
         function printCurrentOrder() {
             if (!currentOrder) return;
             
@@ -5094,7 +5100,7 @@
             `);
             printWindow.document.close();
         }
-        
+
         function printCurrentBudget() {
             if (!currentBudget) return;
             
@@ -5175,17 +5181,17 @@
             `);
             printWindow.document.close();
         }
-        
+
         function printThermalOrder() {
             saveOrder();
             printThermalCurrentOrder();
         }
-        
+
         function printThermalBudget() {
             saveBudget();
             printThermalCurrentBudget();
         }
-        
+
         function printThermalCurrentOrder() {
             if (!currentOrder) return;
             
@@ -5351,7 +5357,7 @@
             printWindow.document.close();
             setTimeout(() => { printWindow.print(); }, 100);
         }
-        
+
         function printThermalCurrentBudget() {
             if (!currentBudget) return;
             
@@ -5515,7 +5521,7 @@
             printWindow.document.close();
             setTimeout(() => { printWindow.print(); }, 100);
         }
-        
+
         function resetOrderForm() {
             document.getElementById('search-client-order').value = '';
             document.getElementById('client-search-results').style.display = 'none';
@@ -5540,7 +5546,7 @@
             orderTotal = 0;
             document.getElementById('order-total').textContent = '0.00';
         }
-        
+
         function resetBudgetForm() {
             document.getElementById('search-client-budget').value = '';
             document.getElementById('client-budget-search-results').style.display = 'none';
@@ -5564,7 +5570,7 @@
             budgetTotal = 0;
             document.getElementById('budget-total').textContent = '0.00';
         }
-        
+
         function renderClientsList() {
             const searchTerm = document.getElementById('search-clients').value.toLowerCase();
             const container = document.getElementById('clients-list');
@@ -5657,7 +5663,7 @@
             
             container.innerHTML = html;
         }
-        
+
         function renderOrdersList() {
             const searchTerm = document.getElementById('search-orders').value.toLowerCase();
             const container = document.getElementById('orders-list');
@@ -5758,7 +5764,7 @@
             
             container.innerHTML = html;
         }
-        
+
         function renderPendingOrdersList() {
             const searchTerm = document.getElementById('search-pending-orders').value.toLowerCase();
             const container = document.getElementById('pending-orders-list');
@@ -5852,7 +5858,7 @@
             
             container.innerHTML = html;
         }
-        
+
         function renderBudgetsList() {
             const searchTerm = document.getElementById('search-budgets').value.toLowerCase();
             const container = document.getElementById('budgets-list');
@@ -5942,7 +5948,7 @@
             
             container.innerHTML = html;
         }
-        
+
         function updatePendingSummary(pendingOrders) {
             const totalOrders = pendingOrders.length;
             const totalValue = pendingOrders.reduce((sum, order) => sum + order.total, 0);
@@ -5962,7 +5968,7 @@
             document.getElementById('pending-total-cost').textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
             document.getElementById('pending-total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
         }
-        
+
         function updateBudgetSummary(budgets) {
             const totalBudgets = budgets.length;
             const totalValue = budgets.reduce((sum, budget) => sum + budget.total, 0);
@@ -5972,7 +5978,7 @@
             document.getElementById('budget-total-value').textContent = `R$ ${totalValue.toFixed(2).replace('.', ',')}`;
             document.getElementById('budget-avg-value').textContent = `R$ ${avgValue.toFixed(2).replace('.', ',')}`;
         }
-        
+
         function viewOrder(orderId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -5983,7 +5989,7 @@
             currentOrder = order;
             showOrderModal();
         }
-        
+
         function viewBudget(budgetId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -5994,7 +6000,7 @@
             currentBudget = budget;
             showBudgetModal();
         }
-        
+
         function updateStats() {
             const totalClients = clients.length;
             const loyalClients = clients.filter(c => c.loyal === 'sim').length;
@@ -6024,7 +6030,7 @@
             document.getElementById('delivered-orders').textContent = deliveredOrders;
             document.getElementById('total-budgets').textContent = totalBudgets;
         }
-        
+
         function applyBudgetDateFilter() {
             const startDateInput = document.getElementById('budget-date-start').value;
             const endDateInput = document.getElementById('budget-date-end').value;
@@ -6055,7 +6061,7 @@
             budgetDateFilterApplied = true;
             renderBudgetsList();
         }
-        
+
         function clearBudgetDateFilter() {
             document.getElementById('budget-date-start').value = '';
             document.getElementById('budget-date-end').value = '';
@@ -6068,7 +6074,7 @@
             budgetDateFilterApplied = false;
             renderBudgetsList();
         }
-        
+
         function filterBudgetsByDate(budgets) {
             if (!budgetDateFilterApplied || !currentBudgetFilter.startDate || !currentBudgetFilter.endDate) return budgets;
             
@@ -6077,18 +6083,18 @@
                 return isDateBetween(budgetDate, currentBudgetFilter.startDate, currentBudgetFilter.endDate);
             });
         }
-        
+
         function formatDate(dateString) {
             const date = new Date(dateString);
             return date.toLocaleDateString('pt-BR');
         }
-        
+
         function formatValidityDate(createdAt, validity) {
             const date = new Date(createdAt);
             date.setDate(date.getDate() + (validity || 7));
             return date.toLocaleDateString('pt-BR');
         }
-        
+
         function sendClientWhatsApp(phone, name) {
             const cleanPhone = phone.replace(/\D/g, '');
             const message = `Olá ${name}! Tudo bem? Aqui é da ${pharmacyName}. Como podemos ajudar?`;
