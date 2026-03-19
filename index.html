@@ -1447,7 +1447,7 @@
                 </button>
             </div>
             
-            <form id="client-form">
+            <form id="client-form" onkeypress="handleEnter(event, 'saveClient')">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="client-name" class="required">Nome Completo</label>
@@ -1663,7 +1663,7 @@
                 </div>
                 
                 <div style="margin-top: 16px;">
-                    <label>Valor de Entrada (opcional)</label>
+                    <label>Valor de Entrada</label>
                     <input type="number" id="down-payment" step="0.01" placeholder="0.00" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;" oninput="updatePaymentStatus()">
                 </div>
 
@@ -2253,6 +2253,9 @@
                 <button class="btn btn-warning btn-sm" onclick="printThermalCurrentOrder()">
                     <i class="fas fa-receipt"></i> Térmica
                 </button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCurrentOrder()">
+                    <i class="fas fa-trash"></i> Excluir
+                </button>
                 <button class="btn btn-secondary btn-sm" onclick="closeModal()">Fechar</button>
             </div>
         </div>
@@ -2291,6 +2294,9 @@
                 <button class="btn btn-warning btn-sm" onclick="printThermalCurrentBudget()">
                     <i class="fas fa-receipt"></i> Térmica
                 </button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCurrentBudget()">
+                    <i class="fas fa-trash"></i> Excluir
+                </button>
                 <button class="btn btn-secondary btn-sm" onclick="closeBudgetModal()">Fechar</button>
             </div>
         </div>
@@ -2302,7 +2308,7 @@
                 <h3>Editar Cliente</h3>
                 <button onclick="closeEditClientModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer;">×</button>
             </div>
-            <form id="edit-client-form" onsubmit="saveEditedClient(event)">
+            <form id="edit-client-form" onsubmit="saveEditedClient(event)" onkeypress="handleEnter(event, 'saveEditedClientFromEnter')">
                 <input type="hidden" id="edit-client-id">
                 
                 <div class="form-row">
@@ -2493,7 +2499,57 @@
             document.getElementById('search-orders').addEventListener('input', renderOrdersList);
             document.getElementById('search-pending-orders').addEventListener('input', renderPendingOrdersList);
             document.getElementById('search-budgets').addEventListener('input', renderBudgetsList);
+
+            setupEnterKeyListeners();
         });
+
+        function setupEnterKeyListeners() {
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                    }
+                });
+            });
+
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const form = this.closest('form');
+                        if (form && form.id === 'client-form') {
+                            saveClient();
+                        } else if (form && form.id === 'edit-client-form') {
+                            saveEditedClient(new Event('submit'));
+                        } else {
+                            const buttons = this.closest('.section')?.querySelectorAll('button');
+                            if (buttons && buttons.length > 0) {
+                                const saveButton = Array.from(buttons).find(btn => 
+                                    btn.textContent.includes('Salvar') || 
+                                    btn.textContent.includes('Adicionar')
+                                );
+                                if (saveButton) {
+                                    saveButton.click();
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        function handleEnter(event, action) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                if (action === 'saveClient') {
+                    saveClient();
+                } else if (action === 'saveEditedClientFromEnter') {
+                    saveEditedClient(new Event('submit'));
+                }
+            }
+        }
 
         function toggleOrderManualDate() {
             const checkbox = document.getElementById('order-manual-date-toggle');
@@ -4281,7 +4337,7 @@
             
             dashboardFilter = {
                 startDate: new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 0, 0, 0, 0),
-                endDate: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999)
+                endDate: new Date(lastDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 23, 59, 59, 999)
             };
             updateDashboard();
         }
@@ -5013,6 +5069,7 @@
                 updateDashboard();
                 alert('Encomenda salva com sucesso!');
                 showOrderModal();
+                resetOrderForm();
             } else {
                 alert('Erro: Cliente não encontrado!');
             }
@@ -5068,6 +5125,7 @@
                 updateDashboard();
                 alert('Orçamento salvo com sucesso!');
                 showBudgetModal();
+                resetBudgetForm();
             } else {
                 alert('Erro: Cliente não encontrado!');
             }
@@ -5647,7 +5705,7 @@
             if (currentOrder.payment === 'parcial' && currentOrder.downPayment > 0) {
                 const remaining = currentOrder.total - currentOrder.downPayment;
                 html += `
-                    <p>Entrada a pagar: R$ ${currentOrder.downPayment.toFixed(2)}</p>
+                    <p>Entrada paga: R$ ${currentOrder.downPayment.toFixed(2)}</p>
                     <p>Saldo restante: R$ ${remaining.toFixed(2)}</p>
                 `;
             }
@@ -5778,7 +5836,7 @@
             if (currentOrder.payment === 'parcial' && currentOrder.downPayment > 0) {
                 const remaining = currentOrder.total - currentOrder.downPayment;
                 message += `%0A`;
-                message += `Entrada a pagar: R$ ${currentOrder.downPayment.toFixed(2)}%0A`;
+                message += `Entrada paga: R$ ${currentOrder.downPayment.toFixed(2)}%0A`;
                 message += `Saldo restante: R$ ${remaining.toFixed(2)}%0A`;
             }
             
@@ -5860,7 +5918,7 @@
             if (currentOrder.payment === 'parcial' && currentOrder.downPayment > 0) {
                 const remaining = currentOrder.total - currentOrder.downPayment;
                 printContent += `
-                    <p><strong>Entrada a pagar:</strong> R$ ${currentOrder.downPayment.toFixed(2)}<br>
+                    <p><strong>Entrada paga:</strong> R$ ${currentOrder.downPayment.toFixed(2)}<br>
                     <strong>Saldo restante:</strong> R$ ${remaining.toFixed(2)}</p>
                 `;
             }
@@ -5960,7 +6018,7 @@
             if (currentOrder.payment === 'parcial' && currentOrder.downPayment > 0) {
                 const remaining = currentOrder.total - currentOrder.downPayment;
                 printContent += `
-                    <div>Entrada: R$ ${currentOrder.downPayment.toFixed(2)}</div>
+                    <div>Entrada paga: R$ ${currentOrder.downPayment.toFixed(2)}</div>
                     <div>Saldo: R$ ${remaining.toFixed(2)}</div>
                 `;
             }
@@ -6202,6 +6260,7 @@
                             <button class="btn btn-sm" onclick="viewOrder(${order.id}, ${order.client.id})">👁️ Ver</button>
                             <button class="btn btn-warning btn-sm" onclick="editOrder(${order.id}, ${order.client.id})">✏️ Editar</button>
                             ${isPending ? `<button class="btn btn-success btn-sm" onclick="markAsDelivered(${order.id}, ${order.client.id})">✅ Entregue</button>` : ''}
+                            <button class="btn btn-danger btn-sm" onclick="deleteOrder(${order.id}, ${order.client.id})">🗑️ Excluir</button>
                         </div>
                     </div>
                 `;
@@ -6259,6 +6318,7 @@
                             <button class="btn btn-sm" onclick="viewOrder(${order.id}, ${order.client.id})">👁️ Ver</button>
                             <button class="btn btn-warning btn-sm" onclick="editOrder(${order.id}, ${order.client.id})">✏️ Editar</button>
                             <button class="btn btn-success btn-sm" onclick="markAsDelivered(${order.id}, ${order.client.id})">✅ Entregue</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteOrder(${order.id}, ${order.client.id})">🗑️ Excluir</button>
                         </div>
                     </div>
                 `;
@@ -6333,6 +6393,7 @@
                             <button class="btn btn-warning btn-sm" onclick="editBudget(${budget.id}, ${budget.client.id})">✏️ Editar</button>
                             ${!budget.convertedToOrder && budget.approvalStatus === 'aprovado' ? 
                                 `<button class="btn btn-convert btn-sm" onclick="convertBudgetToOrderFromList(${budget.id}, ${budget.client.id})">🔄 Converter</button>` : ''}
+                            <button class="btn btn-danger btn-sm" onclick="deleteBudget(${budget.id}, ${budget.client.id})">🗑️ Excluir</button>
                         </div>
                     </div>
                 `;
@@ -6395,6 +6456,18 @@
             if (!budget) return;
             currentBudget = budget;
             showBudgetModal();
+        }
+
+        function deleteCurrentOrder() {
+            if (!currentOrder) return;
+            deleteOrder(currentOrder.id, currentOrder.clientId);
+            closeModal();
+        }
+
+        function deleteCurrentBudget() {
+            if (!currentBudget) return;
+            deleteBudget(currentBudget.id, currentBudget.clientId);
+            closeBudgetModal();
         }
 
         function updateStats() {
