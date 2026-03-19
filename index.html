@@ -1231,6 +1231,20 @@
         .report-preview tr:hover {
             background: #f8f9fa;
         }
+
+        /* Estilo para impressão */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: white;
+                font-size: 12pt;
+            }
+            .header {
+                border-bottom: 2px solid black;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1577,22 +1591,22 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Descrição</label>
-                            <input type="text" id="new-item-desc" placeholder="Nome do medicamento">
+                            <input type="text" id="new-item-desc" placeholder="Nome do medicamento" onkeypress="handleItemEnter(event)">
                         </div>
                         <div class="form-group">
                             <label>Quantidade</label>
-                            <input type="number" id="new-item-qty" value="1" min="1" oninput="calculateItemProfit()">
+                            <input type="number" id="new-item-qty" value="1" min="1" oninput="calculateItemProfit()" onkeypress="handleItemEnter(event)">
                         </div>
                         <div class="form-group">
                             <label>Valor Unitário</label>
-                            <input type="number" id="new-item-price" step="0.01" placeholder="0.00" oninput="calculateItemProfit()">
+                            <input type="number" id="new-item-price" step="0.01" placeholder="0.00" oninput="calculateItemProfit()" onkeypress="handleItemEnter(event)">
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label>Valor de Custo</label>
-                            <input type="number" id="new-item-cost" step="0.01" placeholder="0.00" oninput="calculateItemProfit()">
+                            <input type="number" id="new-item-cost" step="0.01" placeholder="0.00" oninput="calculateItemProfit()" onkeypress="handleItemEnter(event)">
                         </div>
                         <div class="form-group">
                             <label>Lucro (R$)</label>
@@ -1615,7 +1629,7 @@
                         </div>
                         <div class="form-group">
                             <label>Valor do Desconto</label>
-                            <input type="number" id="new-item-discount-value" step="0.01" placeholder="0.00" disabled oninput="calculateItemProfit()">
+                            <input type="number" id="new-item-discount-value" step="0.01" placeholder="0.00" disabled oninput="calculateItemProfit()" onkeypress="handleItemEnter(event)">
                         </div>
                         <div class="form-group">
                             <label>Valor Final</label>
@@ -1623,7 +1637,7 @@
                         </div>
                     </div>
                     
-                    <button class="btn btn-success btn-sm" onclick="addOrderItemFromForm()">
+                    <button class="btn btn-success btn-sm" onclick="addOrderItemFromForm()" id="add-item-btn">
                         <i class="fas fa-plus"></i> Adicionar Item
                     </button>
                 </div>
@@ -1960,15 +1974,15 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Descrição</label>
-                            <input type="text" id="new-budget-item-desc" placeholder="Nome do medicamento">
+                            <input type="text" id="new-budget-item-desc" placeholder="Nome do medicamento" onkeypress="handleBudgetItemEnter(event)">
                         </div>
                         <div class="form-group">
                             <label>Quantidade</label>
-                            <input type="number" id="new-budget-item-qty" value="1" min="1">
+                            <input type="number" id="new-budget-item-qty" value="1" min="1" onkeypress="handleBudgetItemEnter(event)">
                         </div>
                         <div class="form-group">
                             <label>Valor Unitário</label>
-                            <input type="number" id="new-budget-item-price" step="0.01" placeholder="0.00">
+                            <input type="number" id="new-budget-item-price" step="0.01" placeholder="0.00" onkeypress="handleBudgetItemEnter(event)">
                         </div>
                     </div>
                     
@@ -1998,7 +2012,7 @@
                         </div>
                     </div>
                     
-                    <button type="button" class="btn btn-success btn-sm" onclick="addBudgetItem()">
+                    <button type="button" class="btn btn-success btn-sm" onclick="addBudgetItem()" id="add-budget-item-btn">
                         <i class="fas fa-plus"></i> Adicionar Item
                     </button>
                 </div>
@@ -2065,7 +2079,7 @@
             </div>
         </div>
 
-        <!-- SEÇÃO DE RELATÓRIOS AVANÇADOS - CORRIGIDA -->
+        <!-- SEÇÃO DE RELATÓRIOS AVANÇADOS -->
         <div class="section" id="reports-section">
             <div class="section-header">
                 <h2><i class="fas fa-chart-pie"></i> Relatórios Avançados</h2>
@@ -2199,11 +2213,6 @@
             <div class="chart-container" style="margin-top: 20px;">
                 <div class="chart-header">
                     <div class="chart-title" id="report-chart-title">Pré-visualização do Relatório</div>
-                    <div>
-                        <button class="btn btn-sm btn-success" onclick="generateSampleData()">
-                            <i class="fas fa-flask"></i> Gerar Dados de Exemplo
-                        </button>
-                    </div>
                 </div>
                 <div class="chart-wrapper">
                     <canvas id="reportChart"></canvas>
@@ -2510,9 +2519,9 @@
             checkUrlForApproval();
             
             document.getElementById('search-clients').addEventListener('input', renderClientsList);
-            document.getElementById('search-orders').addEventListener('input', renderOrdersList);
-            document.getElementById('search-pending-orders').addEventListener('input', renderPendingOrdersList);
-            document.getElementById('search-budgets').addEventListener('input', renderBudgetsList);
+            document.getElementById('search-orders').addEventListener('input', function() { renderOrdersList(); });
+            document.getElementById('search-pending-orders').addEventListener('input', function() { renderPendingOrdersList(); });
+            document.getElementById('search-budgets').addEventListener('input', function() { renderBudgetsList(); });
 
             setupEnterKeyListeners();
 
@@ -2523,40 +2532,13 @@
             document.getElementById('period-end').value = today.toISOString().split('T')[0];
         });
 
+        // Função para passar campos com Enter
         function setupEnterKeyListeners() {
             const forms = document.querySelectorAll('form');
             forms.forEach(form => {
                 form.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                    }
-                });
-            });
-
-            const inputs = document.querySelectorAll('input, select, textarea');
-            inputs.forEach(input => {
-                input.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const form = this.closest('form');
-                        if (form && form.id === 'client-form') {
-                            saveClient();
-                        } else if (form && form.id === 'edit-client-form') {
-                            saveEditedClient(new Event('submit'));
-                        } else {
-                            const section = this.closest('.section');
-                            if (section && section.id === 'new-order-section') {
-                                const addButton = document.querySelector('#new-order-section .btn-success');
-                                if (addButton && addButton.textContent.includes('Adicionar')) {
-                                    addButton.click();
-                                }
-                            } else if (section && section.id === 'new-budget-section') {
-                                const addButton = document.querySelector('#new-budget-section .btn-success');
-                                if (addButton && addButton.textContent.includes('Adicionar')) {
-                                    addButton.click();
-                                }
-                            }
-                        }
                     }
                 });
             });
@@ -2570,6 +2552,20 @@
                 } else if (action === 'saveEditedClientFromEnter') {
                     saveEditedClient(new Event('submit'));
                 }
+            }
+        }
+
+        function handleItemEnter(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                document.getElementById('add-item-btn').click();
+            }
+        }
+
+        function handleBudgetItemEnter(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                document.getElementById('add-budget-item-btn').click();
             }
         }
 
@@ -3003,29 +2999,7 @@
             window.open(whatsappUrl, '_blank');
         }
 
-        // FUNÇÕES DE RELATÓRIOS - CORRIGIDAS E MELHORADAS
-
-        function generateSampleData() {
-            // Função para gerar dados de exemplo para teste dos relatórios
-            if (clients.length === 0) {
-                alert('Cadastre alguns clientes e encomendas primeiro, ou use os dados reais!');
-                return;
-            }
-            
-            // Se não houver encomendas, avisar
-            let hasOrders = false;
-            clients.forEach(client => {
-                if (client.orders && client.orders.length > 0) hasOrders = true;
-            });
-            
-            if (!hasOrders) {
-                alert('Não há encomendas cadastradas. Os relatórios usarão os dados reais quando houver encomendas.');
-            }
-            
-            // Gerar relatório de período com dados reais
-            generatePeriodReport();
-        }
-
+        // FUNÇÕES DE RELATÓRIOS
         function generatePeriodReport() {
             const type = document.getElementById('period-report-type').value;
             const startDate = document.getElementById('period-start').value;
@@ -3044,7 +3018,6 @@
             let periodData = [];
             
             if (type === 'daily') {
-                // Agrupar por dia
                 const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
                 for (let i = 0; i <= days; i++) {
                     const currentDate = new Date(start);
@@ -3085,7 +3058,6 @@
                     });
                 }
             } else if (type === 'monthly') {
-                // Agrupar por mês
                 let currentDate = new Date(start);
                 while (currentDate <= end) {
                     const monthYear = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
@@ -3127,7 +3099,6 @@
                     currentDate.setMonth(currentDate.getMonth() + 1);
                 }
             } else if (type === 'yearly') {
-                // Agrupar por ano
                 let currentDate = new Date(start);
                 while (currentDate <= end) {
                     const year = currentDate.getFullYear();
@@ -3182,6 +3153,11 @@
                 reportChart.destroy();
             }
             
+            if (data.length === 0 || data.every(item => item.revenue === 0 && item.profit === 0)) {
+                document.getElementById('report-preview').innerHTML = '<p style="text-align: center; color: #666;">Nenhum dado encontrado no período</p>';
+                return;
+            }
+            
             reportChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -3221,7 +3197,7 @@
         }
 
         function renderPeriodReportPreview(data) {
-            if (data.length === 0) {
+            if (data.length === 0 || data.every(item => item.revenue === 0 && item.profit === 0)) {
                 document.getElementById('report-preview').innerHTML = '<p style="text-align: center; color: #666;">Nenhum dado encontrado no período</p>';
                 return;
             }
@@ -3317,7 +3293,6 @@
             
             let data = Array.from(productMap.values());
             
-            // Ordenar
             if (orderBy === 'quantity') {
                 data.sort((a, b) => b.quantity - a.quantity);
             } else if (orderBy === 'revenue') {
@@ -3326,7 +3301,6 @@
                 data.sort((a, b) => b.profit - a.profit);
             }
             
-            // Limitar a 20 itens
             data = data.slice(0, 20);
             
             currentReportData = data;
@@ -3344,7 +3318,7 @@
             }
             
             if (data.length === 0) {
-                reportChart = null;
+                document.getElementById('report-preview').innerHTML = '<p style="text-align: center; color: #666;">Nenhum produto vendido no período</p>';
                 return;
             }
             
@@ -3435,7 +3409,6 @@
                     
                     totalOrders = filteredOrders.length;
                     
-                    // Frequência (dias entre compras)
                     if (filteredOrders.length > 1) {
                         const dates = filteredOrders.map(o => new Date(o.createdAt)).sort((a, b) => a - b);
                         let totalDays = 0;
@@ -3467,7 +3440,6 @@
                 };
             }).filter(c => c.orders > 0);
             
-            // Ordenar
             if (orderBy === 'orders') {
                 clientData.sort((a, b) => b.orders - a.orders);
             } else if (orderBy === 'spent') {
@@ -3491,7 +3463,7 @@
             }
             
             if (data.length === 0) {
-                reportChart = null;
+                document.getElementById('report-preview').innerHTML = '<p style="text-align: center; color: #666;">Nenhum cliente com compras no período</p>';
                 return;
             }
             
@@ -3614,7 +3586,7 @@
             }
             
             if (budgets.length === 0) {
-                reportChart = null;
+                document.getElementById('report-preview').innerHTML = '<p style="text-align: center; color: #666;">Nenhum orçamento encontrado</p>';
                 return;
             }
             
@@ -4081,7 +4053,6 @@
                 renderEditBudgetForm();
             } else if (section === 'backup') {
             } else if (section === 'reports') {
-                // Limpar preview ao entrar em relatórios
                 document.getElementById('report-preview').innerHTML = '<p style="text-align: center; color: #666;">Clique em "Gerar Relatório" para visualizar os dados</p>';
                 if (reportChart) {
                     reportChart.destroy();
@@ -4518,7 +4489,7 @@
             
             dashboardFilter = {
                 startDate: new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 0, 0, 0, 0),
-                endDate: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999)
+                endDate: new Date(lastDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 23, 59, 59, 999)
             };
             updateDashboard();
         }
@@ -6078,16 +6049,22 @@
             let printContent = `
                 <html><head><title>Encomenda</title>
                 <style>
-                    body { font-family: Arial; padding: 20px; }
-                    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #e74c3c; }
-                    table { width: 100%; border-collapse: collapse; }
-                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                    .total { text-align: right; font-weight: bold; margin-top: 20px; }
+                    body { font-family: Arial, sans-serif; padding: 20px; color: black; }
+                    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+                    .header h2 { color: #000; margin: 0; }
+                    .header p { margin: 5px 0; color: #000; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                    th, td { border: 1px solid #000; padding: 8px; text-align: left; color: #000; }
+                    th { background-color: #f0f0f0; }
+                    .total { text-align: right; font-weight: bold; margin-top: 20px; font-size: 16px; color: #000; }
+                    p { color: #000; margin: 5px 0; }
+                    strong { color: #000; }
                 </style>
                 </head><body>
                 <div class="header">
                     <h2>${pharmacyName}</h2>
-                    <p>Av José Sarney n°06 Q03 - Bom Jesus - São Luís MA<br>Tel: 98-98628-7296</p>
+                    <p>Av José Sarney n°06 Q03 - Bom Jesus - São Luís MA</p>
+                    <p>Tel: 98-98628-7296</p>
                 </div>
                 <p><strong>Cliente:</strong> ${currentOrder.clientName}<br>
                 <strong>Data:</strong> ${formatDate(currentOrder.createdAt)}<br>
@@ -6136,10 +6113,26 @@
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
                 <html><head><title>Orçamento</title>
-                <style>body{font-family:Arial;padding:20px;}.header{text-align:center;margin-bottom:20px;border-bottom:2px solid #9b59b6;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:left;}.total{text-align:right;font-weight:bold;margin-top:20px;}</style>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; color: black; }
+                    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+                    .header h2 { color: #000; }
+                    .header p { color: #000; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { border: 1px solid #000; padding: 8px; text-align: left; color: #000; }
+                    th { background-color: #f0f0f0; }
+                    .total { text-align: right; font-weight: bold; margin-top: 20px; font-size: 16px; color: #000; }
+                    p { color: #000; }
+                </style>
                 </head><body>
-                <div class="header"><h2>${pharmacyName}</h2><p>Av José Sarney n°06 Q03 - Bom Jesus - São Luís MA<br>Tel: 98-98628-7296</p></div>
-                <p><strong>Cliente:</strong> ${currentBudget.clientName}<br><strong>Data:</strong> ${formatDate(currentBudget.createdAt)}<br><strong>Validade:</strong> ${currentBudget.validity} dias (${formatDate(validityDate)})</p>
+                <div class="header">
+                    <h2>${pharmacyName}</h2>
+                    <p>Av José Sarney n°06 Q03 - Bom Jesus - São Luís MA</p>
+                    <p>Tel: 98-98628-7296</p>
+                </div>
+                <p><strong>Cliente:</strong> ${currentBudget.clientName}<br>
+                <strong>Data:</strong> ${formatDate(currentBudget.createdAt)}<br>
+                <strong>Validade:</strong> ${currentBudget.validity} dias (${formatDate(validityDate)})</p>
                 <table><thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead><tbody>
             `);
             currentBudget.items.forEach(item => {
@@ -6172,13 +6165,14 @@
                 <html><head><title>Encomenda</title>
                 <style>
                     @page { size: 80mm auto; margin: 0; }
-                    body { font-family: 'Courier New', monospace; font-size: 12px; width: 72mm; margin: 2mm; }
+                    body { font-family: 'Courier New', monospace; font-size: 12px; width: 72mm; margin: 2mm; color: black; }
                     .header { text-align: center; margin-bottom: 3mm; }
                     .title { font-size: 14px; font-weight: bold; }
                     table { width: 100%; border-collapse: collapse; }
-                    th, td { padding: 2px 0; text-align: left; }
-                    .total { text-align: right; font-weight: bold; margin-top: 3mm; border-top: 1px dashed #000; padding-top: 2mm; }
+                    th, td { padding: 2px 0; text-align: left; color: black; }
+                    .total { text-align: right; font-weight: bold; margin-top: 3mm; border-top: 1px dashed #000; padding-top: 2mm; color: black; }
                     hr { border: none; border-top: 1px dashed #000; margin: 2mm 0; }
+                    div { color: black; }
                 </style>
                 </head><body>
                 <div class="header">
@@ -6239,13 +6233,14 @@
                 <html><head><title>Orçamento</title>
                 <style>
                     @page { size: 80mm auto; margin: 0; }
-                    body { font-family: 'Courier New', monospace; font-size: 12px; width: 72mm; margin: 2mm; }
+                    body { font-family: 'Courier New', monospace; font-size: 12px; width: 72mm; margin: 2mm; color: black; }
                     .header { text-align: center; margin-bottom: 3mm; }
                     .title { font-size: 14px; font-weight: bold; }
                     table { width: 100%; border-collapse: collapse; }
-                    th, td { padding: 2px 0; text-align: left; }
-                    .total { text-align: right; font-weight: bold; margin-top: 3mm; border-top: 1px dashed #000; padding-top: 2mm; }
+                    th, td { padding: 2px 0; text-align: left; color: black; }
+                    .total { text-align: right; font-weight: bold; margin-top: 3mm; border-top: 1px dashed #000; padding-top: 2mm; color: black; }
                     hr { border: none; border-top: 1px dashed #000; margin: 2mm 0; }
+                    div { color: black; }
                 </style>
                 </head><body>
                 <div class="header">
@@ -6742,23 +6737,29 @@
                 return;
             }
             
-            const data = clients.map(client => ({
-                'Nome': client.name,
-                'Telefone': client.phone,
-                'E-mail': client.email || '',
-                'CPF': client.cpf || '',
-                'Endereço': client.address || '',
-                'Tipo': client.type,
-                'Fidelizado': client.loyal === 'sim' ? 'Sim' : 'Não',
-                'Total Encomendas': client.orders ? client.orders.length : 0,
-                'Total Orçamentos': client.budgets ? client.budgets.length : 0,
-                'Data Cadastro': formatDate(client.createdAt)
-            }));
-            
-            const ws = XLSX.utils.json_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Clientes");
-            XLSX.writeFile(wb, `Clientes_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
+            try {
+                const data = clients.map(client => ({
+                    'Nome': client.name,
+                    'Telefone': client.phone,
+                    'E-mail': client.email || '',
+                    'CPF': client.cpf || '',
+                    'Endereço': client.address || '',
+                    'Tipo': client.type,
+                    'Fidelizado': client.loyal === 'sim' ? 'Sim' : 'Não',
+                    'Total Encomendas': client.orders ? client.orders.length : 0,
+                    'Total Orçamentos': client.budgets ? client.budgets.length : 0,
+                    'Data Cadastro': formatDate(client.createdAt)
+                }));
+                
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Clientes");
+                XLSX.writeFile(wb, `Clientes_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
+                alert('Exportação concluída com sucesso!');
+            } catch (error) {
+                console.error("Erro ao exportar Excel:", error);
+                alert("Erro ao exportar para Excel. Tente novamente.");
+            }
         }
 
         function exportOrdersToExcel() {
@@ -6782,7 +6783,7 @@
                             'Telefone': order.clientPhone,
                             'Data': formatDate(order.createdAt),
                             'Status': order.status === 'pendente' ? 'Pendente' : 'Entregue',
-                            'Pagamento': order.payment,
+                            'Pagamento': order.payment === 'pago' ? 'Pago' : order.payment === 'parcial' ? 'Parcial' : 'Pendente',
                             'Total Venda': order.total,
                             'Custo Total': orderCost,
                             'Lucro Total': orderProfit,
@@ -6794,19 +6795,21 @@
                 }
             });
             
-            if (dateFilterApplied) {
-                allOrders = filterOrdersByDate(allOrders);
-            }
-            
             if (allOrders.length === 0) {
                 alert('Não há encomendas para exportar!');
                 return;
             }
             
-            const ws = XLSX.utils.json_to_sheet(allOrders);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Encomendas");
-            XLSX.writeFile(wb, `Encomendas_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
+            try {
+                const ws = XLSX.utils.json_to_sheet(allOrders);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Encomendas");
+                XLSX.writeFile(wb, `Encomendas_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
+                alert('Exportação concluída com sucesso!');
+            } catch (error) {
+                console.error("Erro ao exportar Excel:", error);
+                alert("Erro ao exportar para Excel. Tente novamente.");
+            }
         }
 
         function exportPendingOrdersToExcel() {
@@ -6830,7 +6833,7 @@
                                 'Cliente': order.clientName,
                                 'Telefone': order.clientPhone,
                                 'Data': formatDate(order.createdAt),
-                                'Pagamento': order.payment,
+                                'Pagamento': order.payment === 'pago' ? 'Pago' : order.payment === 'parcial' ? 'Parcial' : 'Pendente',
                                 'Total Venda': order.total,
                                 'Custo Total': orderCost,
                                 'Lucro Projetado': orderProfit,
@@ -6847,10 +6850,16 @@
                 return;
             }
             
-            const ws = XLSX.utils.json_to_sheet(pendingOrders);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Encomendas Pendentes");
-            XLSX.writeFile(wb, `Pendentes_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
+            try {
+                const ws = XLSX.utils.json_to_sheet(pendingOrders);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Encomendas Pendentes");
+                XLSX.writeFile(wb, `Pendentes_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
+                alert('Exportação concluída com sucesso!');
+            } catch (error) {
+                console.error("Erro ao exportar Excel:", error);
+                alert("Erro ao exportar para Excel. Tente novamente.");
+            }
         }
 
         function exportBudgetsToExcel() {
@@ -6874,19 +6883,21 @@
                 }
             });
             
-            if (budgetFilterApplied) {
-                allBudgets = filterBudgetsByDate(allBudgets);
-            }
-            
             if (allBudgets.length === 0) {
                 alert('Não há orçamentos para exportar!');
                 return;
             }
             
-            const ws = XLSX.utils.json_to_sheet(allBudgets);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Orçamentos");
-            XLSX.writeFile(wb, `Orcamentos_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
+            try {
+                const ws = XLSX.utils.json_to_sheet(allBudgets);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Orçamentos");
+                XLSX.writeFile(wb, `Orcamentos_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
+                alert('Exportação concluída com sucesso!');
+            } catch (error) {
+                console.error("Erro ao exportar Excel:", error);
+                alert("Erro ao exportar para Excel. Tente novamente.");
+            }
         }
     </script>
 </body>
