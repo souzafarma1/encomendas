@@ -971,7 +971,6 @@
             border-left: 4px solid #16a085;
         }
 
-        /* Estilo para opção de data manual */
         .date-manual-toggle {
             background: #f8f9fa;
             padding: 15px;
@@ -1517,7 +1516,6 @@
                 </button>
             </div>
             
-            <!-- NOVA OPÇÃO: Data manual para encomenda -->
             <div class="date-manual-toggle">
                 <label>
                     <input type="checkbox" id="order-manual-date-toggle" onchange="toggleOrderManualDate()">
@@ -1673,10 +1671,10 @@
                     <label>Produto Disponível para Retirada?</label>
                     <div style="display: flex; gap: 14px; margin-top: 5px;">
                         <label>
-                            <input type="radio" name="available" value="sim" checked> Sim
+                            <input type="radio" name="available" value="sim"> Sim
                         </label>
                         <label>
-                            <input type="radio" name="available" value="nao"> Não
+                            <input type="radio" name="available" value="nao" checked> Não
                         </label>
                     </div>
                 </div>
@@ -1901,7 +1899,6 @@
                 </button>
             </div>
             
-            <!-- NOVA OPÇÃO: Data manual para orçamento -->
             <div class="date-manual-toggle">
                 <label>
                     <input type="checkbox" id="budget-manual-date-toggle" onchange="toggleBudgetManualDate()">
@@ -2498,14 +2495,12 @@
             document.getElementById('search-budgets').addEventListener('input', renderBudgetsList);
         });
 
-        // NOVAS FUNÇÕES: Toggle da data manual
         function toggleOrderManualDate() {
             const checkbox = document.getElementById('order-manual-date-toggle');
             const fields = document.getElementById('order-manual-date-fields');
             
             if (checkbox.checked) {
                 fields.classList.add('active');
-                // Preencher com data de hoje como sugestão
                 const today = new Date();
                 document.getElementById('order-manual-date').value = today.toISOString().split('T')[0];
             } else {
@@ -2526,7 +2521,6 @@
             }
         }
 
-        // Função para obter a data personalizada
         function getCustomOrderDate() {
             const checkbox = document.getElementById('order-manual-date-toggle');
             if (checkbox && checkbox.checked) {
@@ -4990,7 +4984,6 @@
                 return;
             }
             
-            // NOVO: Usar data personalizada se marcado
             const createdAt = getCustomOrderDate();
             
             const newOrder = {
@@ -5050,7 +5043,6 @@
             const validity = parseInt(document.getElementById('budget-validity').value) || 7;
             const observations = document.getElementById('budget-observations').value.trim();
             
-            // NOVO: Usar data personalizada se marcado
             const createdAt = getCustomBudgetDate();
             
             const newBudget = {
@@ -5641,59 +5633,52 @@
             if (!currentOrder) return;
             
             let paymentText = currentOrder.payment === 'pago' ? 'Pago' : 
-                             currentOrder.payment === 'parcial' ? 'Parcial' : 'Pendente';
+                             currentOrder.payment === 'parcial' ? 'Parcial (com entrada)' : 'Pendente';
             
             let html = `
                 <h4>Cliente: ${currentOrder.clientName}</h4>
                 <p>Telefone: ${currentOrder.clientPhone}</p>
                 <p>Data: ${formatDate(currentOrder.createdAt)}</p>
-                <p>Status: ${currentOrder.status === 'pendente' ? 'Pendente' : 'Entregue'}</p>
+                <p>Status: ${currentOrder.status === 'pendente' ? 'Pendente de retirada' : 'Entregue'}</p>
                 <p>Pagamento: ${paymentText}</p>
-                <p>Entrada: R$ ${(currentOrder.downPayment || 0).toFixed(2)}</p>
-                <p>Disponível: ${currentOrder.available === 'sim' ? 'Sim' : 'Não'}</p>
-                <h4>Itens:</h4>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr>
-                            <th style="padding: 7px; text-align: left;">Descrição</th>
-                            <th style="padding: 7px; text-align: left;">Qtd</th>
-                            <th style="padding: 7px; text-align: left;">Valor</th>
-                            <th style="padding: 7px; text-align: left;">Total</th>
-                            <th style="padding: 7px; text-align: left;">Lucro</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <p>Disponível para retirada: ${currentOrder.available === 'sim' ? 'Sim' : 'Não'}</p>
             `;
-            currentOrder.items.forEach(item => {
-                const profitText = item.cost > 0 ? `R$ ${((item.finalPrice - item.cost) * item.quantity).toFixed(2)}` : '-';
+            
+            if (currentOrder.payment === 'parcial' && currentOrder.downPayment > 0) {
+                const remaining = currentOrder.total - currentOrder.downPayment;
                 html += `
-                    <tr>
-                        <td style="padding: 7px;">${item.description}</td>
-                        <td style="padding: 7px;">${item.quantity}</td>
-                        <td style="padding: 7px;">R$ ${item.finalPrice.toFixed(2)}</td>
-                        <td style="padding: 7px;">R$ ${item.total.toFixed(2)}</td>
-                        <td style="padding: 7px; color: var(--profit);">${profitText}</td>
-                    </tr>
+                    <p>Entrada a pagar: R$ ${currentOrder.downPayment.toFixed(2)}</p>
+                    <p>Saldo restante: R$ ${remaining.toFixed(2)}</p>
+                `;
+            }
+            
+            html += `<h4>Itens:</h4>`;
+            
+            currentOrder.items.forEach((item, index) => {
+                html += `
+                    <p>${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}</p>
                 `;
             });
-            html += `</tbody></table>`;
             
             html += `
-                <div style="margin-top: 16px; background: #e8f6f3; padding: 10px; border-radius: 5px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Custo Total:</span>
-                        <span style="color: var(--cost);">R$ ${(currentOrder.totalCost || 0).toFixed(2)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Lucro Total:</span>
-                        <span style="color: var(--profit);">R$ ${(currentOrder.totalProfit || 0).toFixed(2)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Margem:</span>
-                        <span style="color: var(--profit);">${(currentOrder.profitMargin || 0).toFixed(1)}%</span>
-                    </div>
-                </div>
                 <h4 style="margin-top: 16px; text-align: right;">Total: R$ ${currentOrder.total.toFixed(2)}</h4>
+            `;
+            
+            if (currentOrder.status === 'pendente') {
+                if (currentOrder.available === 'sim') {
+                    html += `
+                        <p style="margin-top: 16px; font-weight: bold;">Aguardamos sua retirada na Souza Farma - Farmácia do Trabalhador!</p>
+                    `;
+                } else {
+                    html += `
+                        <p style="margin-top: 16px; font-weight: bold;">Aguarde a chegada do produto! Assim que disponível, informaremos por aqui.</p>
+                    `;
+                }
+            }
+            
+            html += `
+                <p style="margin-top: 16px;">Av José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA</p>
+                <p>Telefone: 98-98628-7296</p>
             `;
             
             document.getElementById('order-details').innerHTML = html;
@@ -5774,19 +5759,44 @@
 
         function sendCurrentOrderWhatsApp() {
             if (!currentOrder) return;
+            
             const phone = currentOrder.clientPhone.replace(/\D/g, '');
-            let message = `Olá ${currentOrder.clientName}!%0A%0A`;
-            message += `*SOUZA FARMA - ENCOMENDA*%0A`;
-            message += `Data: ${formatDate(currentOrder.createdAt)}%0A`;
-            message += `Status: ${currentOrder.status === 'pendente' ? 'Pendente' : 'Entregue'}%0A`;
-            message += `Pagamento: ${currentOrder.payment}%0A`;
-            message += `Total: R$ ${currentOrder.total.toFixed(2)}%0A%0A`;
-            message += `*Itens:*%0A`;
-            currentOrder.items.forEach(item => {
-                message += `${item.quantity}x ${item.description} - R$ ${item.finalPrice.toFixed(2)}%0A`;
+            const clientName = currentOrder.clientName;
+            const orderDate = formatDate(currentOrder.createdAt);
+            const paymentText = currentOrder.payment === 'pago' ? 'Pago' : 
+                               currentOrder.payment === 'parcial' ? 'Parcial (com entrada)' : 'Pendente';
+            const availableText = currentOrder.available === 'sim' ? 'Sim' : 'Não';
+            
+            let message = `Olá ${clientName}! Tudo bem?%0A%0A`;
+            message += `*SOUZA FARMA - FARMÁCIA DO TRABALHADOR - ENCOMENDA*%0A%0A`;
+            message += `Cliente: ${clientName}%0A`;
+            message += `Data: ${orderDate}%0A`;
+            message += `Status: Pendente de retirada%0A`;
+            message += `Pagamento: ${paymentText}%0A`;
+            message += `Disponível para retirada: ${availableText}%0A`;
+            
+            if (currentOrder.payment === 'parcial' && currentOrder.downPayment > 0) {
+                const remaining = currentOrder.total - currentOrder.downPayment;
+                message += `%0A`;
+                message += `Entrada a pagar: R$ ${currentOrder.downPayment.toFixed(2)}%0A`;
+                message += `Saldo restante: R$ ${remaining.toFixed(2)}%0A`;
+            }
+            
+            message += `%0A*Itens:*%0A`;
+            currentOrder.items.forEach((item, index) => {
+                message += `${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}%0A`;
             });
-            message += `%0AAv José Sarney n°06 Q03 - Bom Jesus - São Luís MA%0A`;
-            message += `Tel: 98-98628-7296`;
+            
+            message += `%0A*Total: R$ ${currentOrder.total.toFixed(2)}*%0A%0A`;
+            
+            if (currentOrder.available === 'sim') {
+                message += `Aguardamos sua retirada na Souza Farma - Farmácia do Trabalhador!%0A`;
+            } else {
+                message += `Aguarde a chegada do produto! Assim que disponível, informaremos por aqui.%0A`;
+            }
+            
+            message += `%0AAv José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A`;
+            message += `Telefone: 98-98628-7296`;
             
             window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
         }
@@ -5794,15 +5804,16 @@
         function sendCurrentBudgetWhatsApp() {
             if (!currentBudget) return;
             const phone = currentBudget.clientPhone.replace(/\D/g, '');
-            let message = `Olá ${currentBudget.clientName}!%0A%0A`;
-            message += `*SOUZA FARMA - ORÇAMENTO*%0A`;
+            let message = `Olá ${currentBudget.clientName}! Tudo bem?%0A%0A`;
+            message += `*SOUZA FARMA - FARMÁCIA DO TRABALHADOR - ORÇAMENTO*%0A%0A`;
+            message += `Cliente: ${currentBudget.clientName}%0A`;
             message += `Data: ${formatDate(currentBudget.createdAt)}%0A`;
             message += `Validade: ${currentBudget.validity} dias%0A`;
-            message += `Total: R$ ${currentBudget.total.toFixed(2)}%0A%0A`;
+            message += `*Total: R$ ${currentBudget.total.toFixed(2)}*%0A%0A`;
             message += `*Itens:*%0A`;
-            currentBudget.items.forEach(item => {
+            currentBudget.items.forEach((item, index) => {
                 const obs = item.observations ? ` (${item.observations})` : '';
-                message += `${item.quantity}x ${item.description}${obs} - R$ ${item.finalPrice.toFixed(2)}%0A`;
+                message += `${index + 1}. ${item.description}${obs} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}%0A`;
             });
             
             window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
@@ -5820,35 +5831,76 @@
 
         function printCurrentOrder() {
             if (!currentOrder) return;
-            const paymentStatus = currentOrder.payment === 'pago' ? 'Pago' : 
-                                currentOrder.payment === 'parcial' ? 'Parcial' : 'Pendente';
+            
+            const paymentText = currentOrder.payment === 'pago' ? 'Pago' : 
+                               currentOrder.payment === 'parcial' ? 'Parcial (com entrada)' : 'Pendente';
+            const availableText = currentOrder.available === 'sim' ? 'Sim' : 'Não';
+            
+            let printContent = `
+                <html><head><title>Encomenda</title>
+                <style>
+                    body { font-family: Arial; padding: 20px; }
+                    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #e74c3c; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    .total { text-align: right; font-weight: bold; margin-top: 20px; }
+                </style>
+                </head><body>
+                <div class="header">
+                    <h2>${pharmacyName}</h2>
+                    <p>Av José Sarney n°06 Q03 - Bom Jesus - São Luís MA<br>Tel: 98-98628-7296</p>
+                </div>
+                <p><strong>Cliente:</strong> ${currentOrder.clientName}<br>
+                <strong>Data:</strong> ${formatDate(currentOrder.createdAt)}<br>
+                <strong>Status:</strong> Pendente de retirada<br>
+                <strong>Pagamento:</strong> ${paymentText}<br>
+                <strong>Disponível para retirada:</strong> ${availableText}</p>
+            `;
+            
+            if (currentOrder.payment === 'parcial' && currentOrder.downPayment > 0) {
+                const remaining = currentOrder.total - currentOrder.downPayment;
+                printContent += `
+                    <p><strong>Entrada a pagar:</strong> R$ ${currentOrder.downPayment.toFixed(2)}<br>
+                    <strong>Saldo restante:</strong> R$ ${remaining.toFixed(2)}</p>
+                `;
+            }
+            
+            printContent += `<table><thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead><tbody>`;
+            
+            currentOrder.items.forEach(item => {
+                printContent += `<tr><td>${item.description}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`;
+            });
+            
+            printContent += `</tbody></table>`;
+            printContent += `<div class="total">TOTAL: R$ ${currentOrder.total.toFixed(2)}</div>`;
+            
+            if (currentOrder.available === 'sim') {
+                printContent += `<p style="margin-top: 20px; font-weight: bold;">Aguardamos sua retirada na Souza Farma - Farmácia do Trabalhador!</p>`;
+            } else {
+                printContent += `<p style="margin-top: 20px; font-weight: bold;">Aguarde a chegada do produto! Assim que disponível, informaremos por aqui.</p>`;
+            }
+            
+            printContent += `</body></html>`;
             
             const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html><head><title>Encomenda</title>
-                <style>body{font-family:Arial;padding:20px;}.header{text-align:center;margin-bottom:20px;border-bottom:2px solid #e74c3c;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:left;}.total{text-align:right;font-weight:bold;margin-top:20px;}</style>
-                </head><body>
-                <div class="header"><h2>${pharmacyName}</h2><p>Av José Sarney n°06 Q03 - Bom Jesus - São Luís MA<br>Tel: 98-98628-7296</p></div>
-                <p><strong>Cliente:</strong> ${currentOrder.clientName}<br><strong>Data:</strong> ${formatDate(currentOrder.createdAt)}<br><strong>Status:</strong> ${currentOrder.status}<br><strong>Pagamento:</strong> ${paymentStatus}</p>
-                <table><thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead><tbody>
-            `);
-            currentOrder.items.forEach(item => {
-                printWindow.document.write(`<tr><td>${item.description}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`);
-            });
-            printWindow.document.write(`</tbody></table><div class="total">TOTAL: R$ ${currentOrder.total.toFixed(2)}</div></body></html>`);
+            printWindow.document.write(printContent);
             printWindow.document.close();
             printWindow.print();
         }
 
         function printCurrentBudget() {
             if (!currentBudget) return;
+            
+            const validityDate = new Date(currentBudget.createdAt);
+            validityDate.setDate(validityDate.getDate() + (currentBudget.validity || 7));
+            
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
                 <html><head><title>Orçamento</title>
                 <style>body{font-family:Arial;padding:20px;}.header{text-align:center;margin-bottom:20px;border-bottom:2px solid #9b59b6;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:left;}.total{text-align:right;font-weight:bold;margin-top:20px;}</style>
                 </head><body>
                 <div class="header"><h2>${pharmacyName}</h2><p>Av José Sarney n°06 Q03 - Bom Jesus - São Luís MA<br>Tel: 98-98628-7296</p></div>
-                <p><strong>Cliente:</strong> ${currentBudget.clientName}<br><strong>Data:</strong> ${formatDate(currentBudget.createdAt)}<br><strong>Validade:</strong> ${currentBudget.validity} dias</p>
+                <p><strong>Cliente:</strong> ${currentBudget.clientName}<br><strong>Data:</strong> ${formatDate(currentBudget.createdAt)}<br><strong>Validade:</strong> ${currentBudget.validity} dias (${formatDate(validityDate)})</p>
                 <table><thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead><tbody>
             `);
             currentBudget.items.forEach(item => {
@@ -5873,11 +5925,11 @@
         function printThermalCurrentOrder() {
             if (!currentOrder) return;
             
-            const paymentStatus = currentOrder.payment === 'pago' ? 'Pago' : 
-                                currentOrder.payment === 'parcial' ? 'Parcial' : 'Pendente';
+            const paymentText = currentOrder.payment === 'pago' ? 'Pago' : 
+                               currentOrder.payment === 'parcial' ? 'Parcial (com entrada)' : 'Pendente';
+            const availableText = currentOrder.available === 'sim' ? 'Sim' : 'Não';
             
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
+            let printContent = `
                 <html><head><title>Encomenda</title>
                 <style>
                     @page { size: 80mm auto; margin: 0; }
@@ -5900,22 +5952,39 @@
                 <div><strong>ENCOMENDA</strong></div>
                 <div>Cliente: ${currentOrder.clientName}</div>
                 <div>Data: ${formatDate(currentOrder.createdAt)}</div>
-                <div>Status: ${currentOrder.status}</div>
-                <div>Pagamento: ${paymentStatus}</div>
-                <hr>
-                <table>
-                    <thead><tr><th>Item</th><th>Qtd</th><th>Valor</th></tr></thead>
-                    <tbody>
-            `);
+                <div>Status: Pendente de retirada</div>
+                <div>Pagamento: ${paymentText}</div>
+                <div>Disponível: ${availableText}</div>
+            `;
+            
+            if (currentOrder.payment === 'parcial' && currentOrder.downPayment > 0) {
+                const remaining = currentOrder.total - currentOrder.downPayment;
+                printContent += `
+                    <div>Entrada: R$ ${currentOrder.downPayment.toFixed(2)}</div>
+                    <div>Saldo: R$ ${remaining.toFixed(2)}</div>
+                `;
+            }
+            
+            printContent += `<hr><table><thead><tr><th>Item</th><th>Qtd</th><th>Valor</th></tr></thead><tbody>`;
+            
             currentOrder.items.forEach(item => {
-                printWindow.document.write(`<tr><td>${item.description}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td></tr>`);
+                printContent += `<tr><td>${item.description}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td></tr>`;
             });
-            printWindow.document.write(`</tbody></table>
-                <div class="total">TOTAL: R$ ${currentOrder.total.toFixed(2)}</div>
-                <hr>
-                <div style="text-align: center;">Obrigado pela preferência!</div>
-                </body></html>
-            `);
+            
+            printContent += `</tbody></table>`;
+            printContent += `<div class="total">TOTAL: R$ ${currentOrder.total.toFixed(2)}</div>`;
+            printContent += `<hr>`;
+            
+            if (currentOrder.available === 'sim') {
+                printContent += `<div style="text-align: center;">Aguardamos sua retirada!</div>`;
+            } else {
+                printContent += `<div style="text-align: center;">Aguarde a chegada do produto!</div>`;
+            }
+            
+            printContent += `</body></html>`;
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(printContent);
             printWindow.document.close();
             printWindow.print();
         }
@@ -5988,7 +6057,7 @@
             document.getElementById('new-item-profit-value').value = '';
             document.getElementById('new-item-profit-percent').value = '';
             document.getElementById('down-payment').value = '';
-            document.querySelector('input[name="available"][value="sim"]').checked = true;
+            document.querySelector('input[name="available"][value="nao"]').checked = true;
             selectedClientForOrder = null;
             orderTotal = 0;
             document.getElementById('order-total').textContent = '0.00';
@@ -5996,7 +6065,6 @@
             document.getElementById('order-total-profit').textContent = 'R$ 0.00';
             document.getElementById('order-profit-margin').textContent = '0%';
             
-            // Resetar data manual
             document.getElementById('order-manual-date-toggle').checked = false;
             document.getElementById('order-manual-date-fields').classList.remove('active');
         }
@@ -6024,7 +6092,6 @@
             budgetTotal = 0;
             document.getElementById('budget-total').textContent = '0.00';
             
-            // Resetar data manual
             document.getElementById('budget-manual-date-toggle').checked = false;
             document.getElementById('budget-manual-date-fields').classList.remove('active');
         }
