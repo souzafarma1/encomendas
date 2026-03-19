@@ -1244,6 +1244,9 @@
             .header {
                 border-bottom: 2px solid black;
             }
+            .btn, .item-actions, .quick-actions, .dashboard-filter, .date-filter, .button-group {
+                display: none !important;
+            }
         }
     </style>
 </head>
@@ -1465,34 +1468,34 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="client-name" class="required">Nome Completo</label>
-                        <input type="text" id="client-name" required>
+                        <input type="text" id="client-name" required onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('client-phone').focus(); }">
                     </div>
                     <div class="form-group">
                         <label for="client-phone" class="required">Telefone/WhatsApp</label>
-                        <input type="tel" id="client-phone" required placeholder="(11) 99999-9999">
+                        <input type="tel" id="client-phone" required placeholder="(11) 99999-9999" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('client-email').focus(); }">
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="client-email">E-mail</label>
-                        <input type="email" id="client-email" placeholder="cliente@email.com">
+                        <input type="email" id="client-email" placeholder="cliente@email.com" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('client-cpf').focus(); }">
                     </div>
                     <div class="form-group">
                         <label for="client-cpf">CPF</label>
-                        <input type="text" id="client-cpf" placeholder="000.000.000-00">
+                        <input type="text" id="client-cpf" placeholder="000.000.000-00" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('client-address').focus(); }">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="client-address">Endereço (Opcional)</label>
-                    <input type="text" id="client-address" placeholder="Rua, Número, Bairro, Cidade">
+                    <input type="text" id="client-address" placeholder="Rua, Número, Bairro, Cidade" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('client-type').focus(); }">
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="client-type">Tipo de Cliente</label>
-                        <select id="client-type">
+                        <select id="client-type" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.querySelector('input[name=\'loyal\'][value=\'sim\']').focus(); }">
                             <option value="regular">Regular</option>
                             <option value="premium">Premium</option>
                             <option value="vip">VIP</option>
@@ -1502,10 +1505,10 @@
                         <label>Cliente Fidelizado?</label>
                         <div style="display: flex; gap: 14px; margin-top: 5px;">
                             <label>
-                                <input type="radio" name="loyal" value="sim"> Sim
+                                <input type="radio" name="loyal" value="sim" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.querySelector('input[name=\'loyal\'][value=\'nao\']').focus(); }"> Sim
                             </label>
                             <label>
-                                <input type="radio" name="loyal" value="nao" checked> Não
+                                <input type="radio" name="loyal" value="nao" checked onkeypress="if(event.key==='Enter'){ event.preventDefault(); saveClient(); }"> Não
                             </label>
                         </div>
                     </div>
@@ -1554,7 +1557,7 @@
             </div>
             
             <div class="search-container">
-                <input type="text" id="search-client-order" placeholder="Buscar cliente para encomenda..." oninput="searchClientForOrder()">
+                <input type="text" id="search-client-order" placeholder="Buscar cliente para encomenda..." oninput="searchClientForOrder()" onkeypress="if(event.key==='Enter'){ event.preventDefault(); if(document.getElementById('client-search-results').children.length>0) document.getElementById('client-search-results').children[0].click(); }">
                 <div id="client-search-results" style="margin-top: 9px; display: none;"></div>
             </div>
             
@@ -1591,22 +1594,22 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Descrição</label>
-                            <input type="text" id="new-item-desc" placeholder="Nome do medicamento" onkeypress="handleItemEnter(event)">
+                            <input type="text" id="new-item-desc" placeholder="Nome do medicamento" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('new-item-qty').focus(); }">
                         </div>
                         <div class="form-group">
                             <label>Quantidade</label>
-                            <input type="number" id="new-item-qty" value="1" min="1" oninput="calculateItemProfit()" onkeypress="handleItemEnter(event)">
+                            <input type="number" id="new-item-qty" value="1" min="1" oninput="calculateItemProfit()" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('new-item-price').focus(); }">
                         </div>
                         <div class="form-group">
                             <label>Valor Unitário</label>
-                            <input type="number" id="new-item-price" step="0.01" placeholder="0.00" oninput="calculateItemProfit()" onkeypress="handleItemEnter(event)">
+                            <input type="number" id="new-item-price" step="0.01" placeholder="0.00" oninput="calculateItemProfit()" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('new-item-cost').focus(); }">
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label>Valor de Custo</label>
-                            <input type="number" id="new-item-cost" step="0.01" placeholder="0.00" oninput="calculateItemProfit()" onkeypress="handleItemEnter(event)">
+                            <input type="number" id="new-item-cost" step="0.01" placeholder="0.00" oninput="calculateItemProfit()" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('new-item-discount-type').focus(); }">
                         </div>
                         <div class="form-group">
                             <label>Lucro (R$)</label>
@@ -1621,7 +1624,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Tipo de Desconto</label>
-                            <select id="new-item-discount-type" onchange="toggleDiscountField()">
+                            <select id="new-item-discount-type" onchange="toggleDiscountField()" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('new-item-discount-value').focus(); }">
                                 <option value="none">Sem desconto</option>
                                 <option value="percent">%</option>
                                 <option value="fixed">R$</option>
@@ -1629,7 +1632,7 @@
                         </div>
                         <div class="form-group">
                             <label>Valor do Desconto</label>
-                            <input type="number" id="new-item-discount-value" step="0.01" placeholder="0.00" disabled oninput="calculateItemProfit()" onkeypress="handleItemEnter(event)">
+                            <input type="number" id="new-item-discount-value" step="0.01" placeholder="0.00" disabled oninput="calculateItemProfit()" onkeypress="if(event.key==='Enter'){ event.preventDefault(); addOrderItemFromForm(); }">
                         </div>
                         <div class="form-group">
                             <label>Valor Final</label>
@@ -1665,30 +1668,30 @@
                     <label>Status do Pagamento</label>
                     <div style="display: flex; gap: 14px; margin-top: 5px;">
                         <label>
-                            <input type="radio" name="payment" value="pago"> Pago
+                            <input type="radio" name="payment" value="pago" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.querySelector('input[name=\'payment\'][value=\'parcial\']').focus(); }"> Pago
                         </label>
                         <label>
-                            <input type="radio" name="payment" value="parcial"> Parcial
+                            <input type="radio" name="payment" value="parcial" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.querySelector('input[name=\'payment\'][value=\'pendente\']').focus(); }"> Parcial
                         </label>
                         <label>
-                            <input type="radio" name="payment" value="pendente" checked> Pendente
+                            <input type="radio" name="payment" value="pendente" checked onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('down-payment').focus(); }"> Pendente
                         </label>
                     </div>
                 </div>
                 
                 <div style="margin-top: 16px;">
                     <label>Valor de Entrada</label>
-                    <input type="number" id="down-payment" step="0.01" placeholder="0.00" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;" oninput="updatePaymentStatus()">
+                    <input type="number" id="down-payment" step="0.01" placeholder="0.00" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;" oninput="updatePaymentStatus()" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.querySelector('input[name=\'available\'][value=\'sim\']').focus(); }">
                 </div>
 
                 <div style="margin-top: 16px;">
                     <label>Produto Disponível para Retirada?</label>
                     <div style="display: flex; gap: 14px; margin-top: 5px;">
                         <label>
-                            <input type="radio" name="available" value="sim"> Sim
+                            <input type="radio" name="available" value="sim" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.querySelector('input[name=\'available\'][value=\'nao\']').focus(); }"> Sim
                         </label>
                         <label>
-                            <input type="radio" name="available" value="nao" checked> Não
+                            <input type="radio" name="available" value="nao" checked onkeypress="if(event.key==='Enter'){ event.preventDefault(); saveOrder(); }"> Não
                         </label>
                     </div>
                 </div>
@@ -1974,22 +1977,22 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Descrição</label>
-                            <input type="text" id="new-budget-item-desc" placeholder="Nome do medicamento" onkeypress="handleBudgetItemEnter(event)">
+                            <input type="text" id="new-budget-item-desc" placeholder="Nome do medicamento" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('new-budget-item-qty').focus(); }">
                         </div>
                         <div class="form-group">
                             <label>Quantidade</label>
-                            <input type="number" id="new-budget-item-qty" value="1" min="1" onkeypress="handleBudgetItemEnter(event)">
+                            <input type="number" id="new-budget-item-qty" value="1" min="1" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('new-budget-item-price').focus(); }">
                         </div>
                         <div class="form-group">
                             <label>Valor Unitário</label>
-                            <input type="number" id="new-budget-item-price" step="0.01" placeholder="0.00" onkeypress="handleBudgetItemEnter(event)">
+                            <input type="number" id="new-budget-item-price" step="0.01" placeholder="0.00" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('new-budget-item-discount-type').focus(); }">
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label>Tipo de Desconto</label>
-                            <select id="new-budget-item-discount-type">
+                            <select id="new-budget-item-discount-type" onchange="toggleBudgetDiscountField()" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('new-budget-item-discount-value').focus(); }">
                                 <option value="none">Sem desconto</option>
                                 <option value="percent">%</option>
                                 <option value="fixed">R$</option>
@@ -1997,7 +2000,7 @@
                         </div>
                         <div class="form-group">
                             <label>Valor do Desconto</label>
-                            <input type="number" id="new-budget-item-discount-value" step="0.01" placeholder="0.00" disabled>
+                            <input type="number" id="new-budget-item-discount-value" step="0.01" placeholder="0.00" disabled oninput="calculateBudgetFinalPrice()" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('new-budget-item-obs').focus(); }">
                         </div>
                         <div class="form-group">
                             <label>Valor Final</label>
@@ -2008,7 +2011,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Observações do Item</label>
-                            <input type="text" id="new-budget-item-obs" placeholder="Ex: Genérico, Marca X, etc.">
+                            <input type="text" id="new-budget-item-obs" placeholder="Ex: Genérico, Marca X, etc." onkeypress="if(event.key==='Enter'){ event.preventDefault(); addBudgetItem(); }">
                         </div>
                     </div>
                     
@@ -2030,12 +2033,12 @@
                 
                 <div style="margin-top: 16px;">
                     <label>Validade do Orçamento (dias)</label>
-                    <input type="number" id="budget-validity" value="7" min="1" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;">
+                    <input type="number" id="budget-validity" value="7" min="1" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('budget-observations').focus(); }">
                 </div>
                 
                 <div style="margin-top: 16px;">
                     <label>Observações do Orçamento</label>
-                    <textarea id="budget-observations" rows="3" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;" placeholder="Condições de pagamento, informações adicionais..."></textarea>
+                    <textarea id="budget-observations" rows="3" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;" placeholder="Condições de pagamento, informações adicionais..." onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); saveBudget(); }"></textarea>
                 </div>
                 
                 <div class="button-group" style="margin-top: 22px;">
@@ -2337,34 +2340,34 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="edit-client-name" class="required">Nome Completo</label>
-                        <input type="text" id="edit-client-name" required>
+                        <input type="text" id="edit-client-name" required onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-client-phone').focus(); }">
                     </div>
                     <div class="form-group">
                         <label for="edit-client-phone" class="required">Telefone/WhatsApp</label>
-                        <input type="tel" id="edit-client-phone" required placeholder="(11) 99999-9999">
+                        <input type="tel" id="edit-client-phone" required placeholder="(11) 99999-9999" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-client-email').focus(); }">
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="edit-client-email">E-mail</label>
-                        <input type="email" id="edit-client-email" placeholder="cliente@email.com">
+                        <input type="email" id="edit-client-email" placeholder="cliente@email.com" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-client-cpf').focus(); }">
                     </div>
                     <div class="form-group">
                         <label for="edit-client-cpf">CPF</label>
-                        <input type="text" id="edit-client-cpf" placeholder="000.000.000-00">
+                        <input type="text" id="edit-client-cpf" placeholder="000.000.000-00" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-client-address').focus(); }">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="edit-client-address">Endereço (Opcional)</label>
-                    <input type="text" id="edit-client-address" placeholder="Rua, Número, Bairro, Cidade">
+                    <input type="text" id="edit-client-address" placeholder="Rua, Número, Bairro, Cidade" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-client-type').focus(); }">
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="edit-client-type">Tipo de Cliente</label>
-                        <select id="edit-client-type">
+                        <select id="edit-client-type" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.querySelector('input[name=\'edit-loyal\'][value=\'sim\']').focus(); }">
                             <option value="regular">Regular</option>
                             <option value="premium">Premium</option>
                             <option value="vip">VIP</option>
@@ -2374,10 +2377,10 @@
                         <label>Cliente Fidelizado?</label>
                         <div style="display: flex; gap: 14px; margin-top: 5px;">
                             <label>
-                                <input type="radio" name="edit-loyal" value="sim"> Sim
+                                <input type="radio" name="edit-loyal" value="sim" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.querySelector('input[name=\'edit-loyal\'][value=\'nao\']').focus(); }"> Sim
                             </label>
                             <label>
-                                <input type="radio" name="edit-loyal" value="nao" checked> Não
+                                <input type="radio" name="edit-loyal" value="nao" checked onkeypress="if(event.key==='Enter'){ event.preventDefault(); saveEditedClient(event); }"> Não
                             </label>
                         </div>
                     </div>
@@ -2415,6 +2418,7 @@
     </div>
 
     <script>
+        // Configuração do Firebase
         const firebaseConfig = {
           apiKey: "AIzaSyCb5Dv8ZVBMxHIIhRqLvDmH4w24Fk0NqEU",
           authDomain: "souza-farma.firebaseapp.com",
@@ -2425,9 +2429,11 @@
           appId: "1:123456789:web:abc123def456"
         };
         
+        // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // Variáveis globais
         let clients = [];
         let selectedClientForOrder = null;
         let selectedClientForBudget = null;
@@ -2471,6 +2477,7 @@
         let currentReportData = [];
         let currentReportType = '';
 
+        // Evento de carregamento da página
         document.addEventListener('DOMContentLoaded', function() {
             console.log("Sistema Souza Farma conectando ao Firebase...");
             
@@ -2493,7 +2500,6 @@
             };
             
             dateFilterApplied = true;
-            applyDateFilter();
             
             const currentDate = new Date();
             const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -2518,32 +2524,24 @@
             
             checkUrlForApproval();
             
+            // Event listeners para busca
             document.getElementById('search-clients').addEventListener('input', renderClientsList);
             document.getElementById('search-orders').addEventListener('input', function() { renderOrdersList(); });
             document.getElementById('search-pending-orders').addEventListener('input', function() { renderPendingOrdersList(); });
             document.getElementById('search-budgets').addEventListener('input', function() { renderBudgetsList(); });
-
-            setupEnterKeyListeners();
 
             // Preencher datas dos relatórios com valores padrão
             const reportStart = new Date();
             reportStart.setDate(reportStart.getDate() - 30);
             document.getElementById('period-start').value = reportStart.toISOString().split('T')[0];
             document.getElementById('period-end').value = today.toISOString().split('T')[0];
+            
+            // Atualizar estatísticas iniciais
+            updateStats();
+            renderOrdersList(); // Garantir que a lista de encomendas aparece
         });
 
-        // Função para passar campos com Enter
-        function setupEnterKeyListeners() {
-            const forms = document.querySelectorAll('form');
-            forms.forEach(form => {
-                form.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                    }
-                });
-            });
-        }
-
+        // Função para lidar com Enter
         function handleEnter(event, action) {
             if (event.key === 'Enter') {
                 event.preventDefault();
@@ -2555,20 +2553,7 @@
             }
         }
 
-        function handleItemEnter(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                document.getElementById('add-item-btn').click();
-            }
-        }
-
-        function handleBudgetItemEnter(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                document.getElementById('add-budget-item-btn').click();
-            }
-        }
-
+        // Função para alternar data manual da encomenda
         function toggleOrderManualDate() {
             const checkbox = document.getElementById('order-manual-date-toggle');
             const fields = document.getElementById('order-manual-date-fields');
@@ -2582,6 +2567,7 @@
             }
         }
 
+        // Função para alternar data manual do orçamento
         function toggleBudgetManualDate() {
             const checkbox = document.getElementById('budget-manual-date-toggle');
             const fields = document.getElementById('budget-manual-date-fields');
@@ -2595,6 +2581,7 @@
             }
         }
 
+        // Obter data personalizada da encomenda
         function getCustomOrderDate() {
             const checkbox = document.getElementById('order-manual-date-toggle');
             if (checkbox && checkbox.checked) {
@@ -2608,6 +2595,7 @@
             return new Date().toISOString();
         }
 
+        // Obter data personalizada do orçamento
         function getCustomBudgetDate() {
             const checkbox = document.getElementById('budget-manual-date-toggle');
             if (checkbox && checkbox.checked) {
@@ -2621,6 +2609,7 @@
             return new Date().toISOString();
         }
 
+        // Carregar dados iniciais do Firebase
         function loadInitialData() {
             db.ref('clients').once('value').then((snapshot) => {
                 const data = snapshot.val();
@@ -2649,6 +2638,7 @@
             });
         }
 
+        // Salvar dados no Firebase
         function saveToLocalStorage() {
             const clientsObj = {};
             clients.forEach(c => { clientsObj[c.id] = c; });
@@ -2658,10 +2648,7 @@
             });
         }
 
-        function showBackupOptions() {
-            showSection('backup');
-        }
-
+        // Backup de dados
         function backupData() {
             try {
                 const backupData = {
@@ -2687,6 +2674,7 @@
             }
         }
 
+        // Restaurar dados
         function restoreData() {
             const fileInput = document.getElementById('restore-file');
             const file = fileInput.files[0];
@@ -2730,6 +2718,7 @@
             reader.readAsText(file);
         }
 
+        // Forçar sincronização com Firebase
         function forceSyncToFirebase() {
             if (confirm('Isso forçará a sincronização de todos os dados com o Firebase. Deseja continuar?')) {
                 saveToLocalStorage();
@@ -2737,6 +2726,7 @@
             }
         }
 
+        // Verificar URL para aprovação de orçamento
         function checkUrlForApproval() {
             const urlParams = new URLSearchParams(window.location.search);
             const budgetId = urlParams.get('budget');
@@ -2751,6 +2741,7 @@
             }
         }
 
+        // Mostrar modal de aprovação de orçamento
         function showBudgetApprovalModal(budgetId) {
             let foundBudget = null;
             let foundClient = null;
@@ -2832,6 +2823,7 @@
             document.getElementById('budget-approval-modal').style.display = 'flex';
         }
 
+        // Aprovar orçamento via link
         function approveBudgetFromLink() {
             if (!currentBudget) return;
             
@@ -2851,6 +2843,7 @@
             showThankYouMessage('aprovado');
         }
 
+        // Rejeitar orçamento via link
         function rejectBudgetFromLink() {
             if (!currentBudget) return;
             
@@ -2870,6 +2863,7 @@
             showThankYouMessage('rejeitado');
         }
 
+        // Mostrar mensagem de agradecimento
         function showThankYouMessage(status) {
             const message = status === 'aprovado' 
                 ? 'Obrigado por aprovar o orçamento! Em breve entraremos em contato.'
@@ -2891,10 +2885,12 @@
             }, 3000);
         }
 
+        // Fechar modal de aprovação
         function closeApprovalModal() {
             document.getElementById('budget-approval-modal').style.display = 'none';
         }
 
+        // Copiar link de aprovação
         function copyApprovalLink() {
             const linkInput = document.getElementById('approval-url');
             linkInput.select();
@@ -2902,6 +2898,7 @@
             alert('Link copiado para a área de transferência!');
         }
 
+        // Converter orçamento em pedido
         function convertBudgetToOrder() {
             if (!currentBudget) return;
             
@@ -2969,6 +2966,7 @@
             showOrderModal();
         }
 
+        // Enviar orçamento via WhatsApp com link
         function sendBudgetWhatsAppWithLink() {
             if (!currentBudget) return;
             
@@ -3682,6 +3680,7 @@
             document.getElementById('report-preview').innerHTML = html;
         }
 
+        // Função auxiliar para exportar para PDF
         function exportToPDF(title, data, columns, rows) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -3717,6 +3716,7 @@
             doc.save(`${title.replace(/[^a-zA-Z0-9]/g, '_')}_${today.replace(/\//g, '-')}.pdf`);
         }
 
+        // Funções de exportação para PDF dos relatórios
         function exportPeriodReportToPDF() {
             if (currentReportType !== 'period' || currentReportData.length === 0) {
                 alert('Gere o relatório primeiro!');
@@ -3793,6 +3793,7 @@
             exportToPDF('Relatório de Orçamentos', currentReportData, columns, rows);
         }
 
+        // Funções de exportação para PDF das listas
         function exportClientsToPDF() {
             const columns = ['Nome', 'Telefone', 'Tipo', 'Fidelizado', 'Encomendas', 'Orçamentos'];
             const rows = clients.map(client => [
@@ -3889,6 +3890,7 @@
             exportToPDF('Lista de Orçamentos', allBudgets, columns, rows);
         }
 
+        // Configuração do cálculo de lucro
         function setupProfitCalculation() {
             const priceInput = document.getElementById('new-item-price');
             const costInput = document.getElementById('new-item-cost');
@@ -3906,6 +3908,7 @@
             if (discountValue) discountValue.addEventListener('input', calculateItemProfit);
         }
 
+        // Calcular lucro do item
         function calculateItemProfit() {
             const price = parseFloat(document.getElementById('new-item-price').value) || 0;
             const cost = parseFloat(document.getElementById('new-item-cost').value) || 0;
@@ -3934,6 +3937,7 @@
             updateOrderProfitSummary();
         }
 
+        // Alternar campo de desconto
         function toggleDiscountField() {
             const discountType = document.getElementById('new-item-discount-type').value;
             const discountValue = document.getElementById('new-item-discount-value');
@@ -3948,6 +3952,7 @@
             }
         }
 
+        // Configurar cálculo de desconto do orçamento
         function setupBudgetDiscountCalculation() {
             const discountType = document.getElementById('new-budget-item-discount-type');
             const discountValue = document.getElementById('new-budget-item-discount-value');
@@ -3970,24 +3975,41 @@
             
             priceInput.addEventListener('input', calculateBudgetFinalPrice);
             discountValue.addEventListener('input', calculateBudgetFinalPrice);
+        }
+
+        // Calcular preço final do orçamento
+        function calculateBudgetFinalPrice() {
+            const price = parseFloat(document.getElementById('new-budget-item-price').value) || 0;
+            const discountType = document.getElementById('new-budget-item-discount-type').value;
+            const discountValue = parseFloat(document.getElementById('new-budget-item-discount-value').value) || 0;
             
-            function calculateBudgetFinalPrice() {
-                const price = parseFloat(priceInput.value) || 0;
-                const discountTypeValue = discountType.value;
-                const discountVal = parseFloat(discountValue.value) || 0;
-                let finalPrice = price;
-                
-                if (discountTypeValue === 'percent' && discountVal > 0) {
-                    finalPrice = price - (price * discountVal / 100);
-                } else if (discountTypeValue === 'fixed' && discountVal > 0) {
-                    finalPrice = price - discountVal;
-                    if (finalPrice < 0) finalPrice = 0;
-                }
-                
-                finalPriceInput.value = finalPrice.toFixed(2);
+            let finalPrice = price;
+            if (discountType === 'percent' && discountValue > 0) {
+                finalPrice = price - (price * discountValue / 100);
+            } else if (discountType === 'fixed' && discountValue > 0) {
+                finalPrice = price - discountValue;
+                if (finalPrice < 0) finalPrice = 0;
+            }
+            
+            document.getElementById('new-budget-item-final-price').value = finalPrice.toFixed(2);
+        }
+
+        // Alternar campo de desconto do orçamento
+        function toggleBudgetDiscountField() {
+            const discountType = document.getElementById('new-budget-item-discount-type').value;
+            const discountValue = document.getElementById('new-budget-item-discount-value');
+            
+            if (discountType === 'none') {
+                discountValue.disabled = true;
+                discountValue.value = '';
+                calculateBudgetFinalPrice();
+            } else {
+                discountValue.disabled = false;
+                discountValue.focus();
             }
         }
 
+        // Carregar logo da farmácia
         function loadPharmacyLogo() {
             if (pharmacyLogo) {
                 const headerLogo = document.getElementById('header-logo');
@@ -3995,6 +4017,7 @@
             }
         }
 
+        // Gerar QR Code
         function generateQRCode() {
             if (typeof QRCode === 'undefined') {
                 setTimeout(generateQRCode, 500);
@@ -4020,6 +4043,7 @@
             }
         }
 
+        // Mostrar dashboard
         function showDashboard() {
             document.getElementById('dashboard-container').classList.add('active');
             document.getElementById('simple-dashboard').style.display = 'grid';
@@ -4028,6 +4052,7 @@
             updateDashboard();
         }
 
+        // Mostrar seção
         function showSection(section) {
             document.getElementById('dashboard-container').classList.remove('active');
             document.getElementById('simple-dashboard').style.display = 'none';
@@ -4061,12 +4086,14 @@
             }
         }
 
+        // Ocultar todas as seções
         function hideAllSections() {
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.remove('active');
             });
         }
 
+        // Inicializar dashboard
         function initializeDashboard() {
             const chartBtns = document.querySelectorAll('.chart-btn');
             chartBtns.forEach(btn => {
@@ -4095,17 +4122,20 @@
             updateDashboard();
         }
 
+        // Criar data com hora correta
         function createDateWithCorrectTime(date, hours, minutes, seconds, milliseconds) {
             const newDate = new Date(date);
             newDate.setHours(hours, minutes, seconds, milliseconds);
             return newDate;
         }
 
+        // Formatar data
         function formatDate(dateString) {
             const date = new Date(dateString);
             return date.toLocaleDateString('pt-BR');
         }
 
+        // Formatar data para input
         function formatDateForInput(date) {
             if (!(date instanceof Date)) {
                 date = new Date(date);
@@ -4116,6 +4146,7 @@
             return `${year}-${month}-${day}`;
         }
 
+        // Verificar se data está entre duas datas
         function isDateBetween(dateToCheck, startDate, endDate) {
             if (!dateToCheck || !startDate || !endDate) return false;
             const checkDate = new Date(dateToCheck.getFullYear(), dateToCheck.getMonth(), dateToCheck.getDate());
@@ -4124,6 +4155,7 @@
             return checkDate >= startDateOnly && checkDate <= endDateOnly;
         }
 
+        // Criar gráfico de vendas
         function createSalesChart(ctx) {
             let days = 30;
             let labels = [];
@@ -4202,6 +4234,7 @@
             });
         }
 
+        // Criar gráfico de clientes
         function createClientsChart(ctx) {
             let days = 30;
             let labels = [];
@@ -4269,6 +4302,7 @@
             });
         }
 
+        // Criar gráfico de receita
         function createRevenueChart(ctx) {
             const revenueByType = { 'regular': 0, 'premium': 0, 'vip': 0 };
             
@@ -4305,6 +4339,7 @@
             });
         }
 
+        // Criar gráfico de lucro
         function createProfitChart(ctx) {
             let days = 30;
             let labels = [];
@@ -4394,6 +4429,7 @@
             });
         }
 
+        // Atualizar gráfico
         function updateChart() {
             const ctx = document.getElementById('salesChart');
             if (!ctx) return;
@@ -4408,12 +4444,14 @@
             }
         }
 
+        // Inicializar gráfico
         function initializeChart() {
             const ctx = document.getElementById('salesChart');
             if (!ctx) return;
             createSalesChart(ctx.getContext('2d'));
         }
 
+        // Atualizar estatísticas do dashboard
         function updateDashboardStats() {
             let totalRevenue = 0, totalCost = 0, totalProfit = 0, totalOrders = 0;
             let activeClients = new Set();
@@ -4453,11 +4491,13 @@
             document.getElementById('avg-margin').textContent = `${avgMargin.toFixed(1)}%`;
         }
 
+        // Atualizar dashboard
         function updateDashboard() {
             updateDashboardStats();
             updateChart();
         }
 
+        // Aplicar filtro do dashboard
         function applyDashboardFilter() {
             const startDateInput = document.getElementById('dashboard-date-start').value;
             const endDateInput = document.getElementById('dashboard-date-end').value;
@@ -4479,6 +4519,7 @@
             updateDashboard();
         }
 
+        // Resetar filtro do dashboard
         function resetDashboardFilter() {
             const currentDate = new Date();
             const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -4494,6 +4535,7 @@
             updateDashboard();
         }
 
+        // Abrir modal de edição de cliente
         function openEditClientModal(clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -4515,11 +4557,13 @@
             document.getElementById('edit-client-modal').style.display = 'flex';
         }
 
+        // Fechar modal de edição de cliente
         function closeEditClientModal() {
             document.getElementById('edit-client-modal').style.display = 'none';
             editingClient = null;
         }
 
+        // Salvar edição de cliente
         function saveEditedClient(event) {
             event.preventDefault();
             
@@ -4573,6 +4617,7 @@
             alert('Cliente atualizado com sucesso!');
         }
 
+        // Aplicar filtro de data
         function applyDateFilter() {
             const startDateInput = document.getElementById('date-start').value;
             const endDateInput = document.getElementById('date-end').value;
@@ -4603,6 +4648,7 @@
             updateDashboard();
         }
 
+        // Limpar filtro de data
         function clearDateFilter() {
             const today = new Date();
             const lastMonth = new Date();
@@ -4625,6 +4671,7 @@
             updateDashboard();
         }
 
+        // Filtrar encomendas por data
         function filterOrdersByDate(orders) {
             if (!dateFilterApplied) return orders;
             
@@ -4636,6 +4683,7 @@
             });
         }
 
+        // Atualizar estatísticas do filtro
         function updateFilterStats(filteredOrders) {
             const totalOrders = filteredOrders.length;
             const totalValue = filteredOrders.reduce((sum, order) => sum + order.total, 0);
@@ -4656,6 +4704,7 @@
             document.getElementById('filter-total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
         }
 
+        // Salvar cliente
         function saveClient() {
             const name = document.getElementById('client-name').value.trim();
             const phone = document.getElementById('client-phone').value.trim();
@@ -4704,6 +4753,7 @@
             updateDashboard();
         }
 
+        // Registro rápido de cliente
         function quickRegisterClient() {
             const name = document.getElementById('search-client-order').value.trim();
             if (!name) {
@@ -4716,6 +4766,7 @@
             showSection('new-client');
         }
 
+        // Registro rápido de cliente para orçamento
         function quickRegisterClientForBudget() {
             const name = document.getElementById('search-client-budget').value.trim();
             if (!name) {
@@ -4728,12 +4779,14 @@
             showSection('new-client');
         }
 
+        // Limpar formulário de cliente
         function clearClientForm() {
             document.getElementById('client-form').reset();
             document.getElementById('client-type').value = 'regular';
             document.querySelector('input[name="loyal"][value="nao"]').checked = true;
         }
 
+        // Excluir cliente
         function deleteClient(id) {
             const client = clients.find(c => c.id === id);
             if (!client) return;
@@ -4756,6 +4809,7 @@
             updateDashboard();
         }
 
+        // Buscar cliente para encomenda
         function searchClientForOrder() {
             const searchTerm = document.getElementById('search-client-order').value.toLowerCase();
             const resultsDiv = document.getElementById('client-search-results');
@@ -4794,6 +4848,7 @@
             resultsDiv.style.display = 'block';
         }
 
+        // Selecionar cliente para encomenda
         function selectClientForOrder(id) {
             selectedClientForOrder = clients.find(client => client.id === id);
             if (!selectedClientForOrder) return;
@@ -4808,6 +4863,7 @@
             updateOrderProfitSummary();
         }
 
+        // Mostrar informações do cliente selecionado
         function showSelectedClientInfo() {
             document.getElementById('selected-client-name').textContent = selectedClientForOrder.name;
             document.getElementById('selected-client-phone').textContent = selectedClientForOrder.phone;
@@ -4815,6 +4871,7 @@
             document.getElementById('order-items').style.display = 'block';
         }
 
+        // Buscar cliente para orçamento
         function searchClientForBudget() {
             const searchTerm = document.getElementById('search-client-budget').value.toLowerCase();
             const resultsDiv = document.getElementById('client-budget-search-results');
@@ -4853,6 +4910,7 @@
             resultsDiv.style.display = 'block';
         }
 
+        // Selecionar cliente para orçamento
         function selectClientForBudget(id) {
             selectedClientForBudget = clients.find(client => client.id === id);
             if (!selectedClientForBudget) return;
@@ -4867,6 +4925,7 @@
             document.getElementById('budget-info').style.display = 'none';
         }
 
+        // Mostrar informações do cliente selecionado para orçamento
         function showSelectedBudgetClientInfo() {
             document.getElementById('selected-budget-client-name').textContent = selectedClientForBudget.name;
             document.getElementById('selected-budget-client-phone').textContent = selectedClientForBudget.phone;
@@ -4874,6 +4933,7 @@
             document.getElementById('budget-items').style.display = 'block';
         }
 
+        // Calcular preço com desconto
         function calculateDiscountedPrice(price, discountType, discountValue) {
             let finalPrice = price;
             if (discountType === 'percent' && discountValue > 0) {
@@ -4885,6 +4945,7 @@
             return finalPrice;
         }
 
+        // Atualizar resumo de lucro da encomenda
         function updateOrderProfitSummary() {
             let totalCost = 0, totalProfit = 0;
             const itemDivs = document.querySelectorAll('[id^="item-"]');
@@ -4911,6 +4972,7 @@
             document.getElementById('order-profit-margin').textContent = `${profitMargin.toFixed(1)}%`;
         }
 
+        // Adicionar item à encomenda
         function addOrderItemFromForm() {
             const description = document.getElementById('new-item-desc').value.trim();
             const quantity = parseInt(document.getElementById('new-item-qty').value) || 1;
@@ -4990,6 +5052,7 @@
             updateOrderProfitSummary();
         }
 
+        // Adicionar item ao orçamento
         function addBudgetItem() {
             const description = document.getElementById('new-budget-item-desc').value.trim();
             const quantity = parseInt(document.getElementById('new-budget-item-qty').value) || 1;
@@ -5039,6 +5102,7 @@
             updateBudgetInfo();
         }
 
+        // Renderizar itens do orçamento
         function renderBudgetItems() {
             const itemsList = document.getElementById('budget-items-list');
             itemsList.innerHTML = '';
@@ -5072,6 +5136,7 @@
             });
         }
 
+        // Atualizar total da encomenda
         function updateOrderTotal() {
             let total = 0;
             const itemDivs = document.querySelectorAll('[id^="item-"]');
@@ -5085,6 +5150,7 @@
             document.getElementById('order-total').textContent = total.toFixed(2);
         }
 
+        // Atualizar total do orçamento
         function updateBudgetTotal() {
             let total = 0;
             budgetItems.forEach(item => total += item.total);
@@ -5092,6 +5158,7 @@
             document.getElementById('budget-total').textContent = total.toFixed(2);
         }
 
+        // Atualizar informações do orçamento
         function updateBudgetInfo() {
             const itemCount = budgetItems.length;
             if (itemCount === 0) {
@@ -5102,6 +5169,7 @@
             document.getElementById('budget-info').style.display = 'block';
         }
 
+        // Remover item da encomenda
         function removeOrderItem(id) {
             const itemDiv = document.getElementById('item-' + id);
             if (itemDiv) {
@@ -5111,6 +5179,7 @@
             }
         }
 
+        // Remover item do orçamento
         function removeBudgetItem(id) {
             budgetItems = budgetItems.filter(item => item.id !== id);
             renderBudgetItems();
@@ -5118,6 +5187,7 @@
             updateBudgetInfo();
         }
 
+        // Atualizar status de pagamento
         function updatePaymentStatus() {
             const downPayment = parseFloat(document.getElementById('down-payment').value) || 0;
             const total = orderTotal;
@@ -5132,6 +5202,7 @@
             }
         }
 
+        // Salvar encomenda
         function saveOrder() {
             if (!selectedClientForOrder) {
                 alert('Selecione um cliente primeiro!');
@@ -5227,6 +5298,7 @@
             }
         }
 
+        // Salvar orçamento
         function saveBudget() {
             if (!selectedClientForBudget) {
                 alert('Selecione um cliente primeiro!');
@@ -5283,6 +5355,7 @@
             }
         }
 
+        // Editar encomenda
         function editOrder(orderId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -5294,6 +5367,7 @@
             showSection('edit-order');
         }
 
+        // Editar orçamento
         function editBudget(budgetId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -5305,6 +5379,7 @@
             showSection('edit-budget');
         }
 
+        // Renderizar formulário de edição de encomenda
         function renderEditOrderForm() {
             if (!editingOrder) {
                 document.getElementById('edit-order-content').innerHTML = '<p>Erro ao carregar encomenda.</p>';
@@ -5321,25 +5396,25 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Descrição</label>
-                                <input type="text" id="edit-desc-${index}" value="${item.description}" class="edit-item-field" data-index="${index}">
+                                <input type="text" id="edit-desc-${index}" value="${item.description}" class="edit-item-field" data-index="${index}" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-qty-${index}').focus(); }">
                             </div>
                             <div class="form-group">
                                 <label>Quantidade</label>
-                                <input type="number" id="edit-qty-${index}" value="${item.quantity}" min="1" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
+                                <input type="number" id="edit-qty-${index}" value="${item.quantity}" min="1" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-price-${index}').focus(); }">
                             </div>
                             <div class="form-group">
                                 <label>Valor Unitário</label>
-                                <input type="number" id="edit-price-${index}" value="${item.price}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
+                                <input type="number" id="edit-price-${index}" value="${item.price}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-cost-${index}').focus(); }">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Custo</label>
-                                <input type="number" id="edit-cost-${index}" value="${item.cost || 0}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
+                                <input type="number" id="edit-cost-${index}" value="${item.cost || 0}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-discount-type-${index}').focus(); }">
                             </div>
                             <div class="form-group">
                                 <label>Desconto</label>
-                                <select id="edit-discount-type-${index}" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
+                                <select id="edit-discount-type-${index}" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-discount-value-${index}').focus(); }">
                                     <option value="none" ${item.discountType === 'none' ? 'selected' : ''}>Sem desconto</option>
                                     <option value="percent" ${item.discountType === 'percent' ? 'selected' : ''}>%</option>
                                     <option value="fixed" ${item.discountType === 'fixed' ? 'selected' : ''}>R$</option>
@@ -5347,7 +5422,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Valor Desconto</label>
-                                <input type="number" id="edit-discount-value-${index}" value="${item.discountValue || 0}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
+                                <input type="number" id="edit-discount-value-${index}" value="${item.discountValue || 0}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-final-price-${index}').focus(); }">
                             </div>
                         </div>
                         <div class="form-row">
@@ -5452,6 +5527,7 @@
             });
         }
 
+        // Renderizar formulário de edição de orçamento
         function renderEditBudgetForm() {
             if (!editingBudget) {
                 document.getElementById('edit-budget-content').innerHTML = '<p>Erro ao carregar orçamento.</p>';
@@ -5468,21 +5544,21 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Descrição</label>
-                                <input type="text" id="edit-budget-desc-${index}" value="${item.description}" class="edit-budget-field" data-index="${index}">
+                                <input type="text" id="edit-budget-desc-${index}" value="${item.description}" class="edit-budget-field" data-index="${index}" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-budget-qty-${index}').focus(); }">
                             </div>
                             <div class="form-group">
                                 <label>Quantidade</label>
-                                <input type="number" id="edit-budget-qty-${index}" value="${item.quantity}" min="1" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})">
+                                <input type="number" id="edit-budget-qty-${index}" value="${item.quantity}" min="1" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-budget-price-${index}').focus(); }">
                             </div>
                             <div class="form-group">
                                 <label>Valor Unitário</label>
-                                <input type="number" id="edit-budget-price-${index}" value="${item.price}" step="0.01" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})">
+                                <input type="number" id="edit-budget-price-${index}" value="${item.price}" step="0.01" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-budget-discount-type-${index}').focus(); }">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Desconto</label>
-                                <select id="edit-budget-discount-type-${index}" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})">
+                                <select id="edit-budget-discount-type-${index}" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-budget-discount-value-${index}').focus(); }">
                                     <option value="none" ${item.discountType === 'none' ? 'selected' : ''}>Sem desconto</option>
                                     <option value="percent" ${item.discountType === 'percent' ? 'selected' : ''}>%</option>
                                     <option value="fixed" ${item.discountType === 'fixed' ? 'selected' : ''}>R$</option>
@@ -5490,11 +5566,11 @@
                             </div>
                             <div class="form-group">
                                 <label>Valor Desconto</label>
-                                <input type="number" id="edit-budget-discount-value-${index}" value="${item.discountValue || 0}" step="0.01" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})">
+                                <input type="number" id="edit-budget-discount-value-${index}" value="${item.discountValue || 0}" step="0.01" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})" onkeypress="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-budget-obs-${index}').focus(); }">
                             </div>
                             <div class="form-group">
                                 <label>Observações</label>
-                                <input type="text" id="edit-budget-obs-${index}" value="${item.observations || ''}" class="edit-budget-field" data-index="${index}">
+                                <input type="text" id="edit-budget-obs-${index}" value="${item.observations || ''}" class="edit-budget-field" data-index="${index}" onkeypress="if(event.key==='Enter'){ event.preventDefault(); updateEditBudgetItemTotal(${index}); }">
                             </div>
                         </div>
                         <div class="form-row">
@@ -5562,6 +5638,7 @@
             });
         }
 
+        // Adicionar item à edição de encomenda
         function addEditOrderItem() {
             if (!editingOrder) return;
             
@@ -5581,6 +5658,7 @@
             renderEditOrderForm();
         }
 
+        // Adicionar item à edição de orçamento
         function addEditBudgetItem() {
             if (!editingBudget) return;
             
@@ -5598,18 +5676,21 @@
             renderEditBudgetForm();
         }
 
+        // Remover item da edição de encomenda
         function removeEditItem(index) {
             if (!editingOrder) return;
             editingOrder.items.splice(index, 1);
             renderEditOrderForm();
         }
 
+        // Remover item da edição de orçamento
         function removeEditBudgetItem(index) {
             if (!editingBudget) return;
             editingBudget.items.splice(index, 1);
             renderEditBudgetForm();
         }
 
+        // Atualizar total do item na edição de encomenda
         function updateEditItemTotal(index) {
             const qty = parseFloat(document.getElementById('edit-qty-' + index).value) || 1;
             const price = parseFloat(document.getElementById('edit-price-' + index).value) || 0;
@@ -5649,6 +5730,7 @@
             updateEditOrderTotal();
         }
 
+        // Atualizar total do item na edição de orçamento
         function updateEditBudgetItemTotal(index) {
             const qty = parseFloat(document.getElementById('edit-budget-qty-' + index).value) || 1;
             const price = parseFloat(document.getElementById('edit-budget-price-' + index).value) || 0;
@@ -5680,6 +5762,7 @@
             updateEditBudgetTotal();
         }
 
+        // Atualizar total da edição de encomenda
         function updateEditOrderTotal() {
             let total = 0, totalCost = 0, totalProfit = 0;
             if (editingOrder && editingOrder.items) {
@@ -5700,6 +5783,7 @@
             document.getElementById('edit-order-profit-margin').textContent = `${editingOrder.profitMargin.toFixed(1)}%`;
         }
 
+        // Atualizar total da edição de orçamento
         function updateEditBudgetTotal() {
             let total = 0;
             if (editingBudget && editingBudget.items) {
@@ -5709,6 +5793,7 @@
             document.getElementById('edit-budget-total').textContent = total.toFixed(2);
         }
 
+        // Salvar edição de encomenda (CORRIGIDO)
         function saveEditedOrder() {
             if (!editingOrder || !editingOrderClientId) return;
             
@@ -5740,16 +5825,23 @@
                 return;
             }
             
+            // Atualizar a encomenda no array
             clients[clientIndex].orders[orderIndex] = editingOrder;
+            
+            // Salvar no Firebase
             saveToLocalStorage();
+            
+            // Atualizar estatísticas e listas
             updateStats();
             renderOrdersList();
             renderPendingOrdersList();
+            
             alert('Encomenda atualizada com sucesso!');
             showSection('orders');
             updateDashboard();
         }
 
+        // Salvar edição de orçamento
         function saveEditedBudget() {
             if (!editingBudget || !editingBudgetClientId) return;
             
@@ -5787,6 +5879,7 @@
             updateDashboard();
         }
 
+        // Excluir encomenda
         function deleteOrder(orderId, clientId) {
             if (!confirm('Tem certeza que deseja excluir esta encomenda?')) return;
             
@@ -5805,6 +5898,7 @@
             updateDashboard();
         }
 
+        // Excluir orçamento
         function deleteBudget(budgetId, clientId) {
             if (!confirm('Tem certeza que deseja excluir este orçamento?')) return;
             
@@ -5822,6 +5916,7 @@
             updateDashboard();
         }
 
+        // Marcar como entregue
         function markAsDelivered(orderId, clientId) {
             const clientIndex = clients.findIndex(c => c.id === clientId);
             if (clientIndex === -1) return;
@@ -5839,6 +5934,7 @@
             updateDashboard();
         }
 
+        // Mostrar modal de encomenda
         function showOrderModal() {
             if (!currentOrder) return;
             
@@ -5895,6 +5991,7 @@
             document.getElementById('order-modal').style.display = 'flex';
         }
 
+        // Mostrar modal de orçamento
         function showBudgetModal() {
             if (!currentBudget) return;
             
@@ -5935,16 +6032,19 @@
             document.getElementById('budget-modal').style.display = 'flex';
         }
 
+        // Fechar modal de encomenda
         function closeModal() {
             document.getElementById('order-modal').style.display = 'none';
             resetOrderForm();
         }
 
+        // Fechar modal de orçamento
         function closeBudgetModal() {
             document.getElementById('budget-modal').style.display = 'none';
             resetBudgetForm();
         }
 
+        // Enviar encomenda via WhatsApp
         function sendOrderWhatsApp() {
             if (!selectedClientForOrder) {
                 alert('Selecione um cliente primeiro!');
@@ -5956,6 +6056,7 @@
             }, 500);
         }
 
+        // Enviar orçamento via WhatsApp
         function sendBudgetWhatsApp() {
             if (!selectedClientForBudget) {
                 alert('Selecione um cliente primeiro!');
@@ -5967,6 +6068,7 @@
             }, 500);
         }
 
+        // Enviar encomenda atual via WhatsApp
         function sendCurrentOrderWhatsApp() {
             if (!currentOrder) return;
             
@@ -6011,6 +6113,7 @@
             window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
         }
 
+        // Enviar orçamento atual via WhatsApp
         function sendCurrentBudgetWhatsApp() {
             if (!currentBudget) return;
             const phone = currentBudget.clientPhone.replace(/\D/g, '');
@@ -6029,16 +6132,19 @@
             window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
         }
 
+        // Imprimir encomenda
         function printOrder() {
             saveOrder();
             printCurrentOrder();
         }
 
+        // Imprimir orçamento
         function printBudget() {
             saveBudget();
             printCurrentBudget();
         }
 
+        // Imprimir encomenda atual (CORRIGIDO - cores escuras)
         function printCurrentOrder() {
             if (!currentOrder) return;
             
@@ -6049,16 +6155,16 @@
             let printContent = `
                 <html><head><title>Encomenda</title>
                 <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; color: black; }
-                    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-                    .header h2 { color: #000; margin: 0; }
-                    .header p { margin: 5px 0; color: #000; }
+                    body { font-family: Arial, sans-serif; padding: 20px; color: #000000; }
+                    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000000; padding-bottom: 10px; }
+                    .header h2 { color: #000000; margin: 0; }
+                    .header p { margin: 5px 0; color: #000000; }
                     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-                    th, td { border: 1px solid #000; padding: 8px; text-align: left; color: #000; }
-                    th { background-color: #f0f0f0; }
-                    .total { text-align: right; font-weight: bold; margin-top: 20px; font-size: 16px; color: #000; }
-                    p { color: #000; margin: 5px 0; }
-                    strong { color: #000; }
+                    th, td { border: 1px solid #000000; padding: 8px; text-align: left; color: #000000; }
+                    th { background-color: #f0f0f0; color: #000000; }
+                    .total { text-align: right; font-weight: bold; margin-top: 20px; font-size: 16px; color: #000000; }
+                    p { color: #000000; margin: 5px 0; }
+                    strong { color: #000000; }
                 </style>
                 </head><body>
                 <div class="header">
@@ -6091,9 +6197,9 @@
             printContent += `<div class="total">TOTAL: R$ ${currentOrder.total.toFixed(2)}</div>`;
             
             if (currentOrder.available === 'sim') {
-                printContent += `<p style="margin-top: 20px; font-weight: bold;">Aguardamos sua retirada na Souza Farma - Farmácia do Trabalhador!</p>`;
+                printContent += `<p style="margin-top: 20px; font-weight: bold; color: #000000;">Aguardamos sua retirada na Souza Farma - Farmácia do Trabalhador!</p>`;
             } else {
-                printContent += `<p style="margin-top: 20px; font-weight: bold;">Aguarde a chegada do produto! Assim que disponível, informaremos por aqui.</p>`;
+                printContent += `<p style="margin-top: 20px; font-weight: bold; color: #000000;">Aguarde a chegada do produto! Assim que disponível, informaremos por aqui.</p>`;
             }
             
             printContent += `</body></html>`;
@@ -6104,6 +6210,7 @@
             printWindow.print();
         }
 
+        // Imprimir orçamento atual (CORRIGIDO - cores escuras)
         function printCurrentBudget() {
             if (!currentBudget) return;
             
@@ -6114,15 +6221,15 @@
             printWindow.document.write(`
                 <html><head><title>Orçamento</title>
                 <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; color: black; }
-                    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-                    .header h2 { color: #000; }
-                    .header p { color: #000; }
+                    body { font-family: Arial, sans-serif; padding: 20px; color: #000000; }
+                    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000000; padding-bottom: 10px; }
+                    .header h2 { color: #000000; }
+                    .header p { color: #000000; }
                     table { width: 100%; border-collapse: collapse; }
-                    th, td { border: 1px solid #000; padding: 8px; text-align: left; color: #000; }
-                    th { background-color: #f0f0f0; }
-                    .total { text-align: right; font-weight: bold; margin-top: 20px; font-size: 16px; color: #000; }
-                    p { color: #000; }
+                    th, td { border: 1px solid #000000; padding: 8px; text-align: left; color: #000000; }
+                    th { background-color: #f0f0f0; color: #000000; }
+                    .total { text-align: right; font-weight: bold; margin-top: 20px; font-size: 16px; color: #000000; }
+                    p { color: #000000; }
                 </style>
                 </head><body>
                 <div class="header">
@@ -6144,16 +6251,19 @@
             printWindow.print();
         }
 
+        // Imprimir encomenda térmica
         function printThermalOrder() {
             saveOrder();
             printThermalCurrentOrder();
         }
 
+        // Imprimir orçamento térmico
         function printThermalBudget() {
             saveBudget();
             printThermalCurrentBudget();
         }
 
+        // Imprimir encomenda atual térmica (CORRIGIDO - cores escuras)
         function printThermalCurrentOrder() {
             if (!currentOrder) return;
             
@@ -6165,14 +6275,14 @@
                 <html><head><title>Encomenda</title>
                 <style>
                     @page { size: 80mm auto; margin: 0; }
-                    body { font-family: 'Courier New', monospace; font-size: 12px; width: 72mm; margin: 2mm; color: black; }
+                    body { font-family: 'Courier New', monospace; font-size: 12px; width: 72mm; margin: 2mm; color: #000000; }
                     .header { text-align: center; margin-bottom: 3mm; }
-                    .title { font-size: 14px; font-weight: bold; }
+                    .title { font-size: 14px; font-weight: bold; color: #000000; }
                     table { width: 100%; border-collapse: collapse; }
-                    th, td { padding: 2px 0; text-align: left; color: black; }
-                    .total { text-align: right; font-weight: bold; margin-top: 3mm; border-top: 1px dashed #000; padding-top: 2mm; color: black; }
-                    hr { border: none; border-top: 1px dashed #000; margin: 2mm 0; }
-                    div { color: black; }
+                    th, td { padding: 2px 0; text-align: left; color: #000000; }
+                    .total { text-align: right; font-weight: bold; margin-top: 3mm; border-top: 1px dashed #000000; padding-top: 2mm; color: #000000; }
+                    hr { border: none; border-top: 1px dashed #000000; margin: 2mm 0; }
+                    div { color: #000000; }
                 </style>
                 </head><body>
                 <div class="header">
@@ -6222,6 +6332,7 @@
             printWindow.print();
         }
 
+        // Imprimir orçamento atual térmico (CORRIGIDO - cores escuras)
         function printThermalCurrentBudget() {
             if (!currentBudget) return;
             
@@ -6233,14 +6344,14 @@
                 <html><head><title>Orçamento</title>
                 <style>
                     @page { size: 80mm auto; margin: 0; }
-                    body { font-family: 'Courier New', monospace; font-size: 12px; width: 72mm; margin: 2mm; color: black; }
+                    body { font-family: 'Courier New', monospace; font-size: 12px; width: 72mm; margin: 2mm; color: #000000; }
                     .header { text-align: center; margin-bottom: 3mm; }
-                    .title { font-size: 14px; font-weight: bold; }
+                    .title { font-size: 14px; font-weight: bold; color: #000000; }
                     table { width: 100%; border-collapse: collapse; }
-                    th, td { padding: 2px 0; text-align: left; color: black; }
-                    .total { text-align: right; font-weight: bold; margin-top: 3mm; border-top: 1px dashed #000; padding-top: 2mm; color: black; }
-                    hr { border: none; border-top: 1px dashed #000; margin: 2mm 0; }
-                    div { color: black; }
+                    th, td { padding: 2px 0; text-align: left; color: #000000; }
+                    .total { text-align: right; font-weight: bold; margin-top: 3mm; border-top: 1px dashed #000000; padding-top: 2mm; color: #000000; }
+                    hr { border: none; border-top: 1px dashed #000000; margin: 2mm 0; }
+                    div { color: #000000; }
                 </style>
                 </head><body>
                 <div class="header">
@@ -6273,6 +6384,7 @@
             printWindow.print();
         }
 
+        // Resetar formulário de encomenda
         function resetOrderForm() {
             document.getElementById('search-client-order').value = '';
             document.getElementById('client-search-results').style.display = 'none';
@@ -6303,6 +6415,7 @@
             document.getElementById('order-manual-date-fields').classList.remove('active');
         }
 
+        // Resetar formulário de orçamento
         function resetBudgetForm() {
             document.getElementById('search-client-budget').value = '';
             document.getElementById('client-budget-search-results').style.display = 'none';
@@ -6330,6 +6443,7 @@
             document.getElementById('budget-manual-date-fields').classList.remove('active');
         }
 
+        // Renderizar lista de clientes
         function renderClientsList() {
             const searchTerm = document.getElementById('search-clients').value.toLowerCase();
             const container = document.getElementById('clients-list');
@@ -6381,6 +6495,7 @@
             container.innerHTML = html;
         }
 
+        // Renderizar lista de encomendas (CORRIGIDO)
         function renderOrdersList() {
             const searchTerm = document.getElementById('search-orders').value.toLowerCase();
             const container = document.getElementById('orders-list');
@@ -6444,6 +6559,7 @@
             container.innerHTML = html;
         }
 
+        // Renderizar lista de encomendas pendentes
         function renderPendingOrdersList() {
             const searchTerm = document.getElementById('search-pending-orders').value.toLowerCase();
             const container = document.getElementById('pending-orders-list');
@@ -6502,6 +6618,7 @@
             container.innerHTML = html;
         }
 
+        // Renderizar lista de orçamentos
         function renderBudgetsList() {
             const searchTerm = document.getElementById('search-budgets').value.toLowerCase();
             const container = document.getElementById('budgets-list');
@@ -6577,6 +6694,7 @@
             container.innerHTML = html;
         }
 
+        // Converter orçamento em pedido a partir da lista
         function convertBudgetToOrderFromList(budgetId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -6588,6 +6706,7 @@
             convertBudgetToOrder();
         }
 
+        // Atualizar resumo de pendentes
         function updatePendingSummary(pendingOrders) {
             const totalOrders = pendingOrders.length;
             const totalValue = pendingOrders.reduce((sum, order) => sum + order.total, 0);
@@ -6606,6 +6725,7 @@
             document.getElementById('pending-total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
         }
 
+        // Atualizar resumo de orçamentos
         function updateBudgetSummary(budgets) {
             const totalBudgets = budgets.length;
             const totalValue = budgets.reduce((sum, budget) => sum + budget.total, 0);
@@ -6616,6 +6736,7 @@
             document.getElementById('budget-avg-value').textContent = `R$ ${avgValue.toFixed(2).replace('.', ',')}`;
         }
 
+        // Visualizar encomenda
         function viewOrder(orderId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -6625,6 +6746,7 @@
             showOrderModal();
         }
 
+        // Visualizar orçamento
         function viewBudget(budgetId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -6634,18 +6756,21 @@
             showBudgetModal();
         }
 
+        // Excluir encomenda atual
         function deleteCurrentOrder() {
             if (!currentOrder) return;
             deleteOrder(currentOrder.id, currentOrder.clientId);
             closeModal();
         }
 
+        // Excluir orçamento atual
         function deleteCurrentBudget() {
             if (!currentBudget) return;
             deleteBudget(currentBudget.id, currentBudget.clientId);
             closeBudgetModal();
         }
 
+        // Atualizar estatísticas
         function updateStats() {
             const totalClients = clients.length;
             const loyalClients = clients.filter(c => c.loyal === 'sim').length;
@@ -6669,6 +6794,7 @@
             document.getElementById('total-budgets').textContent = totalBudgets;
         }
 
+        // Aplicar filtros de orçamento
         function applyBudgetFilters() {
             const startDateInput = document.getElementById('budget-date-start').value;
             const endDateInput = document.getElementById('budget-date-end').value;
@@ -6692,6 +6818,7 @@
             renderBudgetsList();
         }
 
+        // Limpar filtros de orçamento
         function clearBudgetFilters() {
             document.getElementById('budget-date-start').value = '';
             document.getElementById('budget-date-end').value = '';
@@ -6707,6 +6834,7 @@
             renderBudgetsList();
         }
 
+        // Filtrar orçamentos por data
         function filterBudgetsByDate(budgets) {
             if (!budgetFilterApplied || !currentBudgetFilter.startDate || !currentBudgetFilter.endDate) return budgets;
             
@@ -6719,18 +6847,21 @@
             });
         }
 
+        // Formatar data de validade
         function formatValidityDate(createdAt, validity) {
             const date = new Date(createdAt);
             date.setDate(date.getDate() + (validity || 7));
             return date.toLocaleDateString('pt-BR');
         }
 
+        // Enviar mensagem para cliente via WhatsApp
         function sendClientWhatsApp(phone, name) {
             const cleanPhone = phone.replace(/\D/g, '');
             const message = `Olá ${name}! Tudo bem? Aqui é da ${pharmacyName}. Como podemos ajudar?`;
             window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
         }
 
+        // Exportar clientes para Excel (CORRIGIDO)
         function exportClientsToExcel() {
             if (clients.length === 0) {
                 alert('Não há clientes para exportar!');
@@ -6762,6 +6893,7 @@
             }
         }
 
+        // Exportar encomendas para Excel (CORRIGIDO)
         function exportOrdersToExcel() {
             let allOrders = [];
             clients.forEach(client => {
@@ -6812,6 +6944,7 @@
             }
         }
 
+        // Exportar encomendas pendentes para Excel (CORRIGIDO)
         function exportPendingOrdersToExcel() {
             let pendingOrders = [];
             clients.forEach(client => {
@@ -6862,6 +6995,7 @@
             }
         }
 
+        // Exportar orçamentos para Excel (CORRIGIDO)
         function exportBudgetsToExcel() {
             let allBudgets = [];
             clients.forEach(client => {
