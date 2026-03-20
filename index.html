@@ -6,7 +6,7 @@
     <title>Sistema Souza Farma</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -1232,7 +1232,6 @@
             background: #f8f9fa;
         }
 
-        /* Estilo para impressão */
         @media print {
             .no-print {
                 display: none !important;
@@ -1254,7 +1253,7 @@
     <div class="header" id="header">
         <div class="container">
             <div class="logo-container">
-                <img src="Souza-Farma-logomarca.png" alt="Souza Farma" class="header-logo" id="header-logo">
+                <img src="Souza-Farma-logomarca.png" alt="Souza Farma" class="header-logo" id="header-logo" onerror="this.style.display='none'">
                 <div id="qr-code-header"></div>
             </div>
             <h1 id="pharmacy-name">Souza Farma - Farmácia do Trabalhador</h1>
@@ -1432,6 +1431,7 @@
             </div>
         </div>
         
+        <!-- Seção Clientes -->
         <div class="section" id="clients-section">
             <div class="section-header">
                 <h2><i class="fas fa-users"></i> Lista de Clientes</h2>
@@ -1456,6 +1456,7 @@
             </div>
         </div>
         
+        <!-- Seção Novo Cliente -->
         <div class="section" id="new-client-section">
             <div class="section-header">
                 <h2><i class="fas fa-user-plus"></i> Cadastrar Novo Cliente</h2>
@@ -1468,34 +1469,34 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="client-name" class="required">Nome Completo</label>
-                        <input type="text" id="client-name" required onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('client-phone').focus(); }">
+                        <input type="text" id="client-name" required>
                     </div>
                     <div class="form-group">
                         <label for="client-phone" class="required">Telefone/WhatsApp</label>
-                        <input type="tel" id="client-phone" required placeholder="(11) 99999-9999" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('client-email').focus(); }">
+                        <input type="tel" id="client-phone" required placeholder="(11) 99999-9999">
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="client-email">E-mail</label>
-                        <input type="email" id="client-email" placeholder="cliente@email.com" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('client-cpf').focus(); }">
+                        <input type="email" id="client-email" placeholder="cliente@email.com">
                     </div>
                     <div class="form-group">
                         <label for="client-cpf">CPF</label>
-                        <input type="text" id="client-cpf" placeholder="000.000.000-00" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('client-address').focus(); }">
+                        <input type="text" id="client-cpf" placeholder="000.000.000-00">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="client-address">Endereço (Opcional)</label>
-                    <input type="text" id="client-address" placeholder="Rua, Número, Bairro, Cidade" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('client-type').focus(); }">
+                    <input type="text" id="client-address" placeholder="Rua, Número, Bairro, Cidade">
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="client-type">Tipo de Cliente</label>
-                        <select id="client-type" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.querySelector('input[name=\\'loyal\\'][value=\\'sim\\']').focus(); }">
+                        <select id="client-type">
                             <option value="regular">Regular</option>
                             <option value="premium">Premium</option>
                             <option value="vip">VIP</option>
@@ -1504,12 +1505,8 @@
                     <div class="form-group">
                         <label>Cliente Fidelizado?</label>
                         <div style="display: flex; gap: 14px; margin-top: 5px;">
-                            <label>
-                                <input type="radio" name="loyal" value="sim" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.querySelector('input[name=\\'loyal\\'][value=\\'nao\\']').focus(); }"> Sim
-                            </label>
-                            <label>
-                                <input type="radio" name="loyal" value="nao" checked onkeypress="if(event.keyCode==13){ event.preventDefault(); saveClient(); }"> Não
-                            </label>
+                            <label><input type="radio" name="loyal" value="sim"> Sim</label>
+                            <label><input type="radio" name="loyal" value="nao" checked> Não</label>
                         </div>
                     </div>
                 </div>
@@ -1525,6 +1522,7 @@
             </form>
         </div>
         
+        <!-- Seção Nova Encomenda -->
         <div class="section" id="new-order-section">
             <div class="section-header">
                 <h2><i class="fas fa-clipboard-list"></i> Nova Encomenda</h2>
@@ -1557,7 +1555,7 @@
             </div>
             
             <div class="search-container">
-                <input type="text" id="search-client-order" placeholder="Buscar cliente para encomenda..." oninput="searchClientForOrder()" onkeypress="if(event.keyCode==13){ event.preventDefault(); if(document.getElementById('client-search-results').children.length>0) document.getElementById('client-search-results').children[0].click(); }">
+                <input type="text" id="search-client-order" placeholder="Buscar cliente para encomenda..." oninput="searchClientForOrder()">
                 <div id="client-search-results" style="margin-top: 9px; display: none;"></div>
             </div>
             
@@ -1594,22 +1592,22 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Descrição</label>
-                            <input type="text" id="new-item-desc" placeholder="Nome do medicamento" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('new-item-qty').focus(); }">
+                            <input type="text" id="new-item-desc" placeholder="Nome do medicamento">
                         </div>
                         <div class="form-group">
                             <label>Quantidade</label>
-                            <input type="number" id="new-item-qty" value="1" min="1" oninput="calculateItemProfit()" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('new-item-price').focus(); }">
+                            <input type="number" id="new-item-qty" value="1" min="1" oninput="calculateItemProfit()">
                         </div>
                         <div class="form-group">
                             <label>Valor Unitário</label>
-                            <input type="number" id="new-item-price" step="0.01" placeholder="0.00" oninput="calculateItemProfit()" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('new-item-cost').focus(); }">
+                            <input type="number" id="new-item-price" step="0.01" placeholder="0.00" oninput="calculateItemProfit()">
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label>Valor de Custo</label>
-                            <input type="number" id="new-item-cost" step="0.01" placeholder="0.00" oninput="calculateItemProfit()" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('new-item-discount-type').focus(); }">
+                            <input type="number" id="new-item-cost" step="0.01" placeholder="0.00" oninput="calculateItemProfit()">
                         </div>
                         <div class="form-group">
                             <label>Lucro (R$)</label>
@@ -1624,7 +1622,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Tipo de Desconto</label>
-                            <select id="new-item-discount-type" onchange="toggleDiscountField()" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('new-item-discount-value').focus(); }">
+                            <select id="new-item-discount-type" onchange="toggleDiscountField()">
                                 <option value="none">Sem desconto</option>
                                 <option value="percent">%</option>
                                 <option value="fixed">R$</option>
@@ -1632,7 +1630,7 @@
                         </div>
                         <div class="form-group">
                             <label>Valor do Desconto</label>
-                            <input type="number" id="new-item-discount-value" step="0.01" placeholder="0.00" disabled oninput="calculateItemProfit()" onkeypress="if(event.keyCode==13){ event.preventDefault(); addOrderItemFromForm(); }">
+                            <input type="number" id="new-item-discount-value" step="0.01" placeholder="0.00" disabled oninput="calculateItemProfit()">
                         </div>
                         <div class="form-group">
                             <label>Valor Final</label>
@@ -1640,7 +1638,7 @@
                         </div>
                     </div>
                     
-                    <button class="btn btn-success btn-sm" onclick="addOrderItemFromForm()" id="add-item-btn">
+                    <button class="btn btn-success btn-sm" onclick="addOrderItemFromForm()">
                         <i class="fas fa-plus"></i> Adicionar Item
                     </button>
                 </div>
@@ -1667,32 +1665,22 @@
                 <div style="margin-top: 16px;">
                     <label>Status do Pagamento</label>
                     <div style="display: flex; gap: 14px; margin-top: 5px;">
-                        <label>
-                            <input type="radio" name="payment" value="pago" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.querySelector('input[name=\\'payment\\'][value=\\'parcial\\']').focus(); }"> Pago
-                        </label>
-                        <label>
-                            <input type="radio" name="payment" value="parcial" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.querySelector('input[name=\\'payment\\'][value=\\'pendente\\']').focus(); }"> Parcial
-                        </label>
-                        <label>
-                            <input type="radio" name="payment" value="pendente" checked onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('down-payment').focus(); }"> Pendente
-                        </label>
+                        <label><input type="radio" name="payment" value="pago"> Pago</label>
+                        <label><input type="radio" name="payment" value="parcial"> Parcial</label>
+                        <label><input type="radio" name="payment" value="pendente" checked> Pendente</label>
                     </div>
                 </div>
                 
                 <div style="margin-top: 16px;">
                     <label>Valor de Entrada</label>
-                    <input type="number" id="down-payment" step="0.01" placeholder="0.00" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;" oninput="updatePaymentStatus()" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.querySelector('input[name=\\'available\\'][value=\\'sim\\']').focus(); }">
+                    <input type="number" id="down-payment" step="0.01" placeholder="0.00" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;" oninput="updatePaymentStatus()">
                 </div>
 
                 <div style="margin-top: 16px;">
                     <label>Produto Disponível para Retirada?</label>
                     <div style="display: flex; gap: 14px; margin-top: 5px;">
-                        <label>
-                            <input type="radio" name="available" value="sim" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.querySelector('input[name=\\'available\\'][value=\\'nao\\']').focus(); }"> Sim
-                        </label>
-                        <label>
-                            <input type="radio" name="available" value="nao" checked onkeypress="if(event.keyCode==13){ event.preventDefault(); saveOrder(); }"> Não
-                        </label>
+                        <label><input type="radio" name="available" value="sim"> Sim</label>
+                        <label><input type="radio" name="available" value="nao" checked> Não</label>
                     </div>
                 </div>
                 
@@ -1713,6 +1701,7 @@
             </div>
         </div>
         
+        <!-- Seção Encomendas -->
         <div class="section" id="orders-section">
             <div class="section-header">
                 <h2><i class="fas fa-box-open"></i> Lista de Encomendas</h2>
@@ -1795,6 +1784,7 @@
             </div>
         </div>
         
+        <!-- Seção Encomendas Pendentes -->
         <div class="section" id="pending-orders-section">
             <div class="section-header">
                 <h2><i class="fas fa-clock"></i> Encomendas Pendentes</h2>
@@ -1838,6 +1828,7 @@
             </div>
         </div>
 
+        <!-- Seção Orçamentos -->
         <div class="section" id="budgets-section">
             <div class="section-header">
                 <h2><i class="fas fa-file-invoice"></i> Lista de Orçamentos</h2>
@@ -1908,6 +1899,7 @@
             </div>
         </div>
 
+        <!-- Seção Novo Orçamento -->
         <div class="section" id="new-budget-section">
             <div class="section-header">
                 <h2><i class="fas fa-file-invoice-dollar"></i> Novo Orçamento</h2>
@@ -1977,22 +1969,22 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Descrição</label>
-                            <input type="text" id="new-budget-item-desc" placeholder="Nome do medicamento" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('new-budget-item-qty').focus(); }">
+                            <input type="text" id="new-budget-item-desc" placeholder="Nome do medicamento">
                         </div>
                         <div class="form-group">
                             <label>Quantidade</label>
-                            <input type="number" id="new-budget-item-qty" value="1" min="1" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('new-budget-item-price').focus(); }">
+                            <input type="number" id="new-budget-item-qty" value="1" min="1">
                         </div>
                         <div class="form-group">
                             <label>Valor Unitário</label>
-                            <input type="number" id="new-budget-item-price" step="0.01" placeholder="0.00" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('new-budget-item-discount-type').focus(); }">
+                            <input type="number" id="new-budget-item-price" step="0.01" placeholder="0.00" oninput="calculateBudgetFinalPrice()">
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label>Tipo de Desconto</label>
-                            <select id="new-budget-item-discount-type" onchange="toggleBudgetDiscountField()" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('new-budget-item-discount-value').focus(); }">
+                            <select id="new-budget-item-discount-type" onchange="toggleBudgetDiscountField()">
                                 <option value="none">Sem desconto</option>
                                 <option value="percent">%</option>
                                 <option value="fixed">R$</option>
@@ -2000,7 +1992,7 @@
                         </div>
                         <div class="form-group">
                             <label>Valor do Desconto</label>
-                            <input type="number" id="new-budget-item-discount-value" step="0.01" placeholder="0.00" disabled oninput="calculateBudgetFinalPrice()" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('new-budget-item-obs').focus(); }">
+                            <input type="number" id="new-budget-item-discount-value" step="0.01" placeholder="0.00" disabled oninput="calculateBudgetFinalPrice()">
                         </div>
                         <div class="form-group">
                             <label>Valor Final</label>
@@ -2011,11 +2003,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Observações do Item</label>
-                            <input type="text" id="new-budget-item-obs" placeholder="Ex: Genérico, Marca X, etc." onkeypress="if(event.keyCode==13){ event.preventDefault(); addBudgetItem(); }">
+                            <input type="text" id="new-budget-item-obs" placeholder="Ex: Genérico, Marca X, etc.">
                         </div>
                     </div>
                     
-                    <button type="button" class="btn btn-success btn-sm" onclick="addBudgetItem()" id="add-budget-item-btn">
+                    <button type="button" class="btn btn-success btn-sm" onclick="addBudgetItem()">
                         <i class="fas fa-plus"></i> Adicionar Item
                     </button>
                 </div>
@@ -2033,12 +2025,12 @@
                 
                 <div style="margin-top: 16px;">
                     <label>Validade do Orçamento (dias)</label>
-                    <input type="number" id="budget-validity" value="7" min="1" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('budget-observations').focus(); }">
+                    <input type="number" id="budget-validity" value="7" min="1" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;">
                 </div>
                 
                 <div style="margin-top: 16px;">
                     <label>Observações do Orçamento</label>
-                    <textarea id="budget-observations" rows="3" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;" placeholder="Condições de pagamento, informações adicionais..." onkeypress="if(event.keyCode==13 && !event.shiftKey){ event.preventDefault(); saveBudget(); }"></textarea>
+                    <textarea id="budget-observations" rows="3" style="width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9rem; margin-top: 5px;" placeholder="Condições de pagamento, informações adicionais..."></textarea>
                 </div>
                 
                 <div class="button-group" style="margin-top: 22px;">
@@ -2058,6 +2050,7 @@
             </div>
         </div>
         
+        <!-- Seção Editar Encomenda -->
         <div class="section" id="edit-order-section">
             <div class="section-header">
                 <h2><i class="fas fa-edit"></i> Editar Encomenda</h2>
@@ -2070,6 +2063,7 @@
             </div>
         </div>
 
+        <!-- Seção Editar Orçamento -->
         <div class="section" id="edit-budget-section">
             <div class="section-header">
                 <h2><i class="fas fa-edit"></i> Editar Orçamento</h2>
@@ -2092,7 +2086,6 @@
             </div>
             
             <div class="reports-dashboard">
-                <!-- Relatório por Período -->
                 <div class="report-card">
                     <h3><i class="fas fa-calendar-alt"></i> Relatório por Período</h3>
                     <div class="report-filter">
@@ -2121,7 +2114,6 @@
                     </div>
                 </div>
 
-                <!-- Relatório por Produto -->
                 <div class="report-card">
                     <h3><i class="fas fa-pills"></i> Relatório por Produto</h3>
                     <div class="report-filter">
@@ -2151,7 +2143,6 @@
                     </div>
                 </div>
 
-                <!-- Relatório por Cliente -->
                 <div class="report-card">
                     <h3><i class="fas fa-users"></i> Relatório por Cliente</h3>
                     <div class="report-filter">
@@ -2181,7 +2172,6 @@
                     </div>
                 </div>
 
-                <!-- Relatório de Orçamentos -->
                 <div class="report-card">
                     <h3><i class="fas fa-file-invoice"></i> Relatório de Orçamentos</h3>
                     <div class="report-filter">
@@ -2212,7 +2202,6 @@
                 </div>
             </div>
 
-            <!-- Área de visualização do relatório -->
             <div class="chart-container" style="margin-top: 20px;">
                 <div class="chart-header">
                     <div class="chart-title" id="report-chart-title">Pré-visualização do Relatório</div>
@@ -2226,6 +2215,7 @@
             </div>
         </div>
 
+        <!-- Seção Backup -->
         <div class="section" id="backup-section">
             <div class="section-header">
                 <h2><i class="fas fa-database"></i> Backup e Restauração</h2>
@@ -2340,34 +2330,34 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="edit-client-name" class="required">Nome Completo</label>
-                        <input type="text" id="edit-client-name" required onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-client-phone').focus(); }">
+                        <input type="text" id="edit-client-name" required>
                     </div>
                     <div class="form-group">
                         <label for="edit-client-phone" class="required">Telefone/WhatsApp</label>
-                        <input type="tel" id="edit-client-phone" required placeholder="(11) 99999-9999" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-client-email').focus(); }">
+                        <input type="tel" id="edit-client-phone" required placeholder="(11) 99999-9999">
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="edit-client-email">E-mail</label>
-                        <input type="email" id="edit-client-email" placeholder="cliente@email.com" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-client-cpf').focus(); }">
+                        <input type="email" id="edit-client-email" placeholder="cliente@email.com">
                     </div>
                     <div class="form-group">
                         <label for="edit-client-cpf">CPF</label>
-                        <input type="text" id="edit-client-cpf" placeholder="000.000.000-00" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-client-address').focus(); }">
+                        <input type="text" id="edit-client-cpf" placeholder="000.000.000-00">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="edit-client-address">Endereço (Opcional)</label>
-                    <input type="text" id="edit-client-address" placeholder="Rua, Número, Bairro, Cidade" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-client-type').focus(); }">
+                    <input type="text" id="edit-client-address" placeholder="Rua, Número, Bairro, Cidade">
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="edit-client-type">Tipo de Cliente</label>
-                        <select id="edit-client-type" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.querySelector('input[name=\\'edit-loyal\\'][value=\\'sim\\']').focus(); }">
+                        <select id="edit-client-type">
                             <option value="regular">Regular</option>
                             <option value="premium">Premium</option>
                             <option value="vip">VIP</option>
@@ -2376,12 +2366,8 @@
                     <div class="form-group">
                         <label>Cliente Fidelizado?</label>
                         <div style="display: flex; gap: 14px; margin-top: 5px;">
-                            <label>
-                                <input type="radio" name="edit-loyal" value="sim" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.querySelector('input[name=\\'edit-loyal\\'][value=\\'nao\\']').focus(); }"> Sim
-                            </label>
-                            <label>
-                                <input type="radio" name="edit-loyal" value="nao" checked onkeypress="if(event.keyCode==13){ event.preventDefault(); saveEditedClient(event); }"> Não
-                            </label>
+                            <label><input type="radio" name="edit-loyal" value="sim"> Sim</label>
+                            <label><input type="radio" name="edit-loyal" value="nao" checked> Não</label>
                         </div>
                     </div>
                 </div>
@@ -2706,6 +2692,7 @@
 
         // Função para formatar data
         function formatDate(dateString) {
+            if (!dateString) return '';
             const date = new Date(dateString);
             return date.toLocaleDateString('pt-BR');
         }
@@ -3141,7 +3128,7 @@
             
             dashboardFilter = {
                 startDate: new Date(firstDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 0, 0, 0, 0),
-                endDate: new Date(lastDayOfMonth.getFullYear(), firstDayOfMonth.getMonth(), firstDayOfMonth.getDate(), 23, 59, 59, 999)
+                endDate: new Date(lastDayOfMonth.getFullYear(), lastDayOfMonth.getMonth(), lastDayOfMonth.getDate(), 23, 59, 59, 999)
             };
             updateDashboard();
         }
@@ -3348,7 +3335,7 @@
             const filteredClients = clients.filter(client => 
                 client.name.toLowerCase().includes(searchTerm) ||
                 client.phone.includes(searchTerm) ||
-                (client.cpf && client.cpf.includes(searchTerm))
+                (client.cpf && client.cpf.toLowerCase().includes(searchTerm))
             );
             
             if (filteredClients.length === 0) {
@@ -3410,7 +3397,7 @@
             const filteredClients = clients.filter(client => 
                 client.name.toLowerCase().includes(searchTerm) ||
                 client.phone.includes(searchTerm) ||
-                (client.cpf && client.cpf.includes(searchTerm))
+                (client.cpf && client.cpf.toLowerCase().includes(searchTerm))
             );
             
             if (filteredClients.length === 0) {
@@ -4027,25 +4014,25 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Descrição</label>
-                                <input type="text" id="edit-desc-${index}" value="${item.description}" class="edit-item-field" data-index="${index}" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-qty-${index}').focus(); }">
+                                <input type="text" id="edit-desc-${index}" value="${item.description.replace(/"/g, '&quot;')}" class="edit-item-field" data-index="${index}">
                             </div>
                             <div class="form-group">
                                 <label>Quantidade</label>
-                                <input type="number" id="edit-qty-${index}" value="${item.quantity}" min="1" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-price-${index}').focus(); }">
+                                <input type="number" id="edit-qty-${index}" value="${item.quantity}" min="1" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
                             </div>
                             <div class="form-group">
                                 <label>Valor Unitário</label>
-                                <input type="number" id="edit-price-${index}" value="${item.price}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-cost-${index}').focus(); }">
+                                <input type="number" id="edit-price-${index}" value="${item.price}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Custo</label>
-                                <input type="number" id="edit-cost-${index}" value="${item.cost || 0}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-discount-type-${index}').focus(); }">
+                                <input type="number" id="edit-cost-${index}" value="${item.cost || 0}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
                             </div>
                             <div class="form-group">
                                 <label>Desconto</label>
-                                <select id="edit-discount-type-${index}" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-discount-value-${index}').focus(); }">
+                                <select id="edit-discount-type-${index}" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
                                     <option value="none" ${item.discountType === 'none' ? 'selected' : ''}>Sem desconto</option>
                                     <option value="percent" ${item.discountType === 'percent' ? 'selected' : ''}>%</option>
                                     <option value="fixed" ${item.discountType === 'fixed' ? 'selected' : ''}>R$</option>
@@ -4053,7 +4040,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Valor Desconto</label>
-                                <input type="number" id="edit-discount-value-${index}" value="${item.discountValue || 0}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-final-price-${index}').focus(); }">
+                                <input type="number" id="edit-discount-value-${index}" value="${item.discountValue || 0}" step="0.01" class="edit-item-field" data-index="${index}" onchange="updateEditItemTotal(${index})">
                             </div>
                         </div>
                         <div class="form-row">
@@ -4063,11 +4050,11 @@
                             </div>
                             <div class="form-group">
                                 <label>Lucro (R$)</label>
-                                <input type="number" id="edit-profit-value-${index}" value="${item.profitValue}" step="0.01" readonly style="background-color: #e8f6f3; color: var(--profit);">
+                                <input type="number" id="edit-profit-value-${index}" value="${item.profitValue || 0}" step="0.01" readonly style="background-color: #e8f6f3; color: var(--profit);">
                             </div>
                             <div class="form-group">
                                 <label>Lucro (%)</label>
-                                <input type="number" id="edit-profit-percent-${index}" value="${item.profitPercent}" step="0.01" readonly style="background-color: #e8f6f3; color: var(--profit);">
+                                <input type="number" id="edit-profit-percent-${index}" value="${item.profitPercent || 0}" step="0.01" readonly style="background-color: #e8f6f3; color: var(--profit);">
                             </div>
                         </div>
                         <div class="form-row">
@@ -4175,21 +4162,21 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Descrição</label>
-                                <input type="text" id="edit-budget-desc-${index}" value="${item.description}" class="edit-budget-field" data-index="${index}" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-budget-qty-${index}').focus(); }">
+                                <input type="text" id="edit-budget-desc-${index}" value="${item.description.replace(/"/g, '&quot;')}" class="edit-budget-field" data-index="${index}">
                             </div>
                             <div class="form-group">
                                 <label>Quantidade</label>
-                                <input type="number" id="edit-budget-qty-${index}" value="${item.quantity}" min="1" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-budget-price-${index}').focus(); }">
+                                <input type="number" id="edit-budget-qty-${index}" value="${item.quantity}" min="1" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})">
                             </div>
                             <div class="form-group">
                                 <label>Valor Unitário</label>
-                                <input type="number" id="edit-budget-price-${index}" value="${item.price}" step="0.01" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-budget-discount-type-${index}').focus(); }">
+                                <input type="number" id="edit-budget-price-${index}" value="${item.price}" step="0.01" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Desconto</label>
-                                <select id="edit-budget-discount-type-${index}" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-budget-discount-value-${index}').focus(); }">
+                                <select id="edit-budget-discount-type-${index}" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})">
                                     <option value="none" ${item.discountType === 'none' ? 'selected' : ''}>Sem desconto</option>
                                     <option value="percent" ${item.discountType === 'percent' ? 'selected' : ''}>%</option>
                                     <option value="fixed" ${item.discountType === 'fixed' ? 'selected' : ''}>R$</option>
@@ -4197,11 +4184,11 @@
                             </div>
                             <div class="form-group">
                                 <label>Valor Desconto</label>
-                                <input type="number" id="edit-budget-discount-value-${index}" value="${item.discountValue || 0}" step="0.01" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})" onkeypress="if(event.keyCode==13){ event.preventDefault(); document.getElementById('edit-budget-obs-${index}').focus(); }">
+                                <input type="number" id="edit-budget-discount-value-${index}" value="${item.discountValue || 0}" step="0.01" class="edit-budget-field" data-index="${index}" onchange="updateEditBudgetItemTotal(${index})">
                             </div>
                             <div class="form-group">
                                 <label>Observações</label>
-                                <input type="text" id="edit-budget-obs-${index}" value="${item.observations || ''}" class="edit-budget-field" data-index="${index}" onkeypress="if(event.keyCode==13){ event.preventDefault(); updateEditBudgetItemTotal(${index}); }">
+                                <input type="text" id="edit-budget-obs-${index}" value="${(item.observations || '').replace(/"/g, '&quot;')}" class="edit-budget-field" data-index="${index}">
                             </div>
                         </div>
                         <div class="form-row">
@@ -4246,7 +4233,7 @@
                 
                 <div class="form-group">
                     <label>Observações</label>
-                    <textarea id="edit-budget-observations" rows="3">${editingBudget.observations || ''}</textarea>
+                    <textarea id="edit-budget-observations" rows="3">${(editingBudget.observations || '').replace(/"/g, '&quot;')}</textarea>
                 </div>
                 
                 <div class="button-group" style="margin-top: 20px;">
@@ -4424,7 +4411,7 @@
             document.getElementById('edit-budget-total').textContent = total.toFixed(2);
         }
 
-        // Função para salvar edição de encomenda (CORRIGIDO)
+        // Função para salvar edição de encomenda (CORRIGIDA)
         function saveEditedOrder() {
             if (!editingOrder || !editingOrderClientId) return;
             
@@ -4639,7 +4626,9 @@
                 ${currentBudget.observations ? `<p>Obs: ${currentBudget.observations}</p>` : ''}
                 <h4>Itens:</h4>
                 <table style="width: 100%; border-collapse: collapse;">
-                    <thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead>
+                    <thead>
+                        <tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr>
+                    </thead>
                     <tbody>
             `;
             currentBudget.items.forEach(item => {
@@ -4769,7 +4758,7 @@
             printCurrentBudget();
         }
 
-        // Função para imprimir encomenda atual (CORRIGIDO)
+        // Função para imprimir encomenda atual
         function printCurrentOrder() {
             if (!currentOrder) return;
             
@@ -4835,7 +4824,7 @@
             printWindow.print();
         }
 
-        // Função para imprimir orçamento atual (CORRIGIDO)
+        // Função para imprimir orçamento atual
         function printCurrentBudget() {
             if (!currentBudget) return;
             
@@ -4888,7 +4877,7 @@
             printThermalCurrentBudget();
         }
 
-        // Função para imprimir encomenda atual térmica (CORRIGIDO)
+        // Função para imprimir encomenda atual térmica
         function printThermalCurrentOrder() {
             if (!currentOrder) return;
             
@@ -4957,7 +4946,7 @@
             printWindow.print();
         }
 
-        // Função para imprimir orçamento atual térmico (CORRIGIDO)
+        // Função para imprimir orçamento atual térmico
         function printThermalCurrentBudget() {
             if (!currentBudget) return;
             
@@ -5120,7 +5109,7 @@
             container.innerHTML = html;
         }
 
-        // Função para renderizar lista de encomendas (CORRIGIDO)
+        // Função para renderizar lista de encomendas
         function renderOrdersList() {
             const searchTerm = document.getElementById('search-orders').value.toLowerCase();
             const container = document.getElementById('orders-list');
@@ -5922,7 +5911,7 @@
             }
         }
 
-        // Função para exportar clientes para Excel (CORRIGIDO)
+        // Função para exportar clientes para Excel
         function exportClientsToExcel() {
             if (clients.length === 0) {
                 alert('Não há clientes para exportar!');
@@ -5954,7 +5943,7 @@
             }
         }
 
-        // Função para exportar encomendas para Excel (CORRIGIDO)
+        // Função para exportar encomendas para Excel
         function exportOrdersToExcel() {
             let allOrders = [];
             clients.forEach(client => {
@@ -6005,7 +5994,7 @@
             }
         }
 
-        // Função para exportar encomendas pendentes para Excel (CORRIGIDO)
+        // Função para exportar encomendas pendentes para Excel
         function exportPendingOrdersToExcel() {
             let pendingOrders = [];
             clients.forEach(client => {
@@ -6056,7 +6045,7 @@
             }
         }
 
-        // Função para exportar orçamentos para Excel (CORRIGIDO)
+        // Função para exportar orçamentos para Excel
         function exportBudgetsToExcel() {
             let allBudgets = [];
             clients.forEach(client => {
@@ -6435,7 +6424,7 @@
             }
             
             let html = `
-                <table>
+                 <table>
                     <thead>
                         <tr>
                             <th>Período</th>
