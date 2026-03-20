@@ -10,6 +10,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
     <style>
         * {
@@ -1952,10 +1955,10 @@
             </div>
 
             <div class="backup-section" style="margin-top: 20px;">
-                <h3><i class="fas fa-trash-alt"></i> Limpar Todos os Dados</h3>
-                <p>Remove todos os dados do sistema (cuidado!).</p>
-                <button class="btn btn-danger" onclick="clearAllData()">
-                    <i class="fas fa-trash-alt"></i> Limpar Todos os Dados
+                <h3><i class="fas fa-cloud-upload-alt"></i> Forçar Sincronização</h3>
+                <p>Sincronize os dados locais com o Firebase.</p>
+                <button class="btn btn-success" onclick="forceSyncToFirebase()">
+                    <i class="fas fa-sync"></i> Sincronizar Agora
                 </button>
             </div>
         </div>
@@ -2093,7 +2096,39 @@
         </div>
     </div>
 
+    <div class="modal" id="budget-approval-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Aprovação de Orçamento</h3>
+                <button onclick="closeApprovalModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer;">×</button>
+            </div>
+            <div id="budget-approval-details"></div>
+            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-success" onclick="approveBudgetFromLink()">
+                    <i class="fas fa-check"></i> Aprovar Orçamento
+                </button>
+                <button class="btn btn-danger" onclick="rejectBudgetFromLink()">
+                    <i class="fas fa-times"></i> Rejeitar Orçamento
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ==================== CONFIGURAÇÃO FIREBASE ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCb5Dv8ZVBMxHIIhRqLvDmH4w24Fk0NqEU",
+            authDomain: "souza-farma.firebaseapp.com",
+            databaseURL: "https://souza-farma-default-rtdb.firebaseio.com",
+            projectId: "souza-farma",
+            storageBucket: "souza-farma.firebasestorage.app",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abc123def456"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         // ==================== VARIÁVEIS GLOBAIS ====================
         let clients = [];
         let selectedClientForOrder = null;
@@ -2133,9 +2168,9 @@
 
         // ==================== INICIALIZAÇÃO ====================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("Sistema Souza Farma iniciado!");
+            console.log("Sistema Souza Farma iniciando com Firebase...");
             
-            loadData();
+            loadDataFromFirebase();
             
             setTimeout(generateQRCode, 100);
             
@@ -2176,29 +2211,52 @@
             document.getElementById('search-orders').addEventListener('input', function() { renderOrdersList(); });
             document.getElementById('search-pending-orders').addEventListener('input', function() { renderPendingOrdersList(); });
             document.getElementById('search-budgets').addEventListener('input', function() { renderBudgetsList(); });
-            
-            updateStats();
-            renderOrdersList();
-            renderPendingOrdersList();
-            renderBudgetsList();
-            renderClientsList();
-            updateDashboard();
         });
 
-        // ==================== FUNÇÕES DE ARMAZENAMENTO ====================
-        function saveData() {
-            localStorage.setItem('souza_farma_data', JSON.stringify(clients));
-            console.log("Dados salvos com sucesso!");
+        // ==================== FUNÇÕES FIREBASE ====================
+        function loadDataFromFirebase() {
+            db.ref('clients').once('value').then((snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    clients = Object.values(data);
+                    console.log("Dados carregados do Firebase:", clients.length, "clientes");
+                } else {
+                    clients = [];
+                    console.log("Nenhum dado encontrado no Firebase");
+                }
+                
+                db.ref('clients').on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    clients = data ? Object.values(data) : [];
+                    
+                    updateStats();
+                    updateDashboard();
+                    renderClientsList();
+                    renderOrdersList();
+                    renderPendingOrdersList();
+                    renderBudgetsList();
+                    
+                    console.log("Dados sincronizados com Firebase");
+                });
+            }).catch(error => {
+                console.error("Erro ao carregar dados do Firebase:", error);
+                clients = [];
+            });
         }
 
-        function loadData() {
-            const savedData = localStorage.getItem('souza_farma_data');
-            if (savedData) {
-                clients = JSON.parse(savedData);
-                console.log("Dados carregados com sucesso!", clients.length, "clientes");
-            } else {
-                clients = [];
-                console.log("Nenhum dado salvo encontrado. Iniciando com dados vazios.");
+        function saveToFirebase() {
+            const clientsObj = {};
+            clients.forEach(c => { clientsObj[c.id] = c; });
+            db.ref('clients').set(clientsObj).catch(error => {
+                console.error("Erro ao salvar no Firebase:", error);
+                alert("Erro ao salvar dados. Verifique sua conexão.");
+            });
+        }
+
+        function forceSyncToFirebase() {
+            if (confirm('Isso forçará a sincronização de todos os dados com o Firebase. Deseja continuar?')) {
+                saveToFirebase();
+                alert('Sincronização concluída!');
             }
         }
 
@@ -2350,7 +2408,7 @@
             };
             
             clients.push(newClient);
-            saveData();
+            saveToFirebase();
             updateStats();
             alert('Cliente salvo com sucesso!');
             clearClientForm();
@@ -2387,7 +2445,7 @@
             if (!confirm(`Tem certeza que deseja excluir o cliente "${client.name}"?`)) return;
             
             clients = clients.filter(client => client.id !== id);
-            saveData();
+            saveToFirebase();
             updateStats();
             renderClientsList();
             alert('Cliente excluído com sucesso!');
@@ -2461,7 +2519,7 @@
                 });
             }
 
-            saveData();
+            saveToFirebase();
             updateStats();
             renderClientsList();
             updateDashboard();
@@ -2497,7 +2555,7 @@
             filteredClients.forEach(client => {
                 html += `
                     <div style="padding: 7px; border-bottom: 1px solid #ddd; cursor: pointer;" onclick="selectClientForOrder(${client.id})">
-                        <div style="font-weight: bold;">${client.name}</div>
+                        <div style="font-weight: bold;">${escapeHtml(client.name)}</div>
                         <div style="font-size: 0.85em; color: #666;">${client.phone}</div>
                     </div>
                 `;
@@ -2567,7 +2625,7 @@
             filteredClients.forEach(client => {
                 html += `
                     <div style="padding: 7px; border-bottom: 1px solid #ddd; cursor: pointer;" onclick="selectClientForBudget(${client.id})">
-                        <div style="font-weight: bold;">${client.name}</div>
+                        <div style="font-weight: bold;">${escapeHtml(client.name)}</div>
                         <div style="font-size: 0.85em; color: #666;">${client.phone}</div>
                     </div>
                 `;
@@ -2608,6 +2666,16 @@
             document.getElementById('client-name').value = name;
             document.getElementById('client-phone').focus();
             showSection('new-client');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
         }
 
         // ==================== FUNÇÕES DE ITENS ====================
@@ -2705,7 +2773,7 @@
             const itemHtml = `
                 <div id="item-${itemId}" class="order-item">
                     <div class="order-item-header">
-                        <div style="font-weight: bold;">${description}${discountText}</div>
+                        <div style="font-weight: bold;">${escapeHtml(description)}${discountText}</div>
                         <div class="order-item-total">R$ ${total.toFixed(2)}</div>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;">
@@ -2718,7 +2786,7 @@
                         </div>
                         <button onclick="removeOrderItem(${itemId})" class="btn btn-danger btn-sm">Remover</button>
                     </div>
-                    <input type="hidden" id="desc-${itemId}" value="${description}">
+                    <input type="hidden" id="desc-${itemId}" value="${escapeHtml(description)}">
                     <input type="hidden" id="qty-${itemId}" value="${quantity}">
                     <input type="hidden" id="price-${itemId}" value="${price}">
                     <input type="hidden" id="cost-${itemId}" value="${cost}">
@@ -2894,7 +2962,7 @@
             if (clientIndex !== -1) {
                 if (!clients[clientIndex].orders) clients[clientIndex].orders = [];
                 clients[clientIndex].orders.push(newOrder);
-                saveData();
+                saveToFirebase();
                 currentOrder = newOrder;
                 updateStats();
                 updateDashboard();
@@ -2933,7 +3001,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Descrição</label>
-                                <input type="text" id="edit-desc-${index}" value="${item.description.replace(/'/g, "\\'")}" class="edit-item-field" data-index="${index}">
+                                <input type="text" id="edit-desc-${index}" value="${escapeHtml(item.description)}" class="edit-item-field" data-index="${index}">
                             </div>
                             <div class="form-group">
                                 <label>Quantidade</label>
@@ -3150,7 +3218,7 @@
             }
             
             clients[clientIndex].orders[orderIndex] = editingOrder;
-            saveData();
+            saveToFirebase();
             updateStats();
             renderOrdersList();
             renderPendingOrdersList();
@@ -3169,7 +3237,7 @@
             if (orderIndex === -1) return;
             
             client.orders.splice(orderIndex, 1);
-            saveData();
+            saveToFirebase();
             updateStats();
             renderOrdersList();
             renderPendingOrdersList();
@@ -3186,7 +3254,7 @@
             clients[clientIndex].orders[orderIndex].status = 'entregue';
             clients[clientIndex].orders[orderIndex].deliveredAt = new Date().toISOString();
             
-            saveData();
+            saveToFirebase();
             updateStats();
             renderOrdersList();
             renderPendingOrdersList();
@@ -3210,7 +3278,7 @@
                              currentOrder.payment === 'parcial' ? 'Parcial (com entrada)' : 'Pendente';
             
             let html = `
-                <h4>Cliente: ${currentOrder.clientName}</h4>
+                <h4>Cliente: ${escapeHtml(currentOrder.clientName)}</h4>
                 <p>Telefone: ${currentOrder.clientPhone}</p>
                 <p>Data: ${formatDate(currentOrder.createdAt)}</p>
                 <p>Status: ${currentOrder.status === 'pendente' ? 'Pendente de retirada' : 'Entregue'}</p>
@@ -3227,7 +3295,7 @@
             html += `<h4>Itens:</h4>`;
             
             currentOrder.items.forEach((item, index) => {
-                html += `<p>${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}</p>`;
+                html += `<p>${index + 1}. ${escapeHtml(item.description)} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}</p>`;
             });
             
             html += `<h4 style="margin-top: 16px; text-align: right;">Total: R$ ${currentOrder.total.toFixed(2)}</h4>`;
@@ -3295,12 +3363,12 @@
                     <p>Av José Sarney n°06 Q03 - Bom Jesus - São Luís MA</p>
                     <p>Tel: 98-98628-7296</p>
                 </div>
-                <p><strong>Cliente:</strong> ${currentOrder.clientName}<br>
+                <p><strong>Cliente:</strong> ${escapeHtml(currentOrder.clientName)}<br>
                 <strong>Data:</strong> ${formatDate(currentOrder.createdAt)}</p>
                 <table><thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead><tbody>
             `);
             currentOrder.items.forEach(item => {
-                printWindow.document.write(`<tr><td>${item.description}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${(item.quantity * item.finalPrice).toFixed(2)}</td></tr>`);
+                printWindow.document.write(`<tr><td>${escapeHtml(item.description)}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${(item.quantity * item.finalPrice).toFixed(2)}</td></tr>`);
             });
             printWindow.document.write(`</tbody></table><div class="total">TOTAL: R$ ${currentOrder.total.toFixed(2)}</div></body></html>`);
             printWindow.document.close();
@@ -3337,13 +3405,13 @@
                     <hr>
                 </div>
                 <div><strong>ENCOMENDA</strong></div>
-                <div>Cliente: ${currentOrder.clientName}</div>
+                <div>Cliente: ${escapeHtml(currentOrder.clientName)}</div>
                 <div>Data: ${formatDate(currentOrder.createdAt)}</div>
                 <hr>
                 <table><thead><tr><th>Item</th><th>Qtd</th><th>Valor</th></tr></thead><tbody>
             `);
             currentOrder.items.forEach(item => {
-                printWindow.document.write(`<tr><td>${item.description}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td></tr>`);
+                printWindow.document.write(`<tr><td>${escapeHtml(item.description)}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td></tr>`);
             });
             printWindow.document.write(`</tbody></table><div class="total">TOTAL: R$ ${currentOrder.total.toFixed(2)}</div><hr></body></html>`);
             printWindow.document.close();
@@ -3460,12 +3528,12 @@
                 } else if (item.discountType === 'fixed' && item.discountValue > 0) {
                     discountText = ` (R$ ${item.discountValue.toFixed(2)} de desconto)`;
                 }
-                const obsText = item.observations ? ` - Obs: ${item.observations}` : '';
+                const obsText = item.observations ? ` - Obs: ${escapeHtml(item.observations)}` : '';
                 
                 const itemHtml = `
                     <div id="budget-item-${item.id}" class="order-item">
                         <div class="order-item-header">
-                            <div style="font-weight: bold;">${item.description}${discountText}${obsText}</div>
+                            <div style="font-weight: bold;">${escapeHtml(item.description)}${discountText}${obsText}</div>
                             <div class="order-item-total">R$ ${item.total.toFixed(2)}</div>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;">
@@ -3549,7 +3617,7 @@
             if (clientIndex !== -1) {
                 if (!clients[clientIndex].budgets) clients[clientIndex].budgets = [];
                 clients[clientIndex].budgets.push(newBudget);
-                saveData();
+                saveToFirebase();
                 currentBudget = newBudget;
                 updateStats();
                 updateDashboard();
@@ -3587,7 +3655,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Descrição</label>
-                                <input type="text" id="edit-budget-desc-${index}" value="${item.description.replace(/'/g, "\\'")}" class="edit-budget-field" data-index="${index}">
+                                <input type="text" id="edit-budget-desc-${index}" value="${escapeHtml(item.description)}" class="edit-budget-field" data-index="${index}">
                             </div>
                             <div class="form-group">
                                 <label>Quantidade</label>
@@ -3613,7 +3681,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Observações</label>
-                                <input type="text" id="edit-budget-obs-${index}" value="${item.observations || ''}" class="edit-budget-field" data-index="${index}">
+                                <input type="text" id="edit-budget-obs-${index}" value="${escapeHtml(item.observations || '')}" class="edit-budget-field" data-index="${index}">
                             </div>
                         </div>
                         <div class="form-row">
@@ -3658,7 +3726,7 @@
                 
                 <div class="form-group">
                     <label>Observações</label>
-                    <textarea id="edit-budget-observations" rows="3">${editingBudget.observations || ''}</textarea>
+                    <textarea id="edit-budget-observations" rows="3">${escapeHtml(editingBudget.observations || '')}</textarea>
                 </div>
                 
                 <div class="button-group" style="margin-top: 20px;">
@@ -3765,7 +3833,7 @@
             }
             
             clients[clientIndex].budgets[budgetIndex] = editingBudget;
-            saveData();
+            saveToFirebase();
             updateStats();
             renderBudgetsList();
             alert('Orçamento atualizado com sucesso!');
@@ -3783,7 +3851,7 @@
             if (budgetIndex === -1) return;
             
             client.budgets.splice(budgetIndex, 1);
-            saveData();
+            saveToFirebase();
             updateStats();
             renderBudgetsList();
             alert('Orçamento excluído com sucesso!');
@@ -3811,18 +3879,18 @@
             }
             
             let html = `
-                <h4>Cliente: ${currentBudget.clientName}</h4>
+                <h4>Cliente: ${escapeHtml(currentBudget.clientName)}</h4>
                 <p>Telefone: ${currentBudget.clientPhone}</p>
                 <p>Data: ${formatDate(currentBudget.createdAt)}</p>
                 <p>Validade: ${currentBudget.validity} dias (${formatDate(validityDate)})</p>
                 ${statusHtml}
-                ${currentBudget.observations ? `<p>Obs: ${currentBudget.observations}</p>` : ''}
+                ${currentBudget.observations ? `<p>Obs: ${escapeHtml(currentBudget.observations)}</p>` : ''}
                 <h4>Itens:</h4>
             `;
             
             currentBudget.items.forEach(item => {
-                const obs = item.observations ? ` (${item.observations})` : '';
-                html += `<p>${item.description}${obs} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}</p>`;
+                const obs = item.observations ? ` (${escapeHtml(item.observations)})` : '';
+                html += `<p>${escapeHtml(item.description)}${obs} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}</p>`;
             });
             
             html += `<h4>Total: R$ ${currentBudget.total.toFixed(2)}</h4>`;
@@ -3889,7 +3957,7 @@
             if (!client.orders) client.orders = [];
             client.orders.push(newOrder);
             
-            saveData();
+            saveToFirebase();
             currentOrder = newOrder;
             updateStats();
             alert('Orçamento convertido em encomenda!');
@@ -3972,14 +4040,14 @@
                     <p>Av José Sarney n°06 Q03 - Bom Jesus - São Luís MA</p>
                     <p>Tel: 98-98628-7296</p>
                 </div>
-                <p><strong>Cliente:</strong> ${currentBudget.clientName}<br>
+                <p><strong>Cliente:</strong> ${escapeHtml(currentBudget.clientName)}<br>
                 <strong>Data:</strong> ${formatDate(currentBudget.createdAt)}<br>
                 <strong>Validade:</strong> ${formatDate(validityDate)}</p>
-                能<table><thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead><tbody>
+                <table><thead><tr><th>Descrição</th><th>Qtd</th><th>Valor</th><th>Total</th></tr></thead><tbody>
             `);
             currentBudget.items.forEach(item => {
-                const obs = item.observations ? ` (${item.observations})` : '';
-                printWindow.document.write(`<tr><td>${item.description}${obs}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`);
+                const obs = item.observations ? ` (${escapeHtml(item.observations)})` : '';
+                printWindow.document.write(`<tr><td>${escapeHtml(item.description)}${obs}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td><td>R$ ${item.total.toFixed(2)}</td></tr>`);
             });
             printWindow.document.write(`</tbody></table><div class="total">TOTAL: R$ ${currentBudget.total.toFixed(2)}</div></body></html>`);
             printWindow.document.close();
@@ -4019,15 +4087,15 @@
                     <hr>
                 </div>
                 <div><strong>ORÇAMENTO</strong></div>
-                <div>Cliente: ${currentBudget.clientName}</div>
+                <div>Cliente: ${escapeHtml(currentBudget.clientName)}</div>
                 <div>Data: ${formatDate(currentBudget.createdAt)}</div>
                 <div>Validade: ${formatDate(validityDate)}</div>
                 <hr>
-                能<table><thead><tr><th>Item</th><th>Qtd</th><th>Valor</th></tr></thead><tbody>
+                <table><thead><tr><th>Item</th><th>Qtd</th><th>Valor</th></tr></thead><tbody>
             `);
             currentBudget.items.forEach(item => {
-                const obs = item.observations ? ` (${item.observations})` : '';
-                printWindow.document.write(`<tr><td>${item.description}${obs}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td></tr>`);
+                const obs = item.observations ? ` (${escapeHtml(item.observations)})` : '';
+                printWindow.document.write(`<tr><td>${escapeHtml(item.description)}${obs}</td><td>${item.quantity}</td><td>R$ ${item.finalPrice.toFixed(2)}</td></tr>`);
             });
             printWindow.document.write(`</tbody></table><div class="total">TOTAL: R$ ${currentBudget.total.toFixed(2)}</div><hr></body></html>`);
             printWindow.document.close();
@@ -4062,7 +4130,7 @@
                 html += `
                     <div class="item-card">
                         <div class="item-header">
-                            <div class="item-name">${client.name}</div>
+                            <div class="item-name">${escapeHtml(client.name)}</div>
                             <div>
                                 ${client.loyal === 'sim' ? '<span class="badge badge-success">Fidelizado</span>' : ''}
                                 ${hasOrders ? `<span class="badge">${client.orders.length} enc</span>` : ''}
@@ -4074,7 +4142,7 @@
                             Tipo: ${client.type} | Cadastro: ${formatDate(client.createdAt)} | Pendentes: ${pendingOrders}
                         </div>
                         <div class="item-actions">
-                            <button class="btn btn-whatsapp btn-sm" onclick="sendClientWhatsApp('${client.phone}', '${client.name}')">📱 WhatsApp</button>
+                            <button class="btn btn-whatsapp btn-sm" onclick="sendClientWhatsApp('${client.phone}', '${escapeHtml(client.name)}')">📱 WhatsApp</button>
                             <button class="btn btn-edit btn-sm" onclick="openEditClientModal(${client.id})">✏️ Editar</button>
                             <button class="btn btn-sm" onclick="selectClientForOrder(${client.id}); showSection('new-order')">📦 Encomenda</button>
                             <button class="btn btn-budget btn-sm" onclick="selectClientForBudget(${client.id}); showSection('new-budget')">📄 Orçamento</button>
@@ -4142,7 +4210,7 @@
                 html += `
                     <div class="item-card ${isPending ? 'pending' : 'delivered'}">
                         <div class="item-header">
-                            <div class="item-name">${order.clientName}</div>
+                            <div class="item-name">${escapeHtml(order.clientName)}</div>
                             <div>
                                 <span class="badge ${isPending ? 'badge-warning' : 'badge-success'}">
                                     ${isPending ? 'Pendente' : 'Entregue'}
@@ -4202,7 +4270,7 @@
                 html += `
                     <div class="item-card pending">
                         <div class="item-header">
-                            <div class="item-name">${order.clientName}</div>
+                            <div class="item-name">${escapeHtml(order.clientName)}</div>
                             <div>
                                 <span class="badge badge-warning">Pendente</span>
                                 <span class="badge">R$ ${order.total.toFixed(2)}</span>
@@ -4284,7 +4352,7 @@
                 html += `
                     <div class="item-card budget">
                         <div class="item-header">
-                            <div class="item-name">${budget.clientName}</div>
+                            <div class="item-name">${escapeHtml(budget.clientName)}</div>
                             <div>
                                 <span class="badge ${isValid ? 'badge-success' : 'badge-warning'}">
                                     ${isValid ? 'Válido' : 'Vencido'}
@@ -4481,7 +4549,7 @@
                     if (!confirm('Isso substituirá todos os dados atuais. Continuar?')) return;
                     
                     clients = backupData.clients;
-                    saveData();
+                    saveToFirebase();
                     
                     updateStats();
                     updateDashboard();
@@ -4497,21 +4565,6 @@
                 }
             };
             reader.readAsText(file);
-        }
-
-        function clearAllData() {
-            if (confirm('ATENÇÃO: Isso apagará TODOS os dados! Tem certeza?')) {
-                clients = [];
-                saveData();
-                updateStats();
-                updateDashboard();
-                renderClientsList();
-                renderOrdersList();
-                renderPendingOrdersList();
-                renderBudgetsList();
-                alert('Todos os dados foram removidos!');
-                showDashboard();
-            }
         }
 
         // ==================== ESTATÍSTICAS ====================
@@ -4883,6 +4936,150 @@
             document.getElementById('budget-manual-date-toggle').checked = false;
             document.getElementById('budget-manual-date-fields').classList.remove('active');
         }
+
+        // ==================== APROVAÇÃO DE ORÇAMENTO ====================
+        function checkUrlForApproval() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const budgetId = urlParams.get('budget');
+            const action = urlParams.get('action');
+            
+            if (budgetId && action === 'approve') {
+                showBudgetApprovalModal(budgetId);
+            }
+        }
+
+        function showBudgetApprovalModal(budgetId) {
+            let foundBudget = null;
+            let foundClient = null;
+            
+            for (let client of clients) {
+                if (client.budgets) {
+                    const budget = client.budgets.find(b => b.id == budgetId);
+                    if (budget) {
+                        foundBudget = budget;
+                        foundClient = client;
+                        break;
+                    }
+                }
+            }
+            
+            if (!foundBudget) {
+                document.getElementById('budget-approval-details').innerHTML = '<p style="color: red; text-align: center;">Orçamento não encontrado!</p>';
+                document.getElementById('budget-approval-modal').style.display = 'flex';
+                return;
+            }
+            
+            currentBudget = foundBudget;
+            
+            const validityDate = new Date(foundBudget.createdAt);
+            validityDate.setDate(validityDate.getDate() + (foundBudget.validity || 7));
+            
+            let html = `
+                <h4>Cliente: ${escapeHtml(foundBudget.clientName)}</h4>
+                <p>Telefone: ${foundBudget.clientPhone}</p>
+                <p>Data: ${formatDate(foundBudget.createdAt)}</p>
+                <p>Validade: ${formatDate(validityDate)}</p>
+                <p>Status atual: ${foundBudget.approvalStatus || 'Pendente'}</p>
+                
+                <h4 style="margin-top: 16px;">Itens:</h4>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="padding: 7px; text-align: left;">Descrição</th>
+                            <th style="padding: 7px; text-align: left;">Qtd</th>
+                            <th style="padding: 7px; text-align: left;">Valor</th>
+                            <th style="padding: 7px; text-align: left;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            foundBudget.items.forEach(item => {
+                html += `
+                    <tr>
+                        <td style="padding: 7px;">${escapeHtml(item.description)}</td>
+                        <td style="padding: 7px;">${item.quantity}</td>
+                        <td style="padding: 7px;">R$ ${item.finalPrice.toFixed(2)}</td>
+                        <td style="padding: 7px;">R$ ${item.total.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+                <h4 style="margin-top: 16px; text-align: right;">
+                    Total: R$ ${foundBudget.total.toFixed(2)}
+                </h4>
+            `;
+            
+            document.getElementById('budget-approval-details').innerHTML = html;
+            document.getElementById('budget-approval-modal').style.display = 'flex';
+        }
+
+        function approveBudgetFromLink() {
+            if (!currentBudget) return;
+            
+            for (let client of clients) {
+                if (client.budgets) {
+                    const budgetIndex = client.budgets.findIndex(b => b.id === currentBudget.id);
+                    if (budgetIndex !== -1) {
+                        client.budgets[budgetIndex].approvalStatus = 'aprovado';
+                        client.budgets[budgetIndex].approvedAt = new Date().toISOString();
+                        break;
+                    }
+                }
+            }
+            
+            saveToFirebase();
+            showThankYouMessage('aprovado');
+        }
+
+        function rejectBudgetFromLink() {
+            if (!currentBudget) return;
+            
+            for (let client of clients) {
+                if (client.budgets) {
+                    const budgetIndex = client.budgets.findIndex(b => b.id === currentBudget.id);
+                    if (budgetIndex !== -1) {
+                        client.budgets[budgetIndex].approvalStatus = 'rejeitado';
+                        client.budgets[budgetIndex].rejectedAt = new Date().toISOString();
+                        break;
+                    }
+                }
+            }
+            
+            saveToFirebase();
+            showThankYouMessage('rejeitado');
+        }
+
+        function showThankYouMessage(status) {
+            const message = status === 'aprovado' 
+                ? 'Obrigado por aprovar o orçamento! Em breve entraremos em contato.'
+                : 'Obrigado pelo seu feedback. Estamos à disposição para criar um novo orçamento.';
+            
+            document.getElementById('budget-approval-details').innerHTML = `
+                <div style="text-align: center; padding: 30px;">
+                    <i class="fas fa-check-circle" style="font-size: 60px; color: #27ae60;"></i>
+                    <h3 style="margin-top: 20px;">${message}</h3>
+                </div>
+            `;
+            
+            const buttons = document.querySelector('#budget-approval-modal div[style*="justify-content: center;"]');
+            if (buttons) buttons.style.display = 'none';
+            
+            setTimeout(() => {
+                closeApprovalModal();
+                window.close();
+            }, 3000);
+        }
+
+        function closeApprovalModal() {
+            document.getElementById('budget-approval-modal').style.display = 'none';
+        }
+
+        // Chamar verificação de URL na inicialização
+        checkUrlForApproval();
     </script>
 </body>
 </html>
