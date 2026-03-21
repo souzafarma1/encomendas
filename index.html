@@ -4342,46 +4342,82 @@
             document.getElementById('edit-budget-total').textContent = total.toFixed(2);
         }
 
-        function saveEditedOrder() {
-            if (!editingOrder || !editingOrderClientId) return;
+       function saveEditedOrder() {
+    if (!editingOrder || !editingOrderClientId) {
+        alert('Erro: Encomenda não encontrada!');
+        return;
+    }
+    
+    // Coletar valores dos campos do formulário
+    const paymentSelect = document.getElementById('edit-payment');
+    const downPaymentInput = document.getElementById('edit-down-payment');
+    const availableSelect = document.getElementById('edit-available');
+    const statusSelect = document.getElementById('edit-status');
+    
+    if (paymentSelect) editingOrder.payment = paymentSelect.value;
+    if (downPaymentInput) editingOrder.downPayment = parseFloat(downPaymentInput.value) || 0;
+    if (availableSelect) editingOrder.available = availableSelect.value;
+    if (statusSelect) editingOrder.status = statusSelect.value;
+    
+    // Recalcular totais
+    let total = 0;
+    let totalCost = 0;
+    let totalProfit = 0;
+    
+    if (editingOrder.items) {
+        editingOrder.items.forEach(item => {
+            const itemTotal = item.total || (item.finalPrice * item.quantity);
+            const itemCost = (item.cost || 0) * (item.quantity || 1);
+            const itemProfit = itemTotal - itemCost;
             
-            editingOrder.payment = document.getElementById('edit-payment').value;
-            editingOrder.downPayment = parseFloat(document.getElementById('edit-down-payment').value) || 0;
-            editingOrder.available = document.getElementById('edit-available').value;
-            editingOrder.status = document.getElementById('edit-status').value;
+            total += itemTotal;
+            totalCost += itemCost;
+            totalProfit += itemProfit;
             
-            let total = 0, totalCost = 0, totalProfit = 0;
-            editingOrder.items.forEach(item => {
-                total += item.total;
-                totalCost += (item.cost || 0) * item.quantity;
-                totalProfit += (item.profitValue || 0) * item.quantity;
-            });
-            editingOrder.total = total;
-            editingOrder.totalCost = totalCost;
-            editingOrder.totalProfit = totalProfit;
-            editingOrder.profitMargin = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
-            
-            const clientIndex = clients.findIndex(c => c.id === editingOrderClientId);
-            if (clientIndex === -1) {
-                alert('Cliente não encontrado!');
-                return;
-            }
-            
-            const orderIndex = clients[clientIndex].orders.findIndex(o => o.id === editingOrder.id);
-            if (orderIndex === -1) {
-                alert('Encomenda não encontrada!');
-                return;
-            }
-            
-            clients[clientIndex].orders[orderIndex] = editingOrder;
-            saveToLocalStorage();
-            updateStats();
-            renderOrdersList();
-            renderPendingOrdersList();
-            alert('Encomenda atualizada com sucesso!');
-            showSection('orders');
-            updateDashboard();
-        }
+            // Atualizar campos do item se necessário
+            item.total = itemTotal;
+        });
+    }
+    
+    editingOrder.total = total;
+    editingOrder.totalCost = totalCost;
+    editingOrder.totalProfit = totalProfit;
+    editingOrder.profitMargin = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
+    
+    // Encontrar e atualizar o cliente
+    const clientIndex = clients.findIndex(c => c.id === editingOrderClientId);
+    if (clientIndex === -1) {
+        alert('Cliente não encontrado!');
+        return;
+    }
+    
+    const orderIndex = clients[clientIndex].orders.findIndex(o => o.id === editingOrder.id);
+    if (orderIndex === -1) {
+        alert('Encomenda não encontrada!');
+        return;
+    }
+    
+    // Salvar as alterações
+    clients[clientIndex].orders[orderIndex] = { ...editingOrder };
+    
+    // Persistir no Firebase
+    saveToLocalStorage();
+    
+    // Atualizar interfaces
+    updateStats();
+    renderOrdersList();
+    renderPendingOrdersList();
+    updateDashboard();
+    
+    alert('Encomenda atualizada com sucesso!');
+    
+    // Voltar para a lista de encomendas
+    showSection('orders');
+    
+    // Limpar variáveis de edição
+    editingOrder = null;
+    editingOrderClientId = null;
+}
 
         function saveEditedBudget() {
             if (!editingBudget || !editingBudgetClientId) return;
@@ -5016,74 +5052,130 @@
             container.innerHTML = html;
         }
 
-        function renderOrdersList() {
-            const searchTerm = document.getElementById('search-orders').value.toLowerCase();
-            const container = document.getElementById('orders-list');
-            
-            let allOrders = [];
-            clients.forEach(client => {
-                if (client.orders) {
-                    client.orders.forEach(order => {
-                        allOrders.push({ ...order, client });
-                    });
-                }
+      function renderOrdersList() {
+    const searchTerm = document.getElementById('search-orders').value.toLowerCase();
+    const container = document.getElementById('orders-list');
+    
+    // Coletar todas as encomendas
+    let allOrders = [];
+    clients.forEach(client => {
+        if (client.orders && client.orders.length > 0) {
+            client.orders.forEach(order => {
+                allOrders.push({ ...order, clientId: client.id, clientName: client.name, clientPhone: client.phone });
             });
-            
-            // CORREÇÃO: Filtrar por data se o filtro estiver aplicado
-            if (dateFilterApplied && currentFilter.startDate && currentFilter.endDate) {
-                allOrders = allOrders.filter(order => {
-                    const orderDate = new Date(order.createdAt);
-                    return isDateBetween(orderDate, currentFilter.startDate, currentFilter.endDate) &&
-                           (currentFilter.status === 'todos' || order.status === currentFilter.status) &&
-                           (currentFilter.payment === 'todos' || order.payment === currentFilter.payment);
-                });
-            }
-            
-            if (searchTerm) {
-                allOrders = allOrders.filter(order =>
-                    order.clientName.toLowerCase().includes(searchTerm) ||
-                    order.items.some(item => item.description.toLowerCase().includes(searchTerm))
-                );
-            }
-            
-            updateFilterStats(allOrders);
-            
-            if (allOrders.length === 0) {
-                container.innerHTML = '<div class="empty-state">Nenhuma encomenda encontrada</div>';
-                return;
-            }
-            
-            allOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            
-            let html = '';
-            allOrders.forEach(order => {
-                const isPending = order.status === 'pendente';
-                html += `
-                    <div class="item-card ${isPending ? 'pending' : 'delivered'}">
-                        <div class="item-header">
-                            <div class="item-name">${order.clientName}</div>
-                            <div>
-                                <span class="badge ${isPending ? 'badge-warning' : 'badge-success'}">
-                                    ${isPending ? 'Pendente' : 'Entregue'}
-                                </span>
-                                <span class="badge">R$ ${order.total.toFixed(2)}</span>
-                            </div>
-                        </div>
-                        <div class="item-contact">📞 ${order.clientPhone}</div>
-                        <div class="compact-info">
-                            ${formatDate(order.createdAt)} | ${order.items.length} itens | Pgto: ${order.payment} | Lucro: R$ ${(order.totalProfit || 0).toFixed(2)}
-                        </div>
-                        <div class="item-actions">
-                            <button class="btn btn-sm" onclick="viewOrder(${order.id}, ${order.client.id})">👁️ Ver</button>
-                            <button class="btn btn-warning btn-sm" onclick="editOrder(${order.id}, ${order.client.id})">✏️ Editar</button>
-                            ${isPending ? `<button class="btn btn-success btn-sm" onclick="markAsDelivered(${order.id}, ${order.client.id})">✅ Entregue</button>` : ''}
-                            <button class="btn btn-danger btn-sm" onclick="deleteOrder(${order.id}, ${order.client.id})">🗑️ Excluir</button>
-                        </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
         }
+    });
+    
+    console.log("Total de encomendas antes do filtro:", allOrders.length);
+    
+    // APLICAR FILTRO DE DATA - CORREÇÃO PRINCIPAL
+    if (dateFilterApplied && currentFilter.startDate && currentFilter.endDate) {
+        allOrders = allOrders.filter(order => {
+            const orderDate = new Date(order.createdAt);
+            // Verificar se a data está dentro do intervalo
+            const startDateOnly = new Date(currentFilter.startDate);
+            startDateOnly.setHours(0, 0, 0, 0);
+            const endDateOnly = new Date(currentFilter.endDate);
+            endDateOnly.setHours(23, 59, 59, 999);
+            const isInRange = orderDate >= startDateOnly && orderDate <= endDateOnly;
+            
+            // Verificar status e pagamento
+            const statusMatch = currentFilter.status === 'todos' || order.status === currentFilter.status;
+            const paymentMatch = currentFilter.payment === 'todos' || order.payment === currentFilter.payment;
+            
+            return isInRange && statusMatch && paymentMatch;
+        });
+        console.log("Encomendas após filtro de data:", allOrders.length);
+    }
+    
+    // Aplicar busca por texto
+    if (searchTerm) {
+        allOrders = allOrders.filter(order =>
+            order.clientName.toLowerCase().includes(searchTerm) ||
+            (order.items && order.items.some(item => item.description.toLowerCase().includes(searchTerm)))
+        );
+        console.log("Encomendas após busca:", allOrders.length);
+    }
+    
+    // ATUALIZAR ESTATÍSTICAS DO FILTRO
+    const totalOrders = allOrders.length;
+    let totalValue = 0, totalCost = 0, totalProfit = 0;
+    
+    allOrders.forEach(order => {
+        totalValue += order.total || 0;
+        let orderCost = 0;
+        if (order.items) {
+            order.items.forEach(item => {
+                orderCost += (item.cost || 0) * (item.quantity || 1);
+            });
+        }
+        totalCost += orderCost;
+        totalProfit += (order.total || 0) - orderCost;
+    });
+    
+    const filterTotalOrdersElem = document.getElementById('filter-total-orders');
+    const filterTotalValueElem = document.getElementById('filter-total-value');
+    const filterTotalCostElem = document.getElementById('filter-total-cost');
+    const filterTotalProfitElem = document.getElementById('filter-total-profit');
+    
+    if (filterTotalOrdersElem) filterTotalOrdersElem.textContent = totalOrders;
+    if (filterTotalValueElem) filterTotalValueElem.textContent = `R$ ${totalValue.toFixed(2).replace('.', ',')}`;
+    if (filterTotalCostElem) filterTotalCostElem.textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
+    if (filterTotalProfitElem) filterTotalProfitElem.textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
+    
+    // RENDERIZAR LISTA
+    if (allOrders.length === 0) {
+        container.innerHTML = '<div class="empty-state">Nenhuma encomenda encontrada</div>';
+        return;
+    }
+    
+    // Ordenar por data (mais recente primeiro)
+    allOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    let html = '';
+    allOrders.forEach(order => {
+        const isPending = order.status === 'pendente';
+        const orderDate = order.createdAt ? formatDate(order.createdAt) : 'Data não informada';
+        const itemsCount = order.items ? order.items.length : 0;
+        const orderProfit = order.totalProfit || (order.total - (order.totalCost || 0));
+        
+        html += `
+            <div class="item-card ${isPending ? 'pending' : 'delivered'}">
+                <div class="item-header">
+                    <div class="item-name">${escapeHtml(order.clientName)}</div>
+                    <div>
+                        <span class="badge ${isPending ? 'badge-warning' : 'badge-success'}">
+                            ${isPending ? 'Pendente' : 'Entregue'}
+                        </span>
+                        <span class="badge">R$ ${(order.total || 0).toFixed(2)}</span>
+                    </div>
+                </div>
+                <div class="item-contact">📞 ${escapeHtml(order.clientPhone)}</div>
+                <div class="compact-info">
+                    ${orderDate} | ${itemsCount} itens | Pgto: ${order.payment || 'pendente'} | Lucro: R$ ${orderProfit.toFixed(2)}
+                </div>
+                <div class="item-actions">
+                    <button class="btn btn-sm" onclick="viewOrder(${order.id}, ${order.clientId})">👁️ Ver</button>
+                    <button class="btn btn-warning btn-sm" onclick="editOrder(${order.id}, ${order.clientId})">✏️ Editar</button>
+                    ${isPending ? `<button class="btn btn-success btn-sm" onclick="markAsDelivered(${order.id}, ${order.clientId})">✅ Entregue</button>` : ''}
+                    <button class="btn btn-danger btn-sm" onclick="deleteOrder(${order.id}, ${order.clientId})">🗑️ Excluir</button>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+// Função auxiliar para escapar HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
 
         function renderPendingOrdersList() {
             const searchTerm = document.getElementById('search-pending-orders').value.toLowerCase();
@@ -5628,77 +5720,110 @@
             window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
         }
 
-        function applyDateFilter() {
-            const startDateInput = document.getElementById('date-start').value;
-            const endDateInput = document.getElementById('date-end').value;
-            const status = document.getElementById('filter-status').value;
-            const payment = document.getElementById('filter-payment').value;
-            
-            if (startDateInput && endDateInput) {
-                currentFilter = {
-                    startDate: createDateWithCorrectTime(new Date(startDateInput), 0, 0, 0, 0),
-                    endDate: createDateWithCorrectTime(new Date(endDateInput), 23, 59, 59, 999),
-                    status: status,
-                    payment: payment
-                };
-            } else {
-                const today = new Date();
-                const lastMonth = new Date();
-                lastMonth.setDate(today.getDate() - 30);
-                currentFilter = {
-                    startDate: createDateWithCorrectTime(lastMonth, 0, 0, 0, 0),
-                    endDate: createDateWithCorrectTime(today, 23, 59, 59, 999),
-                    status: status,
-                    payment: payment
-                };
-            }
-            
-            dateFilterApplied = true;
-            renderOrdersList();
-            updateDashboard();
-        }
+       function applyDateFilter() {
+    const startDateInput = document.getElementById('date-start').value;
+    const endDateInput = document.getElementById('date-end').value;
+    const status = document.getElementById('filter-status').value;
+    const payment = document.getElementById('filter-payment').value;
+    
+    let startDate, endDate;
+    
+    if (startDateInput && endDateInput) {
+        // Usar as datas selecionadas pelo usuário
+        startDate = new Date(startDateInput);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(endDateInput);
+        endDate.setHours(23, 59, 59, 999);
+    } else {
+        // Se não houver datas, usar últimos 30 dias
+        const today = new Date();
+        const lastMonth = new Date();
+        lastMonth.setDate(today.getDate() - 30);
+        startDate = new Date(lastMonth);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(today);
+        endDate.setHours(23, 59, 59, 999);
+        
+        // Atualizar os inputs com as datas padrão
+        document.getElementById('date-start').value = formatDateForInput(startDate);
+        document.getElementById('date-end').value = formatDateForInput(endDate);
+    }
+    
+    currentFilter = {
+        startDate: startDate,
+        endDate: endDate,
+        status: status,
+        payment: payment
+    };
+    
+    dateFilterApplied = true;
+    
+    console.log("Filtro aplicado:", {
+        start: startDate,
+        end: endDate,
+        status: status,
+        payment: payment
+    });
+    
+    renderOrdersList();
+    updateDashboard();
+}
 
-        function clearDateFilter() {
-            const today = new Date();
-            const lastMonth = new Date();
-            lastMonth.setDate(today.getDate() - 30);
-            
-            document.getElementById('date-start').value = formatDateForInput(lastMonth);
-            document.getElementById('date-end').value = formatDateForInput(today);
-            document.getElementById('filter-status').value = 'todos';
-            document.getElementById('filter-payment').value = 'todos';
-            
-            currentFilter = {
-                startDate: createDateWithCorrectTime(lastMonth, 0, 0, 0, 0),
-                endDate: createDateWithCorrectTime(today, 23, 59, 59, 999),
-                status: 'todos',
-                payment: 'todos'
-            };
-            
-            dateFilterApplied = true;
-            renderOrdersList();
-            updateDashboard();
-        }
+       function clearDateFilter() {
+    const today = new Date();
+    const lastMonth = new Date();
+    lastMonth.setDate(today.getDate() - 30);
+    
+    const startDate = new Date(lastMonth);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(today);
+    endDate.setHours(23, 59, 59, 999);
+    
+    // Atualizar os inputs
+    document.getElementById('date-start').value = formatDateForInput(startDate);
+    document.getElementById('date-end').value = formatDateForInput(endDate);
+    document.getElementById('filter-status').value = 'todos';
+    document.getElementById('filter-payment').value = 'todos';
+    
+    currentFilter = {
+        startDate: startDate,
+        endDate: endDate,
+        status: 'todos',
+        payment: 'todos'
+    };
+    
+    dateFilterApplied = true;
+    
+    console.log("Filtro limpo:", currentFilter);
+    
+    renderOrdersList();
+    updateDashboard();
+}
 
         function updateFilterStats(filteredOrders) {
-            const totalOrders = filteredOrders.length;
-            const totalValue = filteredOrders.reduce((sum, order) => sum + order.total, 0);
-            const totalCost = filteredOrders.reduce((sum, order) => {
-                let orderCost = 0;
-                if (order.items) {
-                    order.items.forEach(item => {
-                        orderCost += (item.cost || 0) * item.quantity;
-                    });
-                }
-                return sum + orderCost;
-            }, 0);
-            const totalProfit = totalValue - totalCost;
-            
-            document.getElementById('filter-total-orders').textContent = totalOrders;
-            document.getElementById('filter-total-value').textContent = `R$ ${totalValue.toFixed(2).replace('.', ',')}`;
-            document.getElementById('filter-total-cost').textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
-            document.getElementById('filter-total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
+    const totalOrders = filteredOrders.length;
+    const totalValue = filteredOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+    const totalCost = filteredOrders.reduce((sum, order) => {
+        let orderCost = 0;
+        if (order.items) {
+            order.items.forEach(item => {
+                orderCost += (item.cost || 0) * (item.quantity || 1);
+            });
         }
+        return sum + orderCost;
+    }, 0);
+    const totalProfit = totalValue - totalCost;
+    
+    const filterTotalOrdersElem = document.getElementById('filter-total-orders');
+    const filterTotalValueElem = document.getElementById('filter-total-value');
+    const filterTotalCostElem = document.getElementById('filter-total-cost');
+    const filterTotalProfitElem = document.getElementById('filter-total-profit');
+    
+    if (filterTotalOrdersElem) filterTotalOrdersElem.textContent = totalOrders;
+    if (filterTotalValueElem) filterTotalValueElem.textContent = `R$ ${totalValue.toFixed(2).replace('.', ',')}`;
+    if (filterTotalCostElem) filterTotalCostElem.textContent = `R$ ${totalCost.toFixed(2).replace('.', ',')}`;
+    if (filterTotalProfitElem) filterTotalProfitElem.textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
+}
 
         function backupData() {
             try {
