@@ -5708,11 +5708,12 @@ function escapeHtml(text) {
             renderBudgetsList();
         }
 
-        function formatValidityDate(createdAt, validity) {
-            const date = new Date(createdAt);
-            date.setDate(date.getDate() + (validity || 7));
-            return date.toLocaleDateString('pt-BR');
-        }
+       function formatValidityDate(createdAt, validity) {
+    if (!createdAt) return '';
+    const date = new Date(createdAt);
+    date.setDate(date.getDate() + (validity || 7));
+    return date.toLocaleDateString('pt-BR');
+}
 
         function sendClientWhatsApp(phone, name) {
             const cleanPhone = phone.replace(/\D/g, '');
@@ -5901,173 +5902,217 @@ function escapeHtml(text) {
         }
 
         function exportClientsToExcel() {
-            if (clients.length === 0) {
-                alert('Não há clientes para exportar!');
-                return;
-            }
-            
-            try {
-                const data = clients.map(client => ({
-                    'Nome': client.name,
-                    'Telefone': client.phone,
-                    'E-mail': client.email || '',
-                    'CPF': client.cpf || '',
-                    'Endereço': client.address || '',
-                    'Tipo': client.type,
-                    'Fidelizado': client.loyal === 'sim' ? 'Sim' : 'Não',
-                    'Total Encomendas': client.orders ? client.orders.length : 0,
-                    'Total Orçamentos': client.budgets ? client.budgets.length : 0,
-                    'Data Cadastro': formatDate(client.createdAt)
-                }));
-                
-                const ws = XLSX.utils.json_to_sheet(data);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Clientes");
-                XLSX.writeFile(wb, `Clientes_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
-                alert('Exportação concluída com sucesso!');
-            } catch (error) {
-                console.error("Erro ao exportar Excel:", error);
-                alert("Erro ao exportar para Excel. Tente novamente.");
-            }
+    try {
+        if (!clients || clients.length === 0) {
+            alert('Não há clientes para exportar!');
+            return;
         }
+        
+        const data = clients.map(client => ({
+            'ID': client.id || '',
+            'Nome': client.name || '',
+            'Telefone': client.phone || '',
+            'E-mail': client.email || '',
+            'CPF': client.cpf || '',
+            'Endereço': client.address || '',
+            'Tipo': client.type || 'regular',
+            'Fidelizado': client.loyal === 'sim' ? 'Sim' : 'Não',
+            'Total Encomendas': (client.orders && Array.isArray(client.orders)) ? client.orders.length : 0,
+            'Total Orçamentos': (client.budgets && Array.isArray(client.budgets)) ? client.budgets.length : 0,
+            'Data Cadastro': formatDate(client.createdAt) || ''
+        }));
+        
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Clientes");
+        
+        const fileName = `Clientes_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        alert(`Exportação concluída! ${data.length} clientes exportados.`);
+    } catch (error) {
+        console.error("Erro ao exportar Excel:", error);
+        alert("Erro ao exportar para Excel: " + error.message);
+    }
+}
 
         function exportOrdersToExcel() {
-            let allOrders = [];
-            clients.forEach(client => {
-                if (client.orders) {
-                    client.orders.forEach(order => {
-                        let orderCost = 0, orderProfit = 0;
-                        if (order.items) {
+    try {
+        let allOrders = [];
+        
+        // Coletar todas as encomendas
+        clients.forEach(client => {
+            if (client.orders && Array.isArray(client.orders)) {
+                client.orders.forEach(order => {
+                    // Calcular custo e lucro do pedido
+                    let orderCost = 0;
+                    let orderProfit = 0;
+                    
+                    if (order.items && Array.isArray(order.items)) {
+                        order.items.forEach(item => {
+                            const quantity = item.quantity || 1;
+                            const itemCost = (item.cost || 0) * quantity;
+                            const itemRevenue = (item.finalPrice || item.price || 0) * quantity;
+                            orderCost += itemCost;
+                            orderProfit += itemRevenue - itemCost;
+                        });
+                    }
+                    
+                    allOrders.push({
+                        'ID': order.id || '',
+                        'Cliente': client.name || '',
+                        'Telefone': client.phone || '',
+                        'Data': formatDate(order.createdAt) || '',
+                        'Status': order.status === 'pendente' ? 'Pendente' : (order.status === 'entregue' ? 'Entregue' : order.status || ''),
+                        'Pagamento': order.payment === 'pago' ? 'Pago' : (order.payment === 'parcial' ? 'Parcial' : (order.payment === 'pendente' ? 'Pendente' : order.payment || '')),
+                        'Total Venda': order.total || 0,
+                        'Custo Total': orderCost,
+                        'Lucro Total': orderProfit,
+                        'Margem (%)': orderCost > 0 ? ((orderProfit / orderCost) * 100).toFixed(2) : '0.00',
+                        'Quantidade de Itens': order.items ? order.items.length : 0,
+                        'Itens': order.items ? order.items.map(item => `${item.quantity || 1}x ${item.description || ''}`).join('; ') : ''
+                    });
+                });
+            }
+        });
+        
+        if (allOrders.length === 0) {
+            alert('Não há encomendas para exportar!');
+            return;
+        }
+        
+        // Criar planilha
+        const ws = XLSX.utils.json_to_sheet(allOrders);
+        
+        // Ajustar largura das colunas (opcional)
+        const colWidths = [
+            { wch: 15 }, // ID
+            { wch: 25 }, // Cliente
+            { wch: 15 }, // Telefone
+            { wch: 12 }, // Data
+            { wch: 12 }, // Status
+            { wch: 12 }, // Pagamento
+            { wch: 12 }, // Total Venda
+            { wch: 12 }, // Custo Total
+            { wch: 12 }, // Lucro Total
+            { wch: 12 }, // Margem
+            { wch: 12 }, // Qtd Itens
+            { wch: 50 }  // Itens
+        ];
+        ws['!cols'] = colWidths;
+        
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Encomendas");
+        
+        const fileName = `Encomendas_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        alert(`Exportação concluída! ${allOrders.length} encomendas exportadas.`);
+    } catch (error) {
+        console.error("Erro ao exportar Excel:", error);
+        alert("Erro ao exportar para Excel: " + error.message);
+    }
+}
+
+       function exportPendingOrdersToExcel() {
+    try {
+        let pendingOrders = [];
+        
+        clients.forEach(client => {
+            if (client.orders && Array.isArray(client.orders)) {
+                client.orders.forEach(order => {
+                    if (order.status === 'pendente') {
+                        let orderCost = 0;
+                        let orderProfit = 0;
+                        
+                        if (order.items && Array.isArray(order.items)) {
                             order.items.forEach(item => {
-                                const itemCost = (item.cost || 0) * item.quantity;
-                                const itemRevenue = item.finalPrice * item.quantity;
+                                const quantity = item.quantity || 1;
+                                const itemCost = (item.cost || 0) * quantity;
+                                const itemRevenue = (item.finalPrice || item.price || 0) * quantity;
                                 orderCost += itemCost;
                                 orderProfit += itemRevenue - itemCost;
                             });
                         }
                         
-                        allOrders.push({
-                            'ID': order.id,
-                            'Cliente': order.clientName,
-                            'Telefone': order.clientPhone,
-                            'Data': formatDate(order.createdAt),
-                            'Status': order.status === 'pendente' ? 'Pendente' : 'Entregue',
-                            'Pagamento': order.payment === 'pago' ? 'Pago' : order.payment === 'parcial' ? 'Parcial' : 'Pendente',
-                            'Total Venda': order.total,
+                        pendingOrders.push({
+                            'ID': order.id || '',
+                            'Cliente': client.name || '',
+                            'Telefone': client.phone || '',
+                            'Data': formatDate(order.createdAt) || '',
+                            'Pagamento': order.payment === 'pago' ? 'Pago' : (order.payment === 'parcial' ? 'Parcial' : (order.payment === 'pendente' ? 'Pendente' : order.payment || '')),
+                            'Total Venda': order.total || 0,
                             'Custo Total': orderCost,
-                            'Lucro Total': orderProfit,
+                            'Lucro Projetado': orderProfit,
                             'Margem (%)': orderCost > 0 ? ((orderProfit / orderCost) * 100).toFixed(2) : '0.00',
-                            'Quantidade de Itens': order.items.length,
-                            'Itens': order.items.map(item => `${item.quantity}x ${item.description}`).join('; ')
+                            'Disponível': order.available === 'sim' ? 'Sim' : 'Não',
+                            'Itens': order.items ? order.items.map(item => `${item.quantity || 1}x ${item.description || ''}`).join('; ') : ''
                         });
-                    });
-                }
-            });
-            
-            if (allOrders.length === 0) {
-                alert('Não há encomendas para exportar!');
-                return;
+                    }
+                });
             }
-            
-            try {
-                const ws = XLSX.utils.json_to_sheet(allOrders);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Encomendas");
-                XLSX.writeFile(wb, `Encomendas_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
-                alert('Exportação concluída com sucesso!');
-            } catch (error) {
-                console.error("Erro ao exportar Excel:", error);
-                alert("Erro ao exportar para Excel. Tente novamente.");
-            }
+        });
+        
+        if (pendingOrders.length === 0) {
+            alert('Não há encomendas pendentes para exportar!');
+            return;
         }
+        
+        const ws = XLSX.utils.json_to_sheet(pendingOrders);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Encomendas Pendentes");
+        
+        const fileName = `Pendentes_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        alert(`Exportação concluída! ${pendingOrders.length} encomendas pendentes exportadas.`);
+    } catch (error) {
+        console.error("Erro ao exportar Excel:", error);
+        alert("Erro ao exportar para Excel: " + error.message);
+    }
+}
 
-        function exportPendingOrdersToExcel() {
-            let pendingOrders = [];
-            clients.forEach(client => {
-                if (client.orders) {
-                    client.orders.forEach(order => {
-                        if (order.status === 'pendente') {
-                            let orderCost = 0, orderProfit = 0;
-                            if (order.items) {
-                                order.items.forEach(item => {
-                                    const itemCost = (item.cost || 0) * item.quantity;
-                                    const itemRevenue = item.finalPrice * item.quantity;
-                                    orderCost += itemCost;
-                                    orderProfit += itemRevenue - itemCost;
-                                });
-                            }
-                            
-                            pendingOrders.push({
-                                'ID': order.id,
-                                'Cliente': order.clientName,
-                                'Telefone': order.clientPhone,
-                                'Data': formatDate(order.createdAt),
-                                'Pagamento': order.payment === 'pago' ? 'Pago' : order.payment === 'parcial' ? 'Parcial' : 'Pendente',
-                                'Total Venda': order.total,
-                                'Custo Total': orderCost,
-                                'Lucro Projetado': orderProfit,
-                                'Margem (%)': orderCost > 0 ? ((orderProfit / orderCost) * 100).toFixed(2) : '0.00',
-                                'Itens': order.items.map(item => `${item.quantity}x ${item.description}`).join('; ')
-                            });
-                        }
+      function exportBudgetsToExcel() {
+    try {
+        let allBudgets = [];
+        
+        clients.forEach(client => {
+            if (client.budgets && Array.isArray(client.budgets)) {
+                client.budgets.forEach(budget => {
+                    allBudgets.push({
+                        'ID': budget.id || '',
+                        'Cliente': client.name || '',
+                        'Telefone': client.phone || '',
+                        'Data': formatDate(budget.createdAt) || '',
+                        'Validade (dias)': budget.validity || 7,
+                        'Data Validade': formatValidityDate(budget.createdAt, budget.validity),
+                        'Total': budget.total || 0,
+                        'Status': budget.approvalStatus || 'pendente',
+                        'Observações': budget.observations || '',
+                        'Itens': budget.items ? budget.items.map(item => `${item.quantity || 1}x ${item.description || ''}${item.observations ? ` (${item.observations})` : ''}`).join('; ') : ''
                     });
-                }
-            });
-            
-            if (pendingOrders.length === 0) {
-                alert('Não há encomendas pendentes para exportar!');
-                return;
+                });
             }
-            
-            try {
-                const ws = XLSX.utils.json_to_sheet(pendingOrders);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Encomendas Pendentes");
-                XLSX.writeFile(wb, `Pendentes_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
-                alert('Exportação concluída com sucesso!');
-            } catch (error) {
-                console.error("Erro ao exportar Excel:", error);
-                alert("Erro ao exportar para Excel. Tente novamente.");
-            }
+        });
+        
+        if (allBudgets.length === 0) {
+            alert('Não há orçamentos para exportar!');
+            return;
         }
-
-        function exportBudgetsToExcel() {
-            let allBudgets = [];
-            clients.forEach(client => {
-                if (client.budgets) {
-                    client.budgets.forEach(budget => {
-                        allBudgets.push({
-                            'ID': budget.id,
-                            'Cliente': budget.clientName,
-                            'Telefone': budget.clientPhone,
-                            'Data': formatDate(budget.createdAt),
-                            'Validade (dias)': budget.validity,
-                            'Data Validade': formatValidityDate(budget.createdAt, budget.validity),
-                            'Total': budget.total,
-                            'Status': budget.approvalStatus || 'pendente',
-                            'Observações': budget.observations || '',
-                            'Itens': budget.items.map(item => `${item.quantity}x ${item.description}${item.observations ? ` (${item.observations})` : ''}`).join('; ')
-                        });
-                    });
-                }
-            });
-            
-            if (allBudgets.length === 0) {
-                alert('Não há orçamentos para exportar!');
-                return;
-            }
-            
-            try {
-                const ws = XLSX.utils.json_to_sheet(allBudgets);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Orçamentos");
-                XLSX.writeFile(wb, `Orcamentos_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
-                alert('Exportação concluída com sucesso!');
-            } catch (error) {
-                console.error("Erro ao exportar Excel:", error);
-                alert("Erro ao exportar para Excel. Tente novamente.");
-            }
-        }
+        
+        const ws = XLSX.utils.json_to_sheet(allBudgets);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Orçamentos");
+        
+        const fileName = `Orcamentos_Souza_Farma_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        alert(`Exportação concluída! ${allBudgets.length} orçamentos exportados.`);
+    } catch (error) {
+        console.error("Erro ao exportar Excel:", error);
+        alert("Erro ao exportar para Excel: " + error.message);
+    }
+}
 
         function exportClientsToPDF() {
             const columns = ['Nome', 'Telefone', 'Tipo', 'Fidelizado', 'Encomendas', 'Orçamentos'];
