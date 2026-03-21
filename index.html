@@ -2404,6 +2404,7 @@
     </div>
 
     <script>
+        // Firebase Configuration
         const firebaseConfig = {
           apiKey: "AIzaSyCb5Dv8ZVBMxHIIhRqLvDmH4w24Fk0NqEU",
           authDomain: "souza-farma.firebaseapp.com",
@@ -2475,8 +2476,8 @@
             document.getElementById('date-end').value = today.toISOString().split('T')[0];
             
             currentFilter = {
-                startDate: new Date(lastMonth),
-                endDate: new Date(today),
+                startDate: new Date(lastMonth.getFullYear(), lastMonth.getMonth(), lastMonth.getDate(), 0, 0, 0, 0),
+                endDate: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999),
                 status: 'todos',
                 payment: 'todos'
             };
@@ -2518,7 +2519,6 @@
             document.getElementById('period-end').value = today.toISOString().split('T')[0];
         });
 
-        // Função para carregar dados iniciais
         function loadInitialData() {
             db.ref('clients').once('value').then((snapshot) => {
                 const data = snapshot.val();
@@ -2534,10 +2534,10 @@
                     
                     updateStats();
                     updateDashboard();
-                    if (document.getElementById('clients-section').classList.contains('active')) renderClientsList();
-                    if (document.getElementById('orders-section').classList.contains('active')) renderOrdersList();
-                    if (document.getElementById('pending-orders-section').classList.contains('active')) renderPendingOrdersList();
-                    if (document.getElementById('budgets-section').classList.contains('active')) renderBudgetsList();
+                    if (document.getElementById('clients-section') && document.getElementById('clients-section').classList.contains('active')) renderClientsList();
+                    if (document.getElementById('orders-section') && document.getElementById('orders-section').classList.contains('active')) renderOrdersList();
+                    if (document.getElementById('pending-orders-section') && document.getElementById('pending-orders-section').classList.contains('active')) renderPendingOrdersList();
+                    if (document.getElementById('budgets-section') && document.getElementById('budgets-section').classList.contains('active')) renderBudgetsList();
                     
                     console.log("Dados sincronizados com Firebase");
                 });
@@ -2547,7 +2547,6 @@
             });
         }
 
-        // Função para salvar no Firebase
         function saveToLocalStorage() {
             const clientsObj = {};
             clients.forEach(c => { clientsObj[c.id] = c; });
@@ -2557,7 +2556,6 @@
             });
         }
 
-        // Função para mostrar dashboard
         function showDashboard() {
             document.getElementById('dashboard-container').classList.add('active');
             document.getElementById('simple-dashboard').style.display = 'grid';
@@ -2566,7 +2564,6 @@
             updateDashboard();
         }
 
-        // Função para mostrar seção
         function showSection(section) {
             document.getElementById('dashboard-container').classList.remove('active');
             document.getElementById('simple-dashboard').style.display = 'none';
@@ -2593,14 +2590,12 @@
             }
         }
 
-        // Função para ocultar todas as seções
         function hideAllSections() {
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.remove('active');
             });
         }
 
-        // Função para alternar data manual da encomenda
         function toggleOrderManualDate() {
             const checkbox = document.getElementById('order-manual-date-toggle');
             const fields = document.getElementById('order-manual-date-fields');
@@ -2614,7 +2609,6 @@
             }
         }
 
-        // Função para alternar data manual do orçamento
         function toggleBudgetManualDate() {
             const checkbox = document.getElementById('budget-manual-date-toggle');
             const fields = document.getElementById('budget-manual-date-fields');
@@ -2628,7 +2622,6 @@
             }
         }
 
-        // Função para obter data personalizada da encomenda
         function getCustomOrderDate() {
             const checkbox = document.getElementById('order-manual-date-toggle');
             if (checkbox && checkbox.checked) {
@@ -2642,7 +2635,6 @@
             return new Date().toISOString();
         }
 
-        // Função para obter data personalizada do orçamento
         function getCustomBudgetDate() {
             const checkbox = document.getElementById('budget-manual-date-toggle');
             if (checkbox && checkbox.checked) {
@@ -2656,7 +2648,6 @@
             return new Date().toISOString();
         }
 
-        // Função para gerar QR Code
         function generateQRCode() {
             if (typeof QRCode === 'undefined') {
                 setTimeout(generateQRCode, 500);
@@ -2682,7 +2673,6 @@
             }
         }
 
-        // Função para carregar logo da farmácia
         function loadPharmacyLogo() {
             if (pharmacyLogo) {
                 const headerLogo = document.getElementById('header-logo');
@@ -2690,14 +2680,12 @@
             }
         }
 
-        // Função para formatar data
         function formatDate(dateString) {
             if (!dateString) return '';
             const date = new Date(dateString);
             return date.toLocaleDateString('pt-BR');
         }
 
-        // Função para formatar data para input
         function formatDateForInput(date) {
             if (!(date instanceof Date)) {
                 date = new Date(date);
@@ -2708,14 +2696,12 @@
             return `${year}-${month}-${day}`;
         }
 
-        // Função para criar data com hora correta
         function createDateWithCorrectTime(date, hours, minutes, seconds, milliseconds) {
             const newDate = new Date(date);
             newDate.setHours(hours, minutes, seconds, milliseconds);
             return newDate;
         }
 
-        // Função para verificar se data está entre duas datas
         function isDateBetween(dateToCheck, startDate, endDate) {
             if (!dateToCheck || !startDate || !endDate) return false;
             const checkDate = new Date(dateToCheck.getFullYear(), dateToCheck.getMonth(), dateToCheck.getDate());
@@ -2724,7 +2710,6 @@
             return checkDate >= startDateOnly && checkDate <= endDateOnly;
         }
 
-        // Função para inicializar dashboard
         function initializeDashboard() {
             const chartBtns = document.querySelectorAll('.chart-btn');
             chartBtns.forEach(btn => {
@@ -2753,14 +2738,12 @@
             updateDashboard();
         }
 
-        // Função para inicializar gráfico
         function initializeChart() {
             const ctx = document.getElementById('salesChart');
             if (!ctx) return;
             createSalesChart(ctx.getContext('2d'));
         }
 
-        // Função para atualizar gráfico
         function updateChart() {
             const ctx = document.getElementById('salesChart');
             if (!ctx) return;
@@ -2775,7 +2758,6 @@
             }
         }
 
-        // Função para criar gráfico de vendas
         function createSalesChart(ctx) {
             let days = 30;
             let labels = [];
@@ -2854,7 +2836,6 @@
             });
         }
 
-        // Função para criar gráfico de clientes
         function createClientsChart(ctx) {
             let days = 30;
             let labels = [];
@@ -2922,7 +2903,6 @@
             });
         }
 
-        // Função para criar gráfico de receita
         function createRevenueChart(ctx) {
             const revenueByType = { 'regular': 0, 'premium': 0, 'vip': 0 };
             
@@ -2959,7 +2939,6 @@
             });
         }
 
-        // Função para criar gráfico de lucro
         function createProfitChart(ctx) {
             let days = 30;
             let labels = [];
@@ -3049,7 +3028,6 @@
             });
         }
 
-        // Função para atualizar estatísticas do dashboard
         function updateDashboardStats() {
             let totalRevenue = 0, totalCost = 0, totalProfit = 0, totalOrders = 0;
             let activeClients = new Set();
@@ -3079,7 +3057,7 @@
                 }
             });
             
-            const avgMargin = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
+            const avgMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
             
             document.getElementById('active-clients').textContent = activeClients.size;
             document.getElementById('orders-today').textContent = totalOrders;
@@ -3089,13 +3067,11 @@
             document.getElementById('avg-margin').textContent = `${avgMargin.toFixed(1)}%`;
         }
 
-        // Função para atualizar dashboard
         function updateDashboard() {
             updateDashboardStats();
             updateChart();
         }
 
-        // Função para aplicar filtro do dashboard
         function applyDashboardFilter() {
             const startDateInput = document.getElementById('dashboard-date-start').value;
             const endDateInput = document.getElementById('dashboard-date-end').value;
@@ -3117,7 +3093,6 @@
             updateDashboard();
         }
 
-        // Função para resetar filtro do dashboard
         function resetDashboardFilter() {
             const currentDate = new Date();
             const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -3133,7 +3108,6 @@
             updateDashboard();
         }
 
-        // Função para salvar cliente
         function saveClient() {
             const name = document.getElementById('client-name').value.trim();
             const phone = document.getElementById('client-phone').value.trim();
@@ -3182,14 +3156,12 @@
             updateDashboard();
         }
 
-        // Função para limpar formulário de cliente
         function clearClientForm() {
             document.getElementById('client-form').reset();
             document.getElementById('client-type').value = 'regular';
             document.querySelector('input[name="loyal"][value="nao"]').checked = true;
         }
 
-        // Função para registro rápido de cliente
         function quickRegisterClient() {
             const name = document.getElementById('search-client-order').value.trim();
             if (!name) {
@@ -3202,7 +3174,6 @@
             showSection('new-client');
         }
 
-        // Função para registro rápido de cliente para orçamento
         function quickRegisterClientForBudget() {
             const name = document.getElementById('search-client-budget').value.trim();
             if (!name) {
@@ -3215,7 +3186,6 @@
             showSection('new-client');
         }
 
-        // Função para excluir cliente
         function deleteClient(id) {
             const client = clients.find(c => c.id === id);
             if (!client) return;
@@ -3238,7 +3208,6 @@
             updateDashboard();
         }
 
-        // Função para abrir modal de edição de cliente
         function openEditClientModal(clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -3260,13 +3229,11 @@
             document.getElementById('edit-client-modal').style.display = 'flex';
         }
 
-        // Função para fechar modal de edição de cliente
         function closeEditClientModal() {
             document.getElementById('edit-client-modal').style.display = 'none';
             editingClient = null;
         }
 
-        // Função para salvar edição de cliente
         function saveEditedClient(event) {
             event.preventDefault();
             
@@ -3320,7 +3287,6 @@
             alert('Cliente atualizado com sucesso!');
         }
 
-        // Função para buscar cliente para encomenda
         function searchClientForOrder() {
             const searchTerm = document.getElementById('search-client-order').value.toLowerCase();
             const resultsDiv = document.getElementById('client-search-results');
@@ -3359,7 +3325,6 @@
             resultsDiv.style.display = 'block';
         }
 
-        // Função para selecionar cliente para encomenda
         function selectClientForOrder(id) {
             selectedClientForOrder = clients.find(client => client.id === id);
             if (!selectedClientForOrder) return;
@@ -3374,7 +3339,6 @@
             updateOrderProfitSummary();
         }
 
-        // Função para mostrar informações do cliente selecionado
         function showSelectedClientInfo() {
             document.getElementById('selected-client-name').textContent = selectedClientForOrder.name;
             document.getElementById('selected-client-phone').textContent = selectedClientForOrder.phone;
@@ -3382,7 +3346,6 @@
             document.getElementById('order-items').style.display = 'block';
         }
 
-        // Função para buscar cliente para orçamento
         function searchClientForBudget() {
             const searchTerm = document.getElementById('search-client-budget').value.toLowerCase();
             const resultsDiv = document.getElementById('client-budget-search-results');
@@ -3421,7 +3384,6 @@
             resultsDiv.style.display = 'block';
         }
 
-        // Função para selecionar cliente para orçamento
         function selectClientForBudget(id) {
             selectedClientForBudget = clients.find(client => client.id === id);
             if (!selectedClientForBudget) return;
@@ -3436,7 +3398,6 @@
             document.getElementById('budget-info').style.display = 'none';
         }
 
-        // Função para mostrar informações do cliente selecionado para orçamento
         function showSelectedBudgetClientInfo() {
             document.getElementById('selected-budget-client-name').textContent = selectedClientForBudget.name;
             document.getElementById('selected-budget-client-phone').textContent = selectedClientForBudget.phone;
@@ -3444,7 +3405,6 @@
             document.getElementById('budget-items').style.display = 'block';
         }
 
-        // Função para configurar cálculo de lucro
         function setupProfitCalculation() {
             const priceInput = document.getElementById('new-item-price');
             const costInput = document.getElementById('new-item-cost');
@@ -3462,7 +3422,6 @@
             if (discountValue) discountValue.addEventListener('input', calculateItemProfit);
         }
 
-        // Função para calcular lucro do item
         function calculateItemProfit() {
             const price = parseFloat(document.getElementById('new-item-price').value) || 0;
             const cost = parseFloat(document.getElementById('new-item-cost').value) || 0;
@@ -3491,7 +3450,6 @@
             updateOrderProfitSummary();
         }
 
-        // Função para alternar campo de desconto
         function toggleDiscountField() {
             const discountType = document.getElementById('new-item-discount-type').value;
             const discountValue = document.getElementById('new-item-discount-value');
@@ -3506,7 +3464,6 @@
             }
         }
 
-        // Função para configurar cálculo de desconto do orçamento
         function setupBudgetDiscountCalculation() {
             const discountType = document.getElementById('new-budget-item-discount-type');
             const discountValue = document.getElementById('new-budget-item-discount-value');
@@ -3531,7 +3488,6 @@
             discountValue.addEventListener('input', calculateBudgetFinalPrice);
         }
 
-        // Função para alternar campo de desconto do orçamento
         function toggleBudgetDiscountField() {
             const discountType = document.getElementById('new-budget-item-discount-type').value;
             const discountValue = document.getElementById('new-budget-item-discount-value');
@@ -3546,7 +3502,6 @@
             }
         }
 
-        // Função para calcular preço final do orçamento
         function calculateBudgetFinalPrice() {
             const price = parseFloat(document.getElementById('new-budget-item-price').value) || 0;
             const discountType = document.getElementById('new-budget-item-discount-type').value;
@@ -3563,7 +3518,6 @@
             document.getElementById('new-budget-item-final-price').value = finalPrice.toFixed(2);
         }
 
-        // Função para atualizar resumo de lucro da encomenda
         function updateOrderProfitSummary() {
             let totalCost = 0, totalProfit = 0;
             const itemDivs = document.querySelectorAll('[id^="item-"]');
@@ -3590,7 +3544,6 @@
             document.getElementById('order-profit-margin').textContent = `${profitMargin.toFixed(1)}%`;
         }
 
-        // Função para adicionar item à encomenda
         function addOrderItemFromForm() {
             const description = document.getElementById('new-item-desc').value.trim();
             const quantity = parseInt(document.getElementById('new-item-qty').value) || 1;
@@ -3670,7 +3623,6 @@
             updateOrderProfitSummary();
         }
 
-        // Função para adicionar item ao orçamento
         function addBudgetItem() {
             const description = document.getElementById('new-budget-item-desc').value.trim();
             const quantity = parseInt(document.getElementById('new-budget-item-qty').value) || 1;
@@ -3720,7 +3672,6 @@
             updateBudgetInfo();
         }
 
-        // Função para renderizar itens do orçamento
         function renderBudgetItems() {
             const itemsList = document.getElementById('budget-items-list');
             itemsList.innerHTML = '';
@@ -3754,7 +3705,6 @@
             });
         }
 
-        // Função para atualizar total da encomenda
         function updateOrderTotal() {
             let total = 0;
             const itemDivs = document.querySelectorAll('[id^="item-"]');
@@ -3768,7 +3718,6 @@
             document.getElementById('order-total').textContent = total.toFixed(2);
         }
 
-        // Função para atualizar total do orçamento
         function updateBudgetTotal() {
             let total = 0;
             budgetItems.forEach(item => total += item.total);
@@ -3776,7 +3725,6 @@
             document.getElementById('budget-total').textContent = total.toFixed(2);
         }
 
-        // Função para atualizar informações do orçamento
         function updateBudgetInfo() {
             const itemCount = budgetItems.length;
             if (itemCount === 0) {
@@ -3787,7 +3735,6 @@
             document.getElementById('budget-info').style.display = 'block';
         }
 
-        // Função para remover item da encomenda
         function removeOrderItem(id) {
             const itemDiv = document.getElementById('item-' + id);
             if (itemDiv) {
@@ -3797,7 +3744,6 @@
             }
         }
 
-        // Função para remover item do orçamento
         function removeBudgetItem(id) {
             budgetItems = budgetItems.filter(item => item.id !== id);
             renderBudgetItems();
@@ -3805,7 +3751,6 @@
             updateBudgetInfo();
         }
 
-        // Função para atualizar status de pagamento
         function updatePaymentStatus() {
             const downPayment = parseFloat(document.getElementById('down-payment').value) || 0;
             const total = orderTotal;
@@ -3820,7 +3765,6 @@
             }
         }
 
-        // Função para salvar encomenda
         function saveOrder() {
             if (!selectedClientForOrder) {
                 alert('Selecione um cliente primeiro!');
@@ -3916,7 +3860,6 @@
             }
         }
 
-        // Função para salvar orçamento
         function saveBudget() {
             if (!selectedClientForBudget) {
                 alert('Selecione um cliente primeiro!');
@@ -3973,7 +3916,6 @@
             }
         }
 
-        // Função para editar encomenda
         function editOrder(orderId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -3985,7 +3927,6 @@
             showSection('edit-order');
         }
 
-        // Função para editar orçamento
         function editBudget(budgetId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -3997,7 +3938,6 @@
             showSection('edit-budget');
         }
 
-        // Função para renderizar formulário de edição de encomenda
         function renderEditOrderForm() {
             if (!editingOrder) {
                 document.getElementById('edit-order-content').innerHTML = '<p>Erro ao carregar encomenda.</p>';
@@ -4145,7 +4085,6 @@
             });
         }
 
-        // Função para renderizar formulário de edição de orçamento
         function renderEditBudgetForm() {
             if (!editingBudget) {
                 document.getElementById('edit-budget-content').innerHTML = '<p>Erro ao carregar orçamento.</p>';
@@ -4256,7 +4195,6 @@
             });
         }
 
-        // Função para adicionar item à edição de encomenda
         function addEditOrderItem() {
             if (!editingOrder) return;
             
@@ -4276,7 +4214,6 @@
             renderEditOrderForm();
         }
 
-        // Função para adicionar item à edição de orçamento
         function addEditBudgetItem() {
             if (!editingBudget) return;
             
@@ -4294,21 +4231,18 @@
             renderEditBudgetForm();
         }
 
-        // Função para remover item da edição de encomenda
         function removeEditItem(index) {
             if (!editingOrder) return;
             editingOrder.items.splice(index, 1);
             renderEditOrderForm();
         }
 
-        // Função para remover item da edição de orçamento
         function removeEditBudgetItem(index) {
             if (!editingBudget) return;
             editingBudget.items.splice(index, 1);
             renderEditBudgetForm();
         }
 
-        // Função para atualizar total do item na edição de encomenda
         function updateEditItemTotal(index) {
             const qty = parseFloat(document.getElementById('edit-qty-' + index).value) || 1;
             const price = parseFloat(document.getElementById('edit-price-' + index).value) || 0;
@@ -4348,7 +4282,6 @@
             updateEditOrderTotal();
         }
 
-        // Função para atualizar total do item na edição de orçamento
         function updateEditBudgetItemTotal(index) {
             const qty = parseFloat(document.getElementById('edit-budget-qty-' + index).value) || 1;
             const price = parseFloat(document.getElementById('edit-budget-price-' + index).value) || 0;
@@ -4380,7 +4313,6 @@
             updateEditBudgetTotal();
         }
 
-        // Função para atualizar total da edição de encomenda
         function updateEditOrderTotal() {
             let total = 0, totalCost = 0, totalProfit = 0;
             if (editingOrder && editingOrder.items) {
@@ -4401,7 +4333,6 @@
             document.getElementById('edit-order-profit-margin').textContent = `${editingOrder.profitMargin.toFixed(1)}%`;
         }
 
-        // Função para atualizar total da edição de orçamento
         function updateEditBudgetTotal() {
             let total = 0;
             if (editingBudget && editingBudget.items) {
@@ -4411,7 +4342,6 @@
             document.getElementById('edit-budget-total').textContent = total.toFixed(2);
         }
 
-        // Função para salvar edição de encomenda (CORRIGIDA)
         function saveEditedOrder() {
             if (!editingOrder || !editingOrderClientId) return;
             
@@ -4453,7 +4383,6 @@
             updateDashboard();
         }
 
-        // Função para salvar edição de orçamento
         function saveEditedBudget() {
             if (!editingBudget || !editingBudgetClientId) return;
             
@@ -4491,7 +4420,6 @@
             updateDashboard();
         }
 
-        // Função para excluir encomenda
         function deleteOrder(orderId, clientId) {
             if (!confirm('Tem certeza que deseja excluir esta encomenda?')) return;
             
@@ -4510,7 +4438,6 @@
             updateDashboard();
         }
 
-        // Função para excluir orçamento
         function deleteBudget(budgetId, clientId) {
             if (!confirm('Tem certeza que deseja excluir este orçamento?')) return;
             
@@ -4528,7 +4455,6 @@
             updateDashboard();
         }
 
-        // Função para marcar como entregue
         function markAsDelivered(orderId, clientId) {
             const clientIndex = clients.findIndex(c => c.id === clientId);
             if (clientIndex === -1) return;
@@ -4546,7 +4472,6 @@
             updateDashboard();
         }
 
-        // Função para mostrar modal de encomenda
         function showOrderModal() {
             if (!currentOrder) return;
             
@@ -4603,7 +4528,6 @@
             document.getElementById('order-modal').style.display = 'flex';
         }
 
-        // Função para mostrar modal de orçamento
         function showBudgetModal() {
             if (!currentBudget) return;
             
@@ -4646,19 +4570,16 @@
             document.getElementById('budget-modal').style.display = 'flex';
         }
 
-        // Função para fechar modal de encomenda
         function closeModal() {
             document.getElementById('order-modal').style.display = 'none';
             resetOrderForm();
         }
 
-        // Função para fechar modal de orçamento
         function closeBudgetModal() {
             document.getElementById('budget-modal').style.display = 'none';
             resetBudgetForm();
         }
 
-        // Função para enviar encomenda via WhatsApp
         function sendOrderWhatsApp() {
             if (!selectedClientForOrder) {
                 alert('Selecione um cliente primeiro!');
@@ -4670,7 +4591,6 @@
             }, 500);
         }
 
-        // Função para enviar orçamento via WhatsApp
         function sendBudgetWhatsApp() {
             if (!selectedClientForBudget) {
                 alert('Selecione um cliente primeiro!');
@@ -4682,7 +4602,6 @@
             }, 500);
         }
 
-        // Função para enviar encomenda atual via WhatsApp
         function sendCurrentOrderWhatsApp() {
             if (!currentOrder) return;
             
@@ -4727,7 +4646,6 @@
             window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
         }
 
-        // Função para enviar orçamento atual via WhatsApp
         function sendCurrentBudgetWhatsApp() {
             if (!currentBudget) return;
             const phone = currentBudget.clientPhone.replace(/\D/g, '');
@@ -4746,19 +4664,16 @@
             window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
         }
 
-        // Função para imprimir encomenda
         function printOrder() {
             saveOrder();
             printCurrentOrder();
         }
 
-        // Função para imprimir orçamento
         function printBudget() {
             saveBudget();
             printCurrentBudget();
         }
 
-        // Função para imprimir encomenda atual
         function printCurrentOrder() {
             if (!currentOrder) return;
             
@@ -4824,7 +4739,6 @@
             printWindow.print();
         }
 
-        // Função para imprimir orçamento atual
         function printCurrentBudget() {
             if (!currentBudget) return;
             
@@ -4865,19 +4779,16 @@
             printWindow.print();
         }
 
-        // Função para imprimir encomenda térmica
         function printThermalOrder() {
             saveOrder();
             printThermalCurrentOrder();
         }
 
-        // Função para imprimir orçamento térmico
         function printThermalBudget() {
             saveBudget();
             printThermalCurrentBudget();
         }
 
-        // Função para imprimir encomenda atual térmica
         function printThermalCurrentOrder() {
             if (!currentOrder) return;
             
@@ -4946,7 +4857,6 @@
             printWindow.print();
         }
 
-        // Função para imprimir orçamento atual térmico
         function printThermalCurrentBudget() {
             if (!currentBudget) return;
             
@@ -4998,7 +4908,6 @@
             printWindow.print();
         }
 
-        // Função para resetar formulário de encomenda
         function resetOrderForm() {
             document.getElementById('search-client-order').value = '';
             document.getElementById('client-search-results').style.display = 'none';
@@ -5029,7 +4938,6 @@
             document.getElementById('order-manual-date-fields').classList.remove('active');
         }
 
-        // Função para resetar formulário de orçamento
         function resetBudgetForm() {
             document.getElementById('search-client-budget').value = '';
             document.getElementById('client-budget-search-results').style.display = 'none';
@@ -5057,7 +4965,6 @@
             document.getElementById('budget-manual-date-fields').classList.remove('active');
         }
 
-        // Função para renderizar lista de clientes
         function renderClientsList() {
             const searchTerm = document.getElementById('search-clients').value.toLowerCase();
             const container = document.getElementById('clients-list');
@@ -5109,7 +5016,6 @@
             container.innerHTML = html;
         }
 
-        // Função para renderizar lista de encomendas
         function renderOrdersList() {
             const searchTerm = document.getElementById('search-orders').value.toLowerCase();
             const container = document.getElementById('orders-list');
@@ -5123,8 +5029,14 @@
                 }
             });
             
-            if (dateFilterApplied) {
-                allOrders = filterOrdersByDate(allOrders);
+            // CORREÇÃO: Filtrar por data se o filtro estiver aplicado
+            if (dateFilterApplied && currentFilter.startDate && currentFilter.endDate) {
+                allOrders = allOrders.filter(order => {
+                    const orderDate = new Date(order.createdAt);
+                    return isDateBetween(orderDate, currentFilter.startDate, currentFilter.endDate) &&
+                           (currentFilter.status === 'todos' || order.status === currentFilter.status) &&
+                           (currentFilter.payment === 'todos' || order.payment === currentFilter.payment);
+                });
             }
             
             if (searchTerm) {
@@ -5173,7 +5085,6 @@
             container.innerHTML = html;
         }
 
-        // Função para renderizar lista de encomendas pendentes
         function renderPendingOrdersList() {
             const searchTerm = document.getElementById('search-pending-orders').value.toLowerCase();
             const container = document.getElementById('pending-orders-list');
@@ -5232,7 +5143,6 @@
             container.innerHTML = html;
         }
 
-        // Função para renderizar lista de orçamentos
         function renderBudgetsList() {
             const searchTerm = document.getElementById('search-budgets').value.toLowerCase();
             const container = document.getElementById('budgets-list');
@@ -5246,8 +5156,14 @@
                 }
             });
             
-            if (budgetFilterApplied) {
-                allBudgets = filterBudgetsByDate(allBudgets);
+            if (budgetFilterApplied && currentBudgetFilter.startDate && currentBudgetFilter.endDate) {
+                allBudgets = allBudgets.filter(budget => {
+                    const budgetDate = new Date(budget.createdAt);
+                    return isDateBetween(budgetDate, currentBudgetFilter.startDate, currentBudgetFilter.endDate) &&
+                           (currentBudgetFilter.status === 'todos' || 
+                            (currentBudgetFilter.status === 'pendente' && !budget.approvalStatus) ||
+                            budget.approvalStatus === currentBudgetFilter.status);
+                });
             }
             
             if (searchTerm) {
@@ -5308,7 +5224,6 @@
             container.innerHTML = html;
         }
 
-        // Função para converter orçamento em pedido a partir da lista
         function convertBudgetToOrderFromList(budgetId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -5320,7 +5235,6 @@
             convertBudgetToOrder();
         }
 
-        // Função para converter orçamento em pedido
         function convertBudgetToOrder() {
             if (!currentBudget) return;
             
@@ -5388,7 +5302,6 @@
             showOrderModal();
         }
 
-        // Função para enviar orçamento via WhatsApp com link
         function sendBudgetWhatsAppWithLink() {
             if (!currentBudget) return;
             
@@ -5419,7 +5332,6 @@
             window.open(whatsappUrl, '_blank');
         }
 
-        // Função para copiar link de aprovação
         function copyApprovalLink() {
             const linkInput = document.getElementById('approval-url');
             linkInput.select();
@@ -5427,7 +5339,6 @@
             alert('Link copiado para a área de transferência!');
         }
 
-        // Função para verificar URL para aprovação de orçamento
         function checkUrlForApproval() {
             const urlParams = new URLSearchParams(window.location.search);
             const budgetId = urlParams.get('budget');
@@ -5442,7 +5353,6 @@
             }
         }
 
-        // Função para mostrar modal de aprovação de orçamento
         function showBudgetApprovalModal(budgetId) {
             let foundBudget = null;
             let foundClient = null;
@@ -5524,7 +5434,6 @@
             document.getElementById('budget-approval-modal').style.display = 'flex';
         }
 
-        // Função para aprovar orçamento via link
         function approveBudgetFromLink() {
             if (!currentBudget) return;
             
@@ -5544,7 +5453,6 @@
             showThankYouMessage('aprovado');
         }
 
-        // Função para rejeitar orçamento via link
         function rejectBudgetFromLink() {
             if (!currentBudget) return;
             
@@ -5564,7 +5472,6 @@
             showThankYouMessage('rejeitado');
         }
 
-        // Função para mostrar mensagem de agradecimento
         function showThankYouMessage(status) {
             const message = status === 'aprovado' 
                 ? 'Obrigado por aprovar o orçamento! Em breve entraremos em contato.'
@@ -5586,12 +5493,10 @@
             }, 3000);
         }
 
-        // Função para fechar modal de aprovação
         function closeApprovalModal() {
             document.getElementById('budget-approval-modal').style.display = 'none';
         }
 
-        // Função para atualizar resumo de pendentes
         function updatePendingSummary(pendingOrders) {
             const totalOrders = pendingOrders.length;
             const totalValue = pendingOrders.reduce((sum, order) => sum + order.total, 0);
@@ -5610,7 +5515,6 @@
             document.getElementById('pending-total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
         }
 
-        // Função para atualizar resumo de orçamentos
         function updateBudgetSummary(budgets) {
             const totalBudgets = budgets.length;
             const totalValue = budgets.reduce((sum, budget) => sum + budget.total, 0);
@@ -5621,7 +5525,6 @@
             document.getElementById('budget-avg-value').textContent = `R$ ${avgValue.toFixed(2).replace('.', ',')}`;
         }
 
-        // Função para visualizar encomenda
         function viewOrder(orderId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -5631,7 +5534,6 @@
             showOrderModal();
         }
 
-        // Função para visualizar orçamento
         function viewBudget(budgetId, clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -5641,21 +5543,18 @@
             showBudgetModal();
         }
 
-        // Função para excluir encomenda atual
         function deleteCurrentOrder() {
             if (!currentOrder) return;
             deleteOrder(currentOrder.id, currentOrder.clientId);
             closeModal();
         }
 
-        // Função para excluir orçamento atual
         function deleteCurrentBudget() {
             if (!currentBudget) return;
             deleteBudget(currentBudget.id, currentBudget.clientId);
             closeBudgetModal();
         }
 
-        // Função para atualizar estatísticas
         function updateStats() {
             const totalClients = clients.length;
             const loyalClients = clients.filter(c => c.loyal === 'sim').length;
@@ -5679,7 +5578,6 @@
             document.getElementById('total-budgets').textContent = totalBudgets;
         }
 
-        // Função para aplicar filtros de orçamento
         function applyBudgetFilters() {
             const startDateInput = document.getElementById('budget-date-start').value;
             const endDateInput = document.getElementById('budget-date-end').value;
@@ -5703,7 +5601,6 @@
             renderBudgetsList();
         }
 
-        // Função para limpar filtros de orçamento
         function clearBudgetFilters() {
             document.getElementById('budget-date-start').value = '';
             document.getElementById('budget-date-end').value = '';
@@ -5719,34 +5616,18 @@
             renderBudgetsList();
         }
 
-        // Função para filtrar orçamentos por data
-        function filterBudgetsByDate(budgets) {
-            if (!budgetFilterApplied || !currentBudgetFilter.startDate || !currentBudgetFilter.endDate) return budgets;
-            
-            return budgets.filter(budget => {
-                const budgetDate = new Date(budget.createdAt);
-                return isDateBetween(budgetDate, currentBudgetFilter.startDate, currentBudgetFilter.endDate) &&
-                       (currentBudgetFilter.status === 'todos' || 
-                        (currentBudgetFilter.status === 'pendente' && !budget.approvalStatus) ||
-                        budget.approvalStatus === currentBudgetFilter.status);
-            });
-        }
-
-        // Função para formatar data de validade
         function formatValidityDate(createdAt, validity) {
             const date = new Date(createdAt);
             date.setDate(date.getDate() + (validity || 7));
             return date.toLocaleDateString('pt-BR');
         }
 
-        // Função para enviar mensagem para cliente via WhatsApp
         function sendClientWhatsApp(phone, name) {
             const cleanPhone = phone.replace(/\D/g, '');
             const message = `Olá ${name}! Tudo bem? Aqui é da ${pharmacyName}. Como podemos ajudar?`;
             window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
         }
 
-        // Função para aplicar filtro de data
         function applyDateFilter() {
             const startDateInput = document.getElementById('date-start').value;
             const endDateInput = document.getElementById('date-end').value;
@@ -5777,7 +5658,6 @@
             updateDashboard();
         }
 
-        // Função para limpar filtro de data
         function clearDateFilter() {
             const today = new Date();
             const lastMonth = new Date();
@@ -5800,19 +5680,6 @@
             updateDashboard();
         }
 
-        // Função para filtrar encomendas por data
-        function filterOrdersByDate(orders) {
-            if (!dateFilterApplied) return orders;
-            
-            return orders.filter(order => {
-                const orderDate = new Date(order.createdAt);
-                return isDateBetween(orderDate, currentFilter.startDate, currentFilter.endDate) &&
-                       (currentFilter.status === 'todos' || order.status === currentFilter.status) &&
-                       (currentFilter.payment === 'todos' || order.payment === currentFilter.payment);
-            });
-        }
-
-        // Função para atualizar estatísticas do filtro
         function updateFilterStats(filteredOrders) {
             const totalOrders = filteredOrders.length;
             const totalValue = filteredOrders.reduce((sum, order) => sum + order.total, 0);
@@ -5833,7 +5700,6 @@
             document.getElementById('filter-total-profit').textContent = `R$ ${totalProfit.toFixed(2).replace('.', ',')}`;
         }
 
-        // Função para backup de dados
         function backupData() {
             try {
                 const backupData = {
@@ -5859,7 +5725,6 @@
             }
         }
 
-        // Função para restaurar dados
         function restoreData() {
             const fileInput = document.getElementById('restore-file');
             const file = fileInput.files[0];
@@ -5903,7 +5768,6 @@
             reader.readAsText(file);
         }
 
-        // Função para forçar sincronização com Firebase
         function forceSyncToFirebase() {
             if (confirm('Isso forçará a sincronização de todos os dados com o Firebase. Deseja continuar?')) {
                 saveToLocalStorage();
@@ -5911,7 +5775,6 @@
             }
         }
 
-        // Função para exportar clientes para Excel
         function exportClientsToExcel() {
             if (clients.length === 0) {
                 alert('Não há clientes para exportar!');
@@ -5943,7 +5806,6 @@
             }
         }
 
-        // Função para exportar encomendas para Excel
         function exportOrdersToExcel() {
             let allOrders = [];
             clients.forEach(client => {
@@ -5994,7 +5856,6 @@
             }
         }
 
-        // Função para exportar encomendas pendentes para Excel
         function exportPendingOrdersToExcel() {
             let pendingOrders = [];
             clients.forEach(client => {
@@ -6045,7 +5906,6 @@
             }
         }
 
-        // Função para exportar orçamentos para Excel
         function exportBudgetsToExcel() {
             let allBudgets = [];
             clients.forEach(client => {
@@ -6084,7 +5944,6 @@
             }
         }
 
-        // Função para exportar clientes para PDF
         function exportClientsToPDF() {
             const columns = ['Nome', 'Telefone', 'Tipo', 'Fidelizado', 'Encomendas', 'Orçamentos'];
             const rows = clients.map(client => [
@@ -6099,7 +5958,6 @@
             exportToPDF('Lista de Clientes', clients, columns, rows);
         }
 
-        // Função para exportar encomendas para PDF
         function exportOrdersToPDF() {
             let allOrders = [];
             clients.forEach(client => {
@@ -6128,7 +5986,6 @@
             exportToPDF('Lista de Encomendas', allOrders, columns, rows);
         }
 
-        // Função para exportar encomendas pendentes para PDF
         function exportPendingOrdersToPDF() {
             let pendingOrders = [];
             clients.forEach(client => {
@@ -6157,7 +6014,6 @@
             exportToPDF('Encomendas Pendentes', pendingOrders, columns, rows);
         }
 
-        // Função para exportar orçamentos para PDF
         function exportBudgetsToPDF() {
             let allBudgets = [];
             clients.forEach(client => {
@@ -6184,7 +6040,6 @@
             exportToPDF('Lista de Orçamentos', allBudgets, columns, rows);
         }
 
-        // Função auxiliar para exportar para PDF
         function exportToPDF(title, data, columns, rows) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -6424,7 +6279,7 @@
             }
             
             let html = `
-                 <table>
+                 2e
                     <thead>
                         <tr>
                             <th>Período</th>
