@@ -4627,79 +4627,148 @@
             }, 500);
         }
 
-        function sendBudgetWhatsApp() {
-            if (!selectedClientForBudget) {
-                alert('Selecione um cliente primeiro!');
-                return;
-            }
-            saveBudget();
-            setTimeout(() => {
-                if (currentBudget) sendCurrentBudgetWhatsApp();
-            }, 500);
-        }
+        // FUNÇÃO MODIFICADA: Envio de orçamento sem link, apenas com a lista de produtos
+// FUNÇÃO CORRIGIDA: Envio de orçamento pelo WhatsApp (sem link, apenas com produtos)
+function sendBudgetWhatsApp() {
+    if (!selectedClientForBudget) {
+        alert('Selecione um cliente primeiro!');
+        return;
+    }
+    
+    // Primeiro salva o orçamento se ainda não foi salvo
+    if (budgetItems.length === 0) {
+        alert('Adicione pelo menos um item ao orçamento!');
+        return;
+    }
+    
+    // Se já temos um currentBudget do último salvamento ou estamos criando um novo
+    if (!currentBudget || currentBudget.clientId !== selectedClientForBudget.id) {
+        // Salva o orçamento primeiro
+        saveBudgetDirect();
+    } else {
+        // Já tem orçamento salvo, envia direto
+        sendCurrentBudgetWhatsApp();
+    }
+}
 
-        function sendCurrentOrderWhatsApp() {
-            if (!currentOrder) return;
-            
-            const phone = currentOrder.clientPhone.replace(/\D/g, '');
-            const clientName = currentOrder.clientName;
-            const orderDate = formatDate(currentOrder.createdAt);
-            const paymentText = currentOrder.payment === 'pago' ? 'Pago' : 
-                               currentOrder.payment === 'parcial' ? 'Parcial (com entrada)' : 'Pendente';
-            const availableText = currentOrder.available === 'sim' ? 'Sim' : 'Não';
-            
-            let message = `Olá ${clientName}! Tudo bem?%0A%0A`;
-            message += `*SOUZA FARMA - FARMÁCIA DO TRABALHADOR - ENCOMENDA*%0A%0A`;
-            message += `Cliente: ${clientName}%0A`;
-            message += `Data: ${orderDate}%0A`;
-            message += `Status: Pendente de retirada%0A`;
-            message += `Pagamento: ${paymentText}%0A`;
-            message += `Disponível para retirada: ${availableText}%0A`;
-            
-            if (currentOrder.payment === 'parcial' && currentOrder.downPayment > 0) {
-                const remaining = currentOrder.total - currentOrder.downPayment;
-                message += `%0A`;
-                message += `Entrada paga: R$ ${currentOrder.downPayment.toFixed(2)}%0A`;
-                message += `Saldo restante: R$ ${remaining.toFixed(2)}%0A`;
-            }
-            
-            message += `%0A*Itens:*%0A`;
-            currentOrder.items.forEach((item, index) => {
-                message += `${index + 1}. ${item.description} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}%0A`;
-            });
-            
-            message += `%0A*Total: R$ ${currentOrder.total.toFixed(2)}*%0A%0A`;
-            
-            if (currentOrder.available === 'sim') {
-                message += `Aguardamos sua retirada na Souza Farma - Farmácia do Trabalhador!%0A`;
+// Função auxiliar para salvar orçamento e depois enviar
+function saveBudgetDirect() {
+    if (!selectedClientForBudget) {
+        alert('Selecione um cliente primeiro!');
+        return;
+    }
+    if (budgetItems.length === 0) {
+        alert('Adicione pelo menos um item ao orçamento!');
+        return;
+    }
+    
+    const items = budgetItems.map(item => ({
+        quantity: item.quantity,
+        description: item.description,
+        price: item.price,
+        discountType: item.discountType,
+        discountValue: item.discountValue,
+        finalPrice: item.finalPrice,
+        observations: item.observations,
+        total: item.total
+    }));
+    
+    const total = budgetTotal;
+    const validity = parseInt(document.getElementById('budget-validity').value) || 7;
+    const observations = document.getElementById('budget-observations').value.trim();
+    const createdAt = getCustomBudgetDate();
+    
+    const newBudget = {
+        id: Date.now(),
+        clientId: selectedClientForBudget.id,
+        clientName: selectedClientForBudget.name,
+        clientPhone: selectedClientForBudget.phone,
+        items: items,
+        total: total,
+        validity: validity,
+        observations: observations,
+        approvalStatus: 'pendente',
+        createdAt: createdAt
+    };
+    
+    const clientIndex = clients.findIndex(c => c.id === selectedClientForBudget.id);
+    if (clientIndex !== -1) {
+        if (!clients[clientIndex].budgets) clients[clientIndex].budgets = [];
+        clients[clientIndex].budgets.push(newBudget);
+        saveToLocalStorage();
+        currentBudget = newBudget;
+        updateStats();
+        updateDashboard();
+        
+        // Após salvar, envia o WhatsApp
+        sendCurrentBudgetWhatsApp();
+        
+        alert('Orçamento salvo com sucesso!');
+        showBudgetModal();
+        resetBudgetForm();
+    } else {
+        alert('Erro: Cliente não encontrado!');
+    }
+}
+
+// FUNÇÃO PRINCIPAL CORRIGIDA: Envia o orçamento completo SEM link de aprovação
+function sendCurrentBudgetWhatsApp() {
+    if (!currentBudget) {
+        alert('Nenhum orçamento para enviar!');
+        return;
+    }
+    
+    const phone = currentBudget.clientPhone.replace(/\D/g, '');
+    const clientName = currentBudget.clientName;
+    const budgetDate = formatDate(currentBudget.createdAt);
+    const validityDays = currentBudget.validity || 7;
+    const validityDate = new Date(currentBudget.createdAt);
+    validityDate.setDate(validityDate.getDate() + validityDays);
+    const formattedValidity = formatDate(validityDate);
+    
+    // Construir a mensagem completa
+    let message = `Olá ${clientName}! Tudo bem?%0A%0A`;
+    message += `📋 *SOUZA FARMA - ORÇAMENTO* 📋%0A%0A`;
+    message += `👤 Cliente: ${clientName}%0A`;
+    message += `📅 Data: ${budgetDate}%0A`;
+    message += `⏰ Validade: ${validityDays} dias (até ${formattedValidity})%0A`;
+    
+    if (currentBudget.observations && currentBudget.observations.trim() !== '') {
+        message += `📝 Obs: ${currentBudget.observations.replace(/\n/g, ' ')}%0A`;
+    }
+    
+    message += `%0A📦 *ITENS DO ORÇAMENTO:*%0A`;
+    message += `━━━━━━━━━━━━━━━━━━━━%0A`;
+    
+    // Adicionar cada item do orçamento
+    currentBudget.items.forEach((item, index) => {
+        let itemText = `${index + 1}. ${item.description}`;
+        if (item.observations && item.observations.trim() !== '') {
+            itemText += ` (${item.observations})`;
+        }
+        if (item.discountType !== 'none' && item.discountValue > 0) {
+            if (item.discountType === 'percent') {
+                itemText += ` [${item.discountValue}% OFF]`;
             } else {
-                message += `Aguarde a chegada do produto! Assim que disponível, informaremos por aqui.%0A`;
+                itemText += ` [R$ ${item.discountValue.toFixed(2)} OFF]`;
             }
-            
-            message += `%0AAv José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A`;
-            message += `Telefone: 98-98628-7296`;
-            
-            window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
         }
-
-        function sendCurrentBudgetWhatsApp() {
-            if (!currentBudget) return;
-            const phone = currentBudget.clientPhone.replace(/\D/g, '');
-            let message = `Olá ${currentBudget.clientName}! Tudo bem?%0A%0A`;
-            message += `*SOUZA FARMA - FARMÁCIA DO TRABALHADOR - ORÇAMENTO*%0A%0A`;
-            message += `Cliente: ${currentBudget.clientName}%0A`;
-            message += `Data: ${formatDate(currentBudget.createdAt)}%0A`;
-            message += `Validade: ${currentBudget.validity} dias%0A`;
-            message += `*Total: R$ ${currentBudget.total.toFixed(2)}*%0A%0A`;
-            message += `*Itens:*%0A`;
-            currentBudget.items.forEach((item, index) => {
-                const obs = item.observations ? ` (${item.observations})` : '';
-                message += `${index + 1}. ${item.description}${obs} - ${item.quantity}x R$ ${item.finalPrice.toFixed(2)}%0A`;
-            });
-            
-            window.open(`https://wa.me/55${phone}?text=${message}`, '_blank');
-        }
-
+        itemText += `%0A   └ ${item.quantity}x R$ ${item.finalPrice.toFixed(2)} = R$ ${item.total.toFixed(2)}`;
+        message += `${itemText}%0A`;
+    });
+    
+    message += `━━━━━━━━━━━━━━━━━━━━%0A`;
+    message += `💰 *TOTAL: R$ ${currentBudget.total.toFixed(2)}*%0A%0A`;
+    message += `✅ Este orçamento é válido até ${formattedValidity}.%0A`;
+    message += `📞 Estamos à disposição para atendê-lo!%0A%0A`;
+    message += `🏢 Souza Farma - Farmácia do Trabalhador%0A`;
+    message += `📍 Av José Sarney n°06 quadra 03 - Bom Jesus - São Luís MA%0A`;
+    message += `📱 Telefone: 98-98628-7296`;
+    
+    // Abrir WhatsApp com a mensagem
+    const whatsappUrl = `https://wa.me/55${phone}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+}        
         function printOrder() {
             saveOrder();
             printCurrentOrder();
@@ -5394,35 +5463,65 @@ function escapeHtml(text) {
             showOrderModal();
         }
 
-        function sendBudgetWhatsAppWithLink() {
-            if (!currentBudget) return;
-            
-            const phone = currentBudget.clientPhone.replace(/\D/g, '');
-            
-            const baseUrl = window.location.href.split('?')[0];
-            const approvalLink = `${baseUrl}?budget=${currentBudget.id}&action=approve`;
-            
-            document.getElementById('approval-url').value = approvalLink;
-            
-            const validityDate = new Date(currentBudget.createdAt);
-            validityDate.setDate(validityDate.getDate() + (currentBudget.validity || 7));
-            
-            const saudacao = `Olá ${currentBudget.clientName}! Tudo bem?%0A%0A`;
-            
-            const message = `${saudacao}*SOUZA FARMA - FARMÁCIA DO TRABALHADOR - ORÇAMENTO PARA APROVAÇÃO*%0A%0A` +
-                           `*Cliente:* ${currentBudget.clientName}%0A` +
-                           `*Data:* ${formatDate(currentBudget.createdAt)}%0A` +
-                           `*Validade:* ${currentBudget.validity} dias (${formatDate(validityDate)})%0A%0A` +
-                           `*Valor Total:* R$ ${currentBudget.total.toFixed(2)}%0A%0A` +
-                           `Para aprovar este orçamento, clique no link abaixo:%0A` +
-                           `${encodeURIComponent(approvalLink)}%0A%0A` +
-                           `Estamos à disposição para esclarecer dúvidas!%0A%0A` +
-                           `Av José Sarney n°06 quadra 03 - Bairro Bom Jesus - São Luís MA%0A` +
-                           `Telefone: 98-98628-7296`;
-            
-            const whatsappUrl = `https://wa.me/55${phone}?text=${message}`;
-            window.open(whatsappUrl, '_blank');
+        // FUNÇÃO MODIFICADA: WhatsApp com link (mantida para compatibilidade, mas não é mais usada no botão principal)
+        // FUNÇÃO CORRIGIDA: Envia orçamento com lista de produtos (sem link) - usada no modal
+function sendBudgetWhatsAppWithLink() {
+    if (!currentBudget) {
+        alert('Nenhum orçamento selecionado!');
+        return;
+    }
+    
+    const phone = currentBudget.clientPhone.replace(/\D/g, '');
+    const clientName = currentBudget.clientName;
+    const budgetDate = formatDate(currentBudget.createdAt);
+    const validityDays = currentBudget.validity || 7;
+    const validityDate = new Date(currentBudget.createdAt);
+    validityDate.setDate(validityDate.getDate() + validityDays);
+    const formattedValidity = formatDate(validityDate);
+    
+    // Construir a mensagem completa com todos os itens
+    let message = `Olá ${clientName}! Tudo bem?%0A%0A`;
+    message += `📋 *SOUZA FARMA - ORÇAMENTO* 📋%0A%0A`;
+    message += `👤 Cliente: ${clientName}%0A`;
+    message += `📅 Data: ${budgetDate}%0A`;
+    message += `⏰ Validade: ${validityDays} dias (até ${formattedValidity})%0A`;
+    
+    if (currentBudget.observations && currentBudget.observations.trim() !== '') {
+        message += `📝 Obs: ${currentBudget.observations.replace(/\n/g, ' ')}%0A`;
+    }
+    
+    message += `%0A📦 *ITENS DO ORÇAMENTO:*%0A`;
+    message += `━━━━━━━━━━━━━━━━━━━━%0A`;
+    
+    // Adicionar cada item
+    currentBudget.items.forEach((item, index) => {
+        let itemText = `${index + 1}. ${item.description}`;
+        if (item.observations && item.observations.trim() !== '') {
+            itemText += ` (${item.observations})`;
         }
+        if (item.discountType !== 'none' && item.discountValue > 0) {
+            if (item.discountType === 'percent') {
+                itemText += ` [${item.discountValue}% OFF]`;
+            } else {
+                itemText += ` [R$ ${item.discountValue.toFixed(2)} OFF]`;
+            }
+        }
+        itemText += `%0A   └ ${item.quantity}x R$ ${item.finalPrice.toFixed(2)} = R$ ${item.total.toFixed(2)}`;
+        message += `${itemText}%0A`;
+    });
+    
+    message += `━━━━━━━━━━━━━━━━━━━━%0A`;
+    message += `💰 *TOTAL: R$ ${currentBudget.total.toFixed(2)}*%0A%0A`;
+    message += `✅ Este orçamento é válido até ${formattedValidity}.%0A`;
+    message += `📞 Estamos à disposição para atendê-lo!%0A%0A`;
+    message += `🏢 Souza Farma - Farmácia do Trabalhador%0A`;
+    message += `📍 Av José Sarney n°06 quadra 03 - Bom Jesus - São Luís MA%0A`;
+    message += `📱 Telefone: 98-98628-7296`;
+    
+    // Abrir WhatsApp
+    const whatsappUrl = `https://wa.me/55${phone}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+}
 
         function copyApprovalLink() {
             const linkInput = document.getElementById('approval-url');
